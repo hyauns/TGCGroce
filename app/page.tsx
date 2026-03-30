@@ -1,0 +1,61 @@
+import type { Metadata } from "next"
+import { getFeaturedProducts, getBestSellingProducts, getPreOrderProducts } from "@/lib/products"
+import { getAllReviews } from "@/lib/reviews"
+import HomePageClient from "./page-client"
+
+// ============================================================
+// SEO Metadata
+// ============================================================
+
+export const metadata: Metadata = {
+  title: "TGC Lore | Premium Trading Cards & Collectibles Store",
+  description:
+    "Shop authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana, and One Piece trading cards. Booster packs, booster boxes, and sealed product. Free shipping on US orders over $75.",
+  keywords:
+    "trading cards, TCG, Magic The Gathering, Pokemon cards, Yu-Gi-Oh, Disney Lorcana, One Piece Card Game, booster packs, booster boxes, collectible cards, card shop, TGC Lore",
+  alternates: { canonical: "https://tgclore.com" },
+  openGraph: {
+    title: "TGC Lore | Premium Trading Cards & Collectibles Store",
+    description:
+      "Authentic trading cards from your favourite TCG brands. Magic, Pokemon, Yu-Gi-Oh!, Lorcana & more. Fast US shipping.",
+    url: "https://tgclore.com",
+    siteName: "TGC Lore Inc.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TGC Lore | Premium Trading Cards & Collectibles Store",
+    description: "Authentic trading cards from your favourite TCG brands.",
+  },
+}
+
+// Revalidate homepage data every hour
+export const revalidate = 3600
+
+// ============================================================
+// Server Component — fetches all data on the server then
+// passes it to the Client Component as serialisable props.
+// DATABASE_URL is only read on the server; never exposed to
+// the browser. Resolves the "No database connection string"
+// console error caused by the previous useEffect approach.
+// ============================================================
+
+export default async function HomePage() {
+  // All 4 fetches run in parallel on the server
+  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews] =
+    await Promise.all([
+      getFeaturedProducts(),
+      getBestSellingProducts(),
+      getPreOrderProducts(),
+      getAllReviews(),
+    ])
+
+  return (
+    <HomePageClient
+      featuredProducts={featuredProducts}
+      bestSellingProducts={bestSellingProducts}
+      preOrderProducts={preOrderProducts}
+      initialReviews={initialReviews}
+    />
+  )
+}

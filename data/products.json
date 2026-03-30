@@ -1,0 +1,145 @@
+[
+  {
+    "id": 1,
+    "name": "Magic: The Gathering - Foundations Booster Box",
+    "slug": "mtg-foundations-booster-box",
+    "price": 89.99,
+    "category": "Magic: The Gathering",
+    "image": "/placeholder.svg?height=400&width=400&text=MTG+Foundations",
+    "description": "Experience the core of Magic with this comprehensive booster box featuring reprints of beloved cards and new additions perfect for both new and veteran players.",
+    "stock": 25,
+    "isPreOrder": false
+  },
+  {
+    "id": 2,
+    "name": "Pokemon TCG - Scarlet & Violet Base Set Booster Box",
+    "slug": "pokemon-scarlet-violet-booster-box",
+    "price": 144.99,
+    "category": "Pokemon",
+    "image": "/placeholder.svg?height=400&width=400&text=Pokemon+SV",
+    "description": "Discover the Paldea region with this exciting booster box featuring new Pokemon and powerful cards from the Scarlet & Violet series.",
+    "stock": 18,
+    "isPreOrder": false
+  },
+  {
+    "id": 3,
+    "name": "Yu-Gi-Oh! - Age of Overlords Booster Box",
+    "slug": "yugioh-age-overlords-booster-box",
+    "price": 79.99,
+    "category": "Yu-Gi-Oh!",
+    "image": "/placeholder.svg?height=400&width=400&text=YuGiOh+AoO",
+    "description": "Unleash powerful new strategies with the Age of Overlords booster set, featuring game-changing cards and stunning artwork.",
+    "stock": 32,
+    "isPreOrder": false
+  },
+  {
+    "id": 4,
+    "name": "Disney Lorcana - Into the Inklands Booster Box",
+    "slug": "disney-lorcana-inklands-booster-box",
+    "price": 143.99,
+    "category": "Disney Lorcana",
+    "image": "/placeholder.svg?height=400&width=400&text=Lorcana+Inklands",
+    "description": "Explore new realms in the Disney Lorcana trading card game with Into the Inklands, featuring beloved Disney characters in stunning new artwork.",
+    "stock": 0,
+    "isPreOrder": true
+  },
+  {
+    "id": 5,
+    "name": "One Piece Card Game - Kingdoms of Intrigue Booster Box",
+    "slug": "one-piece-kingdoms-intrigue-booster-box",
+    "price": 89.99,
+    "category": "One Piece Card Game",
+    "image": "/placeholder.svg?height=400&width=400&text=OnePiece+KoI",
+    "description": "Set sail with the Straw Hat Pirates in this exciting booster box featuring characters and scenes from the Kingdoms of Intrigue arc.",
+    "stock": 15,
+    "isPreOrder": false
+  },
+  {
+    "id": 6,
+    "name": "Flesh and Blood - Part the Mistveil Booster Box",
+    "slug": "flesh-blood-mistveil-booster-box",
+    "price": 99.99,
+    "category": "Flesh and Blood",
+    "image": "/placeholder.svg?height=400&width=400&text=FAB+Mistveil",
+    "description": "Discover the mysteries of the Mistveil with this atmospheric booster box featuring new mechanics and beautiful artwork.",
+    "stock": 8,
+    "isPreOrder": false
+  },
+  {
+    "id": 7,
+    "name": "Magic: The Gathering - Murders at Karlov Manor Bundle",
+    "slug": "mtg-karlov-manor-bundle",
+    "price": 44.99,
+    "category": "Magic: The Gathering",
+    "image": "/placeholder.svg?height=400&width=400&text=MTG+Karlov",
+    "description": "Solve the mystery in this thrilling Magic set bundle featuring detective-themed gameplay and noir-inspired artwork.",
+    "stock": 42,
+    "isPreOrder": false
+  },
+  {
+    "id": 8,
+    "name": "Pokemon TCG - Paldean Fates Elite Trainer Box",
+    "slug": "pokemon-paldean-fates-etb",
+    "price": 49.99,
+    "category": "Pokemon",
+    "image": "/placeholder.svg?height=400&width=400&text=Pokemon+Fates",
+    "description": "Experience the beauty of shiny Pokemon with this special Elite Trainer Box featuring alternate art cards and premium accessories.",
+    "stock": 28,
+    "isPreOrder": false
+  },
+  {
+    "id": 9,
+    "name": "Tarkir Dragonstorm Bundle",
+    "slug": "tarkir-dragonstorm-bundle",
+    "price": 89.99,
+    "category": "Magic: The Gathering",
+    "image": "/images/tarkir-dragonstorm-bundle.webp",
+    "description": "Experience the power of dragons with this premium bundle featuring exclusive cards and collectibles from the Tarkir Dragonstorm set.",
+    "stock": 12,
+    "isPreOrder": false
+  },
+  {
+    "id": 10,
+    "name": "Edge of Eternities Collector Box",
+    "slug": "edge-eternities-collector-box",
+    "price": 149.99,
+    "category": "Magic: The Gathering",
+    "image": "/images/edge-eternities-bundle.webp",
+    "description": "Delve into the mysteries of eternity with this collector's edition featuring rare foil cards and exclusive artwork.",
+    "stock": 6,
+    "isPreOrder": false
+  },
+  {
+    "id": 11,
+    "name": "Tarkir Play Booster Display",
+    "slug": "tarkir-play-booster-display",
+    "price": 144.99,
+    "category": "Magic: The Gathering",
+    "image": "/images/tarkir-play-boosters.webp",
+    "description": "Perfect for drafting and casual play, this display box contains 36 play booster packs from the Tarkir set.",
+    "stock": 20,
+    "isPreOrder": false
+  },
+  {
+    "id": 12,
+    "name": "Digimon Card Game - Exceed Apocalypse Booster Box",
+    "slug": "digimon-exceed-apocalypse-booster-box",
+    "price": 89.99,
+    "category": "Digimon Card Game",
+    "image": "/placeholder.svg?height=400&width=400&text=Digimon+Exceed",
+    "description": "Enter the digital world with powerful new Digimon and devastating attacks in this action-packed booster box.",
+    "stock": 14,
+    "isPreOrder": false
+  },
+  {
+    "id": 13,
+    "name": "Star Wars: Unlimited - Spark of Rebellion Booster Box",
+    "slug": "star-wars-spark-rebellion-booster-box",
+    "price": 119.99,
+    "category": "Star Wars: Unlimited",
+    "image": "/placeholder.svg?height=400&width=400&text=StarWars+Spark",
+    "description": "Join the Rebellion with this inaugural booster box featuring iconic characters and vehicles from the Star Wars universe.",
+    "stock": 22,
+    "isPreOrder": false
+  }
+]
