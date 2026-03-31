@@ -404,6 +404,8 @@ export default function CheckoutPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isProcessing, setIsProcessing] = useState(false)
+  const [calculatedTax, setCalculatedTax] = useState<number | null>(null)
+  const [isCalculatingTax, setIsCalculatingTax] = useState(false)
 
   // Mobile detection and keyboard handling
   const checkMobile = () => {
@@ -753,7 +755,7 @@ export default function CheckoutPage() {
   const subtotal = state.items?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0
   const selectedShipping = shippingOptions.find((option) => option.id === formData.shippingMethod)
   const shippingCost = subtotal >= 75 && formData.shippingMethod === "standard" ? 0 : selectedShipping?.price || 0
-  const tax = subtotal * 0.08
+  const tax = calculatedTax ?? 0
   const total = subtotal + shippingCost + tax
 
   const handleInputChange = (field: string, value: string) => {
@@ -998,8 +1000,35 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateStep(currentStep)) {
+      if (currentStep === 2) {
+        setIsCalculatingTax(true)
+        try {
+          const res = await fetch("/api/taxes/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: subtotal,
+              shipping: shippingCost,
+              toZip: formData.zipCode,
+              toState: formData.state,
+              toCity: formData.city,
+              toCountry: formData.country,
+            })
+          })
+          if (res.ok) {
+            const data = await res.json()
+            setCalculatedTax(data.taxAmount)
+          } else {
+            setCalculatedTax(0)
+          }
+        } catch (err) {
+          setCalculatedTax(0)
+        } finally {
+          setIsCalculatingTax(false)
+        }
+      }
       setCurrentStep((prev) => Math.min(prev + 1, 4))
       // Scroll to top on mobile after step change
       if (isMobile) {
@@ -1031,7 +1060,7 @@ export default function CheckoutPage() {
     const userEmail = user?.email || formData.email
 
     const subtotal = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const taxAmount = subtotal * 0.08
+    const taxAmount = calculatedTax ?? 0
     const shippingAmount = formData.shippingMethod === "express" ? 15.99 : 5.99
     const totalAmount = subtotal + taxAmount + shippingAmount
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -2545,7 +2574,13 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-sm sm:text-base">
                     <span className="text-gray-600">Tax</span>
-                    <span className="font-semibold">${tax.toFixed(2)}</span>
+                    <span className="font-semibold">
+                      {calculatedTax === null ? (
+                        <span className="text-gray-500 italic text-sm font-normal">Calculated next step</span>
+                      ) : (
+                        `$${tax.toFixed(2)}`
+                      )}
+                    </span>
                   </div>
                   {currentStep === 4 && selectedPaymentMethod && (
                     <div className="flex justify-between text-sm sm:text-base">

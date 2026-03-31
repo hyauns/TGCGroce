@@ -29,9 +29,6 @@ export const metadata: Metadata = {
   },
 }
 
-// Revalidate homepage data every hour
-export const revalidate = 3600
-
 // ============================================================
 // Server Component — fetches all data on the server then
 // passes it to the Client Component as serialisable props.

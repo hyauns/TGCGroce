@@ -2,9 +2,6 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getAllProducts, getProductBySlug, getRelatedProducts } from "@/lib/products"
 
-// ISR: Revalidate every hour
-export const revalidate = 3600
-
 interface PageProps {
   params: { slug: string }
 }

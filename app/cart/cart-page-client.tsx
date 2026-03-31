@@ -219,7 +219,7 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
 
   const discount            = appliedPromo ? subtotal * appliedPromo.discount : 0
   const subtotalAfterDiscount = subtotal - discount
-  const tax                 = subtotalAfterDiscount * 0.08
+  const tax                 = 0 // Actual tax is calculated securely at checkout
   const finalTotal          = subtotalAfterDiscount + shippingCost + tax
 
   // ── Helpers for delivery calculator ────────────────────────────────────────
@@ -574,9 +574,9 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
                       </span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <span>Tax (estimated)</span>
-                      <span>${tax.toFixed(2)}</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-base">Tax (estimated)</span>
+                      <span className="text-gray-500 italic">Calculated at checkout</span>
                     </div>
                   </div>
 

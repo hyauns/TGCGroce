@@ -1,3 +1,4 @@
+import "@/lib/env" // Fail-fast env validation — must be first import
 import type React from "react"
 import type { Metadata } from "next"
 import ClientRootLayout from "./client-layout"

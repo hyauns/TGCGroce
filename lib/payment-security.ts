@@ -11,7 +11,7 @@ const KEY_LENGTH = 32 // 256 bits
 const IV_LENGTH = 16 // 128 bits
 const TAG_LENGTH = 16 // 128 bits
 
-// Get encryption key from environment or generate for testing
+// Get encryption key from environment (validated in lib/env.ts)
 const MASTER_KEY = process.env.PAYMENT_ENCRYPTION_KEY || "test-key-for-development-only-not-secure"
 
 // Derive encryption key using PBKDF2
@@ -201,6 +201,16 @@ export function decryptPhone(encryptedPhone: string): string {
     devError("Phone decryption error:", error)
     throw new Error("Failed to decrypt phone number")
   }
+}
+
+/**
+ * Mask a phone number for safe logging (e.g., "***-***-4567")
+ */
+export function maskPhone(phone: string | null | undefined): string {
+  if (!phone) return "N/A"
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length < 4) return "***"
+  return `***-***-${digits.slice(-4)}`
 }
 
 /**
