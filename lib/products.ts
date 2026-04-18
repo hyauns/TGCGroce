@@ -545,7 +545,7 @@ export async function getAllCategorySlugs(): Promise<string[]> {
  * Query priority:
  *   1. products.is_featured = true  (authoritative flag if column exists)
  *   2. Fallback: products with a discount (original_price IS NOT NULL)
- * Returns up to 8 products.
+ * Returns up to 12 products.
  */
 export async function getFeaturedProducts(): Promise<Product[]> {
   try {
@@ -568,7 +568,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true AND p.is_featured = true
         ORDER BY p.created_at DESC
-        LIMIT 8
+        LIMIT 12
       ` as DbProductJoined[]
 
       if (featuredRows.length > 0) return featuredRows.map(mapJoinedRowToProduct)
@@ -591,7 +591,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.original_price IS NOT NULL
       ORDER BY p.created_at DESC
-      LIMIT 8
+      LIMIT 12
     ` as DbProductJoined[]
 
     // Strategy 3: still empty — return any 8 active products
@@ -610,7 +610,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
-        LIMIT 8
+        LIMIT 12
       ` as DbProductJoined[]
       return anyRows.map(mapJoinedRowToProduct)
     }
@@ -627,7 +627,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 /**
  * Fetch best-selling products for the homepage.
  * Ordered by created_at DESC as a proxy until a sales_count column is added.
- * Returns up to 8 products.
+ * Returns up to 12 products.
  */
 export async function getBestSellingProducts(): Promise<Product[]> {
   try {
@@ -648,7 +648,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.stock_quantity > 0
       ORDER BY p.created_at DESC
-      LIMIT 8
+      LIMIT 12
     ` as DbProductJoined[]
 
     // Fallback: any active products if none have stock
@@ -667,7 +667,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
-        LIMIT 8
+        LIMIT 12
       ` as DbProductJoined[]
       return anyRows.map(mapJoinedRowToProduct)
     }
@@ -689,7 +689,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
  *   2. Fallback: products.is_preorder = true  (alternate column name)
  *   3. Returns [] gracefully when neither column exists
  *
- * Returns up to 8 products, mapped with isPreOrder = true.
+ * Returns up to 12 products, mapped with isPreOrder = true.
  */
 export async function getPreOrderProducts(): Promise<Product[]> {
   const sql = getSqlConnection()
@@ -713,7 +713,7 @@ export async function getPreOrderProducts(): Promise<Product[]> {
       WHERE p.is_active = true
         AND p.is_pre_order = true
       ORDER BY p.release_date ASC NULLS LAST, p.created_at DESC
-      LIMIT 8
+      LIMIT 12
     ` as DbProductJoined[]
 
     if (rows.length > 0) {
@@ -741,7 +741,7 @@ export async function getPreOrderProducts(): Promise<Product[]> {
       WHERE p.is_active = true
         AND LOWER(p.condition) = 'pre-order'
       ORDER BY p.created_at DESC
-      LIMIT 8
+      LIMIT 12
     ` as DbProductJoined[]
 
     if (rows.length > 0) {
@@ -769,7 +769,7 @@ export async function getPreOrderProducts(): Promise<Product[]> {
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.is_preorder = true
       ORDER BY p.created_at DESC
-      LIMIT 8
+      LIMIT 12
     ` as DbProductJoined[]
 
     if (rows.length > 0) {

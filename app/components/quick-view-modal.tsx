@@ -128,25 +128,25 @@ export function QuickViewModal({
               </h2>
 
               {/* Rating */}
-              {(product.rating ?? 0) > 0 && (
-                <div className="flex items-center gap-1 mb-2 md:gap-2 md:mb-4">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-3 w-3 md:h-4 md:w-4 ${
-                          i < Math.floor(product.rating ?? 0)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-gray-200 text-gray-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-600 md:text-sm">
-                    {product.rating} ({product.reviews || 0} reviews)
-                  </span>
+              <div className="flex items-center gap-1 mb-2 md:gap-2 md:mb-4">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3 w-3 md:h-4 md:w-4 ${
+                        i < Math.floor(product.rating ?? 0)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-gray-200 text-gray-200"
+                      }`}
+                    />
+                  ))}
                 </div>
-              )}
+                {(product.reviews ?? 0) > 0 && (
+                  <span className="text-xs text-gray-600 md:text-sm">
+                    {product.rating} ({product.reviews} reviews)
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Price */}

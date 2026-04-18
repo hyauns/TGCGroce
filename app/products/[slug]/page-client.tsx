@@ -83,7 +83,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
     setOpenAccordion((prev) => ({ ...prev, [key]: !prev[key] }))
 
   // Safe fallbacks for optional DB fields
-  const productRating = product.rating ?? 4.5
+  const productRating = product.rating || 0
   const productDescription = product.description || "Experience the thrill of opening premium trading card packs with this exceptional product. Each pack contains carefully curated cards that offer exciting gameplay possibilities and collectible value."
   const productImage = product.image || "/placeholder.svg?height=400&width=400"
 
@@ -1054,18 +1054,20 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                           {relatedProduct.name}
                         </h3>
                       </Link>
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-1 mb-2 min-h-[16px]">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             className={`w-3 h-3 ${
-                              i < Math.floor(relatedProduct.rating ?? 4.5)
+                              i < Math.floor(relatedProduct.rating || 0)
                                 ? "fill-yellow-400 text-yellow-400"
                                 : "text-gray-300"
                             }`}
                           />
                         ))}
-                        <span className="text-xs text-gray-600 ml-1">({relatedReviewCount.toLocaleString()})</span>
+                        {relatedReviewCount > 0 && (
+                          <span className="text-xs text-gray-600 ml-1">({relatedReviewCount.toLocaleString()})</span>
+                        )}
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">

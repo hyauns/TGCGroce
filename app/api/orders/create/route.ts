@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from "next/server"
 import { Pool, type PoolClient } from "@neondatabase/serverless"
 import { detectCardBrand, encryptPhone, maskPhone } from "@/lib/payment-security"
-import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
+// email imports removed
 import { calculateSalesTax } from "@/lib/tax"
 
 // Lazy pool singleton — not created at module scope (avoids build-time DB
@@ -517,47 +517,9 @@ export async function POST(request: NextRequest) {
     client.release()
     client = null
 
-    // ── 10. Transactional emails (Run outside transaction lock) ──────────────
-    try {
-      if (customerEmail) {
-        const emailOrderData = {
-          orderId:         String(order.id),
-          orderNumber,
-          customerId:      customerId ?? "guest",
-          customerEmail,
-          paymentMethodId: paymentMethodId ?? "",
-          transactionId,
-          amount:          Number(subtotal     || 0),
-          currency:        "USD",
-          items:           (items as any[]).map((i) => ({
-            id:       String(i.id),
-            name:     i.name,
-            price:    Number(i.price),
-            quantity: Number(i.quantity),
-          })),
-          shippingMethod: "Standard",
-          shippingCost:   Number(shippingAmount || 0),
-          tax:            formattedTaxAmount,
-          total:          formattedTotalAmount,
-          orderDate:      new Date(),
-          shippingAddress: {
-            name:    `${cleanShipping.first_name} ${cleanShipping.last_name}`.trim(),
-            street:  cleanShipping.address_line1,
-            city:    cleanShipping.city,
-            state:   cleanShipping.state,
-            zipCode: cleanShipping.postal_code,
-            country: cleanShipping.country,
-          },
-        }
-
-        await Promise.all([
-          sendOrderConfirmation(emailOrderData),
-          sendAdminOrderNotification(emailOrderData),
-        ])
-      }
-    } catch (emailErr) {
-      console.error("[v0] Order email setup error:", emailErr)
-    }
+    // ── 10. Transactional emails ─────────────────────────────────────────────
+    // Removed to prevent duplicate emails. Emails are now exclusively sent 
+    // by the /api/orders/complete route during checkout.
 
     return NextResponse.json({
       success: true,

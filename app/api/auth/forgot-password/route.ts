@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
       if (tokenStored) {
         // Send password reset email
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.BASE_URL || "http://localhost:3000"
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tcglore.com"
         const resetUrl = `${baseUrl}/auth/reset-password?token=${token}`
 
         const userAgent = request.headers.get("user-agent") || "unknown"

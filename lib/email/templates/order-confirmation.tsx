@@ -151,7 +151,7 @@ export function OrderConfirmationTemplate({
                 <tr style={{ borderTop: "2px solid #333", fontWeight: "bold", fontSize: "18px" }}>
                   <td style={{ padding: "10px 0 5px 0" }}>Total:</td>
                   <td style={{ padding: "10px 0 5px 0", textAlign: "right" }}>
-                    ${ total.toFixed(2)} USD
+                    ${total.toFixed(2)} USD
                   </td>
                 </tr>
               </table>
@@ -181,13 +181,13 @@ export function OrderConfirmationTemplate({
             </div>
 
             <p style={{ color: "#666", fontSize: "14px" }}>
-              Thank you for choosing TCG Lore Operated by A TOY HAULERZ LLC Company for your trading card needs!
+              Thank you for choosing TCG LORE LLC Company for your trading card needs!
             </p>
 
             <p style={{ color: "#666", fontSize: "14px" }}>
               Best regards,
               <br />
-              The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
+              The TCG LORE LLC Company. Team
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export function OrderConfirmationTemplate({
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG LORE LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#667eea", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
@@ -209,7 +209,7 @@ export function OrderConfirmationTemplate({
               <a href="tel:+13036683245" style={{ color: "#667eea", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG LORE Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
           </div>
         </div>
       </body>

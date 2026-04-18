@@ -538,7 +538,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                             </CardTitle>
                           </Link>
 
-                          <div className="flex items-center gap-1 mb-3">
+                          <div className="flex items-center gap-1 mb-3 min-h-[20px]">
                             <div className="flex">
                               {[...Array(5)].map((_, i) => (
                                 <Star
@@ -552,7 +552,9 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                               ))}
                             </div>
                             <span className="text-sm text-gray-600 font-medium">{product.rating ?? "—"}</span>
-                            {product.reviews && <span className="text-sm text-gray-500">({product.reviews})</span>}
+                            {(product.reviews ?? 0) > 0 && (
+                              <span className="text-sm text-gray-500">({product.reviews})</span>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-2 mb-3">

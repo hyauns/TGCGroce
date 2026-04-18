@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
+﻿/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
 import { getLogoUrl } from "./shared"
 
@@ -15,7 +15,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company</title>
+        <title>Welcome to TCG LORE LLC Company</title>
       </head>
       <body
         style={{
@@ -48,7 +48,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
             <h2 style={{ color: "#333", marginTop: 0 }}>Hello {firstName}!</h2>
 
             <p>
-              Welcome to the TCG Lore Operated by A TOY HAULERZ LLC Company. family! We're thrilled to have you join our community of trading card
+              Welcome to the TCG LORE LLC Company. family! We're thrilled to have you join our community of trading card
               enthusiasts.
             </p>
 
@@ -201,7 +201,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
             <p style={{ color: "#666", fontSize: "14px" }}>
               Happy collecting!
               <br />
-              The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
+              The TCG LORE LLC Company. Team
             </p>
           </div>
 
@@ -215,7 +215,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG LORE LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#667eea", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
@@ -249,16 +249,15 @@ WHAT YOU CAN DO NOW:
 â€¢ Track your orders in real-time
 â€¢ Leave reviews and connect with other collectors
 
-${
-  discountCode && discountAmount
-    ? `
+${discountCode && discountAmount
+      ? `
 WELCOME GIFT! ðŸŽ‰
 Get ${discountAmount}% off your first purchase
 Use code: ${discountCode}
 Valid for 30 days on your first order
 `
-    : ""
-}
+      : ""
+    }
 
 POPULAR CATEGORIES:
 â€¢ Magic: The Gathering

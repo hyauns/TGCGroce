@@ -407,13 +407,15 @@ export default function HomePageClient({
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-1 mb-4">
+                    <div className="flex items-center gap-1 mb-4 min-h-[20px]">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600 font-medium ml-1">({product.reviews || 0})</span>
+                      {(product.reviews ?? 0) > 0 && (
+                        <span className="text-sm text-gray-600 font-medium ml-1">({product.reviews})</span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between mb-6 flex-grow items-end">
                       <div className="flex items-center gap-2">
@@ -532,13 +534,15 @@ export default function HomePageClient({
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 min-h-[20px]">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600 font-medium">({product.reviews ?? 0})</span>
+                      {(product.reviews ?? 0) > 0 && (
+                        <span className="text-sm text-gray-600 font-medium">({product.reviews})</span>
+                      )}
                       <span className="text-sm text-green-600 font-semibold">• {formatSalesCount(product.salesCount ?? 0)}+ sold</span>
                     </div>
                     <div className="flex items-center justify-between mb-6 flex-grow items-end">

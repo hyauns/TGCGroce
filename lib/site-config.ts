@@ -22,8 +22,7 @@
 
 const rawUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.BASE_URL ||
-  "http://localhost:3000"
+  "https://tcglore.com"
 
 /**
  * The canonical site root URL with no trailing slash.
