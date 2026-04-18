@@ -94,7 +94,7 @@ export default function ContactPage() {
       questions: [
         {
           q: "How can I track my order?",
-          a: "You can track your order by visiting our Order Tracking page and entering your order number and email address. You'll also receive tracking information via email once your order ships.",
+          a: "You can track your order by visiting our Order Tracking page and entering your order number and email address. you&apos;ll also receive tracking information via email once your order ships.",
         },
         {
           q: "When will my order ship?",
@@ -116,7 +116,7 @@ export default function ContactPage() {
         },
         {
           q: "How do I initiate a return?",
-          a: "Visit our Returns page to start the return process. You'll receive a prepaid return label and instructions on how to package your items.",
+          a: "Visit our Returns page to start the return process. you&apos;ll receive a prepaid return label and instructions on how to package your items.",
         },
         {
           q: "Can I exchange an item for a different product?",
@@ -130,7 +130,7 @@ export default function ContactPage() {
       questions: [
         {
           q: "When will out-of-stock items be restocked?",
-          a: "Restock dates vary by product. You can sign up for restock notifications on product pages, and we'll email you when items become available.",
+          a: "Restock dates vary by product. You can sign up for restock notifications on product pages, and we&apos;ll email you when items become available.",
         },
         {
           q: "Do you offer pre-orders for upcoming releases?",
@@ -172,7 +172,7 @@ export default function ContactPage() {
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              We're here to help! Get in touch with our customer service team for any questions about your orders,
+              We&apos;re here to help! Get in touch with our customer service team for any questions about your orders,
               products, or account.
             </p>
           </div>
@@ -190,7 +190,7 @@ export default function ContactPage() {
                   Send us a Message
                 </CardTitle>
                 <CardDescription>
-                  Fill out the form below and we'll get back to you within 24 hours during business days.
+                  Fill out the form below and we&apos;ll get back to you within 24 hours during business days.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -285,7 +285,7 @@ export default function ContactPage() {
                           className="w-4 h-4"
                         />
                         <label htmlFor="recaptcha" className="text-sm">
-                          I'm not a robot
+                          I&apos;m not a robot
                         </label>
                         <Shield className="h-4 w-4 text-gray-500" />
                       </div>
@@ -399,7 +399,7 @@ export default function ContactPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Find quick answers to common questions. Can't find what you're looking for? Use the contact form above.
+              Find quick answers to common questions. can&apos;t find what you&apos;re looking for? Use the contact form above.
             </p>
           </div>
 
@@ -439,7 +439,7 @@ export default function ContactPage() {
         <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 text-center">
           <h3 className="text-2xl font-bold mb-4">Still Need Help?</h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Our customer service team is standing by to assist you with any questions or concerns. We're committed to
+            Our customer service team is standing by to assist you with any questions or concerns. We&apos;re committed to
             providing exceptional support for all your TCG needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -459,3 +459,4 @@ export default function ContactPage() {
     </div>
   )
 }
+

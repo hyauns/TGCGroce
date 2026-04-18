@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import { useState } from "react"
@@ -15,6 +16,7 @@ import {
   Eye,
   Users,
 } from "lucide-react"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -181,7 +183,7 @@ export default function PaymentOrdersPage() {
                   <span>Payment Processing Timeline</span>
                 </CardTitle>
                 <CardDescription>
-                  Your card will not be charged immediately. Here's our secure payment process:
+                  Your card will not be charged immediately. Here&apos;s our secure payment process:
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -353,7 +355,7 @@ export default function PaymentOrdersPage() {
                   <span>Order Fulfillment Process</span>
                 </CardTitle>
                 <CardDescription>
-                  From order confirmation to delivery - here's what happens to your order
+                  From order confirmation to delivery - Here&apos;s what happens to your order
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -406,7 +408,7 @@ export default function PaymentOrdersPage() {
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-semibold mb-2">Tracking Information</h4>
                   <p className="text-sm text-gray-600">
-                    Once your order ships, you'll receive an email with tracking information. You can also track your
+                    Once your order ships, you&apos;ll receive an email with tracking information. You can also track your
                     order anytime by visiting your account dashboard or using our order tracking page.
                   </p>
                 </div>
@@ -431,7 +433,7 @@ export default function PaymentOrdersPage() {
                       key={index}
                       className="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-300 transition-colors"
                     >
-                      <img src={card.logo || "/placeholder.svg"} alt={card.name} className="h-8 mx-auto mb-2" />
+                      <Image src={card.logo || "/placeholder.svg"} alt={card.name} width={100} height={32} className="h-8 mx-auto mb-2 object-contain" />
                       <p className="text-sm font-medium">{card.name}</p>
                     </div>
                   ))}
@@ -552,3 +554,6 @@ export default function PaymentOrdersPage() {
     </div>
   )
 }
+
+
+

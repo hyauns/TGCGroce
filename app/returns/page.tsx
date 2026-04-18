@@ -297,7 +297,7 @@ export default function ReturnsPage() {
                     </div>
                     <h4 className="font-bold mb-2">Get RMA Number</h4>
                     <p className="text-sm text-gray-600">
-                      We'll provide a Return Merchandise Authorization number and instructions
+                      we&apos;ll provide a Return Merchandise Authorization number and instructions
                     </p>
                   </div>
                   <div className="text-center">
@@ -345,7 +345,7 @@ export default function ReturnsPage() {
                       <div className="flex-1">
                         <h5 className="font-semibold mb-2">2. Receive RMA Number</h5>
                         <p className="text-sm text-gray-600 mb-3">
-                          We'll email you a Return Merchandise Authorization (RMA) number within 24 hours, along with
+                          we&apos;ll email you a Return Merchandise Authorization (RMA) number within 24 hours, along with
                           detailed return instructions and a prepaid shipping label if applicable.
                         </p>
                         <Badge variant="outline" className="text-xs">
@@ -929,3 +929,4 @@ export default function ReturnsPage() {
     </div>
   )
 }
+

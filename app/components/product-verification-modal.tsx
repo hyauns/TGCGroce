@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, AlertTriangle, Eye, Award, Zap, Database, Wifi, X, ExternalLink, Copy, Check } from "lucide-react"
+import Image from "next/image"
 
 interface ProductVerificationModalProps {
   isOpen: boolean
@@ -70,6 +71,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
     if (verificationState === "loading") {
       runVerification()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [verificationState])
 
   const runVerification = async () => {
@@ -127,7 +129,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
           </Button>
           <div className="text-center">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-              <img src="/images/shield-verified.png" alt="Shield" className="w-8 h-8" />
+              <Image src="/images/shield-verified.png" alt="Shield" width={32} height={32} className="w-8 h-8" />
             </div>
             <h2 className="text-xl font-bold mb-2">Product Verification</h2>
             <p className="text-blue-100 text-sm">Authenticating product legitimacy</p>
@@ -162,7 +164,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
           {verificationState === "idle" && (
             <div className="text-center space-y-4">
               <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
-                <img src="/images/shield-verified.png" alt="Shield" className="w-10 h-10" />
+                <Image src="/images/shield-verified.png" alt="Shield" width={40} height={40} className="w-10 h-10" />
               </div>
               <div>
                 <h4 className="font-semibold text-gray-900 mb-2">Ready to Verify</h4>
@@ -192,7 +194,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
                   <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
                   {/* Inner pulsing shield */}
                   <div className="absolute inset-4 bg-blue-600 rounded-full flex items-center justify-center animate-pulse">
-                    <img src="/images/shield-verified.png" alt="Shield" className="w-8 h-8 brightness-0 invert" />
+                    <Image src="/images/shield-verified.png" alt="Shield" width={32} height={32} className="w-8 h-8 brightness-0 invert" />
                   </div>
                   {/* Security particles */}
                   <div className="absolute -inset-2">
@@ -270,7 +272,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h4 className="font-bold text-green-900 mb-2 flex items-center justify-center gap-2">
-                  <img src="/images/shield-verified.png" alt="Shield" className="w-5 h-5" />
+                  <Image src="/images/shield-verified.png" alt="Shield" width={20} height={20} className="w-5 h-5" />
                   Product Verified Authentic
                 </h4>
                 <p className="text-green-800 text-sm mb-3">
@@ -363,3 +365,4 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
     </Dialog>
   )
 }
+

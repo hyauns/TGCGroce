@@ -42,6 +42,7 @@ export function AddToCartPopup({ isOpen, onClose, product, cartCount }: AddToCar
 
       return () => clearTimeout(timer)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product])
 
   const handleClose = () => {
@@ -195,3 +196,4 @@ export function AddToCartPopup({ isOpen, onClose, product, cartCount }: AddToCar
     </>
   )
 }
+

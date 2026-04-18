@@ -124,7 +124,7 @@ export default function RegisterPage() {
                 <CheckCircle className="h-16 w-16 mx-auto text-green-600" />
                 <h2 className="text-2xl font-bold">Account Created!</h2>
                 <p className="text-gray-600">
-                  We've sent a verification email to <strong>{formData.email}</strong>. Please check your inbox and
+                  We&apos;ve sent a verification email to <strong>{formData.email}</strong>. Please check your inbox and
                   click the verification link to activate your account.
                 </p>
                 <div className="space-y-2 pt-4">
@@ -349,3 +349,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+

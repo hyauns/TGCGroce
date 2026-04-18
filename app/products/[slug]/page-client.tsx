@@ -975,7 +975,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                       { icon: <Award className="w-5 h-5 text-blue-600" />, title: "Official Distributor", text: "Sourced directly from official distributors and authorized retailers." },
                       { icon: <CheckCircle className="w-5 h-5 text-green-600" />, title: "Quality Verification", text: "Each product undergoes thorough inspection to ensure authenticity." },
                       { icon: <Package className="w-5 h-5 text-purple-600" />, title: "Secure Packaging", text: "Sealed and packaged securely to prevent tampering during transit." },
-                      { icon: <RotateCcw className="w-5 h-5 text-orange-600" />, title: "30-Day Returns", text: "Full return policy if product doesn't meet our authenticity standards." },
+                      { icon: <RotateCcw className="w-5 h-5 text-orange-600" />, title: "30-Day Returns", text: "Full return policy if product doesn&apos;t meet our authenticity standards." },
                     ].map(({ icon, title, text }) => (
                       <div key={title} className="flex items-start gap-3">
                         {icon}

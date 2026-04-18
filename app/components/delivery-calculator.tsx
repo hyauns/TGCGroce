@@ -174,7 +174,7 @@ export function DeliveryCalculator({
                     />
                     <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   </div>
-                  <p className="text-xs text-gray-500">We'll calculate delivery options based on your location</p>
+                  <p className="text-xs text-gray-500">we&apos;ll calculate delivery options based on your location</p>
                 </div>
 
                 {/* Order Info */}
@@ -316,3 +316,4 @@ export function DeliveryCalculator({
     </Dialog>
   )
 }
+

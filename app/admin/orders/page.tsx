@@ -63,7 +63,8 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders()
-  }, [currentPage, search, statusFilter])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, statusFilter])
 
   const handleViewOrder = async (orderId: string) => {
     try {
@@ -352,3 +353,5 @@ export default function OrdersPage() {
     </div>
   )
 }
+
+

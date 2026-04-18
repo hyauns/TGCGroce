@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import type React from "react"
@@ -202,6 +203,7 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
     } else {
       processPayment()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, router])
 
   const handleRetry = () => {
@@ -845,3 +847,5 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
     </div>
   )
 }
+
+

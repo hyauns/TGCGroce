@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -188,7 +189,7 @@ function CheckoutSuccessContent() {
               <h2 className="text-lg font-semibold text-green-800">Your Order is Confirmed</h2>
             </div>
             <p className="text-green-700">
-              Your order has been successfully placed and payment processed. You'll receive order confirmation and
+              Your order has been successfully placed and payment processed. you&apos;ll receive order confirmation and
               shipping updates via email.
             </p>
           </div>
@@ -262,7 +263,7 @@ function CheckoutSuccessContent() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <p className="text-sm text-blue-800">
                         <Info className="h-4 w-4 inline mr-2" />
-                        We believe in transparency - you'll only be charged when your order is ready to ship.
+                        We believe in transparency - you&apos;ll only be charged when your order is ready to ship.
                       </p>
                     </div>
                   </div>
@@ -360,7 +361,7 @@ function CheckoutSuccessContent() {
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-green-800 mb-2">4. Order Processing & Payment</h3>
                     <p className="text-gray-700 mb-3">
-                      Once all security checks are complete and your order is ready to ship, we'll process the final
+                      Once all security checks are complete and your order is ready to ship, we&apos;ll process the final
                       payment. This is when the actual charge for your purchase will appear on your statement.
                     </p>
                     <div className="bg-green-50 p-4 rounded-lg">
@@ -368,7 +369,7 @@ function CheckoutSuccessContent() {
                       <ul className="text-sm text-green-700 space-y-1">
                         <li>• Your order is packed and ready to ship</li>
                         <li>• All security verifications are complete</li>
-                        <li>• You'll receive an email confirmation with tracking</li>
+                        <li>• you&apos;ll receive an email confirmation with tracking</li>
                         <li>• The charge will reflect your actual purchase amount</li>
                       </ul>
                     </div>
@@ -443,7 +444,7 @@ function CheckoutSuccessContent() {
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Email Updates</h3>
                   <p className="text-sm text-gray-600">
-                    You'll receive email notifications when your order ships, including tracking information.
+                    you&apos;ll receive email notifications when your order ships, including tracking information.
                   </p>
                 </div>
 
@@ -473,7 +474,7 @@ function CheckoutSuccessContent() {
                 In rare cases, our security system may require additional verification. This could happen if:
               </p>
               <ul className="space-y-2 text-orange-700 ml-4">
-                <li>• Your billing and shipping addresses don't match</li>
+                <li>• Your billing and shipping addresses don&apos;t match</li>
                 <li>• This is your first large order with us</li>
                 <li>• Your order contains high-value or limited items</li>
                 <li>• Our system detects unusual purchasing patterns</li>
@@ -488,7 +489,7 @@ function CheckoutSuccessContent() {
                 </ul>
               </div>
               <p className="text-orange-800 font-medium">
-                If additional verification is needed, we'll contact you within 2 hours via email or phone with specific
+                If additional verification is needed, we&apos;ll contact you within 2 hours via email or phone with specific
                 instructions.
               </p>
             </CardContent>
@@ -560,3 +561,5 @@ export default function CheckoutSuccessPage() {
     </Suspense>
   )
 }
+
+

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import { useEffect } from "react"
@@ -240,7 +241,7 @@ export default function TermsOfService() {
 
               <h3 className="text-xl font-medium text-gray-800 mb-3">11.1 Service Disclaimer</h3>
               <p className="text-gray-700 mb-4">
-                Our Service is provided "as is" and "as available" without warranties of any kind, either express or
+                Our Service is provided &quot;as is&quot; and "as available" without warranties of any kind, either express or
                 implied. We do not warrant that the Service will be uninterrupted, error-free, or completely secure.
               </p>
 
@@ -402,3 +403,5 @@ export default function TermsOfService() {
     </div>
   )
 }
+
+

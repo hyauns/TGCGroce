@@ -121,8 +121,8 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <p className="text-gray-700 leading-relaxed">
-                      Pre-ordering allows you to reserve upcoming trading card game releases before they're officially
-                      available. This ensures you'll receive your products as soon as they're released, often with
+                      Pre-ordering allows you to reserve upcoming trading card game releases before they&apos;re officially
+                      available. This ensures you&apos;ll receive your products as soon as they&apos;re released, often with
                       exclusive bonuses and guaranteed availability.
                     </p>
                     <div className="space-y-3">
@@ -191,7 +191,7 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
             <div>
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold mb-4">Featured Pre-Orders</h2>
-                <p className="text-gray-600 text-lg">Don't miss out on these upcoming releases</p>
+                <p className="text-gray-600 text-lg">don&apos;t miss out on these upcoming releases</p>
               </div>
 
               {preOrderProducts.length > 0 ? (
@@ -562,7 +562,7 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                     <div className="space-y-3 text-sm text-gray-700">
                       <p><strong>Cancellation Window:</strong> Pre-orders can be cancelled up to 48 hours before the expected release date for a full refund.</p>
                       <p><strong>Release Date Changes:</strong> If a release date is delayed by more than 30 days, you may request a full refund.</p>
-                      <p><strong>Product Changes:</strong> If significant product specifications change, you'll be notified and given the option to cancel for a full refund.</p>
+                      <p><strong>Product Changes:</strong> If significant product specifications change, you&apos;ll be notified and given the option to cancel for a full refund.</p>
                       <p><strong>Refund Processing:</strong> Approved refunds are processed within 3-5 business days to your original payment method.</p>
                     </div>
                   </div>
@@ -586,10 +586,10 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                 <div className="space-y-6">
                   {[
                     { question: "When will my payment be charged?", answer: "Your payment is charged immediately when you place your pre-order. This secures your reservation and ensures the product will be available for you upon release." },
-                    { question: "What happens if the release date changes?", answer: "We'll notify you immediately via email if there are any changes to the release date. If the delay is more than 30 days, you can request a full refund if desired." },
+                    { question: "What happens if the release date changes?", answer: "we&apos;ll notify you immediately via email if there are any changes to the release date. If the delay is more than 30 days, you can request a full refund if desired." },
                     { question: "Can I cancel my pre-order?", answer: "Yes, pre-orders can be cancelled up to 48 hours before the expected release date for a full refund. After that, the order enters final processing and cannot be cancelled." },
-                    { question: "Do I get charged shipping twice if I have other items?", answer: "No, if you have other items ready to ship, we'll hold them and ship everything together when your pre-order arrives, unless you specifically request separate shipments." },
-                    { question: "What if the product is damaged during shipping?", answer: "All pre-orders are fully insured. If your product arrives damaged, contact us within 48 hours with photos and we'll send a replacement immediately at no cost." },
+                    { question: "Do I get charged shipping twice if I have other items?", answer: "No, if you have other items ready to ship, we&apos;ll hold them and ship everything together when your pre-order arrives, unless you specifically request separate shipments." },
+                    { question: "What if the product is damaged during shipping?", answer: "All pre-orders are fully insured. If your product arrives damaged, contact us within 48 hours with photos and we&apos;ll send a replacement immediately at no cost." },
                     { question: "Are pre-order bonuses guaranteed?", answer: "Yes, all advertised pre-order bonuses are guaranteed for orders placed before the cutoff date. Bonuses are subject to availability and may vary by product." },
                     { question: "How do I track my pre-order status?", answer: "You can track your pre-order status through your account dashboard, via email notifications, or using our order tracking page with your order number." },
                     { question: "What payment methods do you accept?", answer: "We accept Credit Card payments. All transactions are encrypted and secure." },
@@ -644,7 +644,7 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Secure Your Cards?</h2>
             <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Don't miss out on the latest releases. Pre-order now and be among the first to experience the newest
+              don&apos;t miss out on the latest releases. Pre-order now and be among the first to experience the newest
               trading card games with exclusive bonuses.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -676,3 +676,4 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
     </div>
   )
 }
+

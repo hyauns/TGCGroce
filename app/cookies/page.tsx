@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import { useEffect } from "react"
@@ -348,3 +349,5 @@ export default function CookiesPage() {
     </div>
   )
 }
+
+

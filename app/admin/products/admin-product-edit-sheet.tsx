@@ -105,7 +105,7 @@ export function AdminProductEditSheet({ product, isOpen, onOpenChange }: Product
         <SheetHeader>
           <SheetTitle>Edit Product</SheetTitle>
           <SheetDescription>
-            Make changes to the product details here. Click save when you're done.
+            Make changes to the product details here. Click save when you&apos;re done.
           </SheetDescription>
         </SheetHeader>
         
@@ -244,3 +244,4 @@ export function AdminProductEditSheet({ product, isOpen, onOpenChange }: Product
     </Sheet>
   )
 }
+

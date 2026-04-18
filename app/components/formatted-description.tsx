@@ -50,7 +50,7 @@ export function FormattedDescription({ text, className = "text-gray-700" }: Form
           lines.forEach((line) => {
             const listMatch = line.match(/^[•\-*]\s+(.*)/)
             if (listMatch) {
-              // It's a list item
+              // It&apos;s a list item
               currentList.push(listMatch[1])
             } else {
               // Not a list item
@@ -80,3 +80,4 @@ export function FormattedDescription({ text, className = "text-gray-700" }: Form
     </div>
   )
 }
+

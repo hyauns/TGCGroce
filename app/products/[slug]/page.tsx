@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: PageProps) {
   const relatedProducts = await getRelatedProducts(product.id)
 
   // Pass data to the client component
-  // We'll use dynamic import for the client component
+  // We&apos;ll use dynamic import for the client component
   const ProductPageClient = (await import("./page-client")).default
 
   const productSchema = {

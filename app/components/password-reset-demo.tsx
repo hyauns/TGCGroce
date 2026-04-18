@@ -37,7 +37,7 @@ export function PasswordResetDemo({ email, onClose }: PasswordResetDemoProps) {
                 {demoResetUrl}
               </p>
               <p className="mb-2">This link will expire in 1 hour.</p>
-              <p>If you didn't request this, please ignore this email.</p>
+              <p>If you didn&apos;t request this, please ignore this email.</p>
             </div>
           </div>
 
@@ -61,3 +61,4 @@ export function PasswordResetDemo({ email, onClose }: PasswordResetDemoProps) {
     </div>
   )
 }
+

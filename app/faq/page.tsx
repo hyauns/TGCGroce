@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import type React from "react"
@@ -38,12 +39,12 @@ const faqData: FAQCategory[] = [
       {
         question: "Can I track my order?",
         answer:
-          "Once your order ships, you'll receive a tracking number via email. You can also track your order by logging into your account and visiting the 'My Orders' section.",
+          "Once your order ships, you&apos;ll receive a tracking number via email. You can also track your order by logging into your account and visiting the 'My Orders' section.",
       },
       {
         question: "What if my order arrives damaged?",
         answer:
-          "We're sorry if your order arrives damaged! Please contact us within 48 hours of delivery with photos of the damaged items. We'll arrange for a replacement or full refund at no cost to you.",
+          "We&apos;re sorry if your order arrives damaged! Please contact us within 48 hours of delivery with photos of the damaged items. we&apos;ll arrange for a replacement or full refund at no cost to you.",
       },
       {
         question: "Can I change or cancel my order?",
@@ -95,7 +96,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Do you sell individual cards?",
         answer:
-          "Currently, we focus on sealed products like booster packs, boxes, and bundles. We're working on expanding to individual card sales in the future. Follow us on social media for updates!",
+          "Currently, we focus on sealed products like booster packs, boxes, and bundles. We&apos;re working on expanding to individual card sales in the future. Follow us on social media for updates!",
       },
       {
         question: "What condition are your products in?",
@@ -105,7 +106,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Do you offer pre-orders?",
         answer:
-          "Yes! We offer pre-orders for upcoming releases. Pre-order items are charged when you place the order and ship on or shortly after the official release date. You'll receive email updates about any delays.",
+          "Yes! We offer pre-orders for upcoming releases. Pre-order items are charged when you place the order and ship on or shortly after the official release date. you&apos;ll receive email updates about any delays.",
       },
       {
         question: "Can I get a specific card from a pack?",
@@ -121,12 +122,12 @@ const faqData: FAQCategory[] = [
       {
         question: "How do I create an account?",
         answer:
-          "Click 'Sign Up' in the top right corner of any page. You'll need to provide your email address, create a password, and verify your email. Having an account allows you to track orders, save favorites, and checkout faster.",
+          "Click 'Sign Up' in the top right corner of any page. you&apos;ll need to provide your email address, create a password, and verify your email. Having an account allows you to track orders, save favorites, and checkout faster.",
       },
       {
         question: "I forgot my password. How do I reset it?",
         answer:
-          "Click 'Sign In' then 'Forgot Password' on the login page. Enter your email address and we'll send you a secure link to reset your password. The link expires after 24 hours for security.",
+          "Click 'Sign In' then 'Forgot Password' on the login page. Enter your email address and we&apos;ll send you a secure link to reset your password. The link expires after 24 hours for security.",
       },
       {
         question: "How do I update my account information?",
@@ -141,7 +142,7 @@ const faqData: FAQCategory[] = [
       {
         question: "How do I delete my account?",
         answer:
-          "We're sorry to see you go! Please contact our customer service team to request account deletion. We'll remove your personal information within 30 days, though we may retain order history for legal and business purposes.",
+          "We&apos;re sorry to see you go! Please contact our customer service team to request account deletion. we&apos;ll remove your personal information within 30 days, though we may retain order history for legal and business purposes.",
       },
     ],
   },
@@ -162,7 +163,7 @@ const faqData: FAQCategory[] = [
       {
         question: "When will I be charged?",
         answer:
-          "For in-stock items, you're charged immediately when you place your order. For pre-orders, you're charged when the order is placed, not when it ships. If there are any issues, we'll contact you before processing payment.",
+          "For in-stock items, you&apos;re charged immediately when you place your order. For pre-orders, you&apos;re charged when the order is placed, not when it ships. If there are any issues, we&apos;ll contact you before processing payment.",
       },
       {
         question: "Can I use multiple payment methods?",
@@ -188,7 +189,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Do you have a physical store?",
         answer:
-          "We're currently an online-only retailer, which allows us to offer competitive prices and a wide selection. However, we do attend major gaming conventions and tournaments - follow our social media for event announcements!",
+          "We&apos;re currently an online-only retailer, which allows us to offer competitive prices and a wide selection. However, we do attend major gaming conventions and tournaments - follow our social media for event announcements!",
       },
       {
         question: "Do you offer bulk discounts?",
@@ -346,7 +347,7 @@ export default function FAQPage() {
                 <h3 className="text-2xl font-bold text-gray-900">Still need help?</h3>
               </div>
               <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-                Can't find the answer you're looking for? Our customer service team is here to help you with any
+                can&apos;t find the answer you&apos;re looking for? Our customer service team is here to help you with any
                 questions or concerns.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -372,3 +373,5 @@ export default function FAQPage() {
     </div>
   )
 }
+
+

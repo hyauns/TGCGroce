@@ -45,7 +45,7 @@ export default function ShippingPage() {
               Shipping Policy
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Fast, secure, and reliable shipping for all your trading card game needs. We're committed to getting your
+              Fast, secure, and reliable shipping for all your trading card game needs. We&apos;re committed to getting your
               cards to you quickly and safely.
             </p>
             <div className="mt-6 flex items-center justify-center gap-4 text-sm text-gray-500">
@@ -928,3 +928,4 @@ export default function ShippingPage() {
     </div>
   )
 }
+

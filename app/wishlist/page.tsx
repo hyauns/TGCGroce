@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingCart, Star, Trash2, Heart, Grid, List, Clock } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import { useCart } from "@/lib/cart-context"
@@ -156,9 +157,11 @@ export default function WishlistPage() {
                       <div
                         className={`bg-gray-100 overflow-hidden ${viewMode === "list" ? "w-48 h-48 rounded-l-lg rounded-t-none" : "w-full aspect-square rounded-t-lg"}`}
                       >
-                        <img
+                        <Image
                           src={item.image || "/placeholder.svg?height=1000&width=1000"}
                           alt={item.name}
+                          width={1000}
+                          height={1000}
                           className="w-full h-full object-cover object-center"
                           style={{ aspectRatio: "1 / 1" }}
                         />
@@ -264,3 +267,4 @@ export default function WishlistPage() {
     </div>
   )
 }
+

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -94,12 +95,13 @@ export function QuickViewModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 md:gap-8 md:p-6">
           {/* Product Image */}
           <div className="relative">
-            <div className="aspect-square w-full bg-slate-50 flex items-center justify-center p-6 rounded-lg overflow-hidden">
-              <img
+            <div className="aspect-square w-full bg-slate-50 flex items-center justify-center p-6 rounded-lg overflow-hidden relative">
+              <Image
                 src={product.image || "/placeholder.svg?height=1000&width=1000"}
                 alt={product.name}
-                className="w-full h-full object-contain object-center"
-                style={{ aspectRatio: "1 / 1" }}
+                width={500}
+                height={500}
+                className="object-contain object-center"
               />
             </div>
             <div className="absolute top-2 left-2 flex flex-col gap-1 md:top-4 md:left-4 md:gap-2">
@@ -293,3 +295,4 @@ export function QuickViewModal({
     </Dialog>
   )
 }
+

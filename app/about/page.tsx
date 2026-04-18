@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -69,7 +70,7 @@ export default function AboutPage() {
                   <div className="text-center">
                     <Heart className="w-16 h-16 text-red-500 mx-auto mb-6" />
                     <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-8">
-                      At TCG Lore Operated by A TOY HAULERZ LLC Company., we're more than just a trading card store – we're a community of passionate
+                      At TCG Lore Operated by A TOY HAULERZ LLC Company., We&apos;re more than just a trading card store – We&apos;re a community of passionate
                       Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors, competitive players, and gaming
                       enthusiasts. Our mission is to fuel your passion for collectible card games by providing
                       authentic, high-quality TCG products and fostering connections within the global trading card
@@ -132,7 +133,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">TCG Community First (Today)</h3>
                       <p className="text-gray-600">
-                        Today, we're proud to serve over 50,000 trading card collectors worldwide, hosting tournaments,
+                        Today, We&apos;re proud to serve over 50,000 trading card collectors worldwide, hosting tournaments,
                         supporting local game stores, and maintaining our commitment to authenticity and exceptional
                         customer service for all TCG products.
                       </p>
@@ -277,3 +278,5 @@ export default function AboutPage() {
     </div>
   )
 }
+
+

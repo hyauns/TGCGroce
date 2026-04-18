@@ -12,3 +12,4 @@ export default async function CartPage() {
 
   return <CartPageClient productDetails={productDetails} />
 }
+

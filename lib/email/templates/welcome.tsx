@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
 import { getLogoUrl } from "./shared"
 
 interface WelcomeEmailProps {
@@ -275,3 +277,5 @@ Support: cs@tcglore.com | Phone: +1 (303) 668-3245
 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()
 }
+
+

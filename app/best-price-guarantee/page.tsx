@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import { useState } from "react"
@@ -119,7 +120,7 @@ export default function BestPriceGuaranteePage() {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Best Price Guarantee</h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
-              Found a lower price? We'll match it and beat it by 5%!
+              Found a lower price? we&apos;ll match it and beat it by 5%!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -155,7 +156,7 @@ export default function BestPriceGuaranteePage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Our Price Guarantee?</h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                We're committed to offering you the best prices on authentic trading cards and collectibles.
+                We&apos;re committed to offering you the best prices on authentic trading cards and collectibles.
               </p>
             </div>
 
@@ -293,7 +294,7 @@ export default function BestPriceGuaranteePage() {
                     Get Approved & Save
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    We'll verify the competitor's price within 24 hours. Once approved, we'll match their price and beat
+                    we&apos;ll verify the competitor's price within 24 hours. Once approved, we&apos;ll match their price and beat
                     it by 5%, then send you a special discount code.
                   </p>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -529,7 +530,7 @@ export default function BestPriceGuaranteePage() {
                 <CardContent>
                   <p className="text-gray-600">
                     Most price match requests are processed within 24 hours during business days. Complex requests may
-                    take up to 48 hours. You'll receive an email confirmation once your request is approved or declined.
+                    take up to 48 hours. you&apos;ll receive an email confirmation once your request is approved or declined.
                   </p>
                 </CardContent>
               </Card>
@@ -568,7 +569,7 @@ export default function BestPriceGuaranteePage() {
                 <CardContent>
                   <p className="text-gray-600">
                     We only price match domestic (US-based) retailers due to varying shipping costs, taxes, and currency
-                    fluctuations. International prices often don't reflect true comparable value when all costs are
+                    fluctuations. International prices often don&apos;t reflect true comparable value when all costs are
                     considered.
                   </p>
                 </CardContent>
@@ -656,3 +657,5 @@ export default function BestPriceGuaranteePage() {
     </div>
   )
 }
+
+

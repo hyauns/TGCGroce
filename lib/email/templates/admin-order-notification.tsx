@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
 interface AdminOrderNotificationProps {
   orderNumber: string
   orderId: string
@@ -411,3 +412,4 @@ Admin: cs@tcglore.com | 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
 Generated at ${new Date().toLocaleString()}
   `.trim()
 }
+

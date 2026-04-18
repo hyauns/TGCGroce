@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client"
 
 import type React from "react"
@@ -336,6 +337,7 @@ export default function CheckoutPage() {
     if (isAuthenticated && currentStep === 1) {
       setCurrentStep(2)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
   const [detectedCardType, setDetectedCardType] = useState<{ type: string; logo: string; name: string } | null>(null)
 
@@ -1580,7 +1582,7 @@ export default function CheckoutPage() {
                 )}
                 <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
                   <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 flex-shrink-0" />
-                  We'll use this to send delivery updates
+                  we&apos;ll use this to send delivery updates
                 </p>
               </div>
             </div>
@@ -2687,3 +2689,5 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
+

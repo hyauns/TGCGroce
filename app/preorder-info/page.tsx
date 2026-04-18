@@ -8,3 +8,4 @@ export default async function PreOrderInfoPage() {
 
   return <PreOrderInfoClient preOrderProducts={featuredPreOrders} />
 }
+

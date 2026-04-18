@@ -72,19 +72,19 @@ const customerReviews = [
   { name: "David R.",     rating: 5, text: "Fast shipping, authentic cards, and excellent security. This is my go-to store for TCG products now.", verified: true },
   { name: "Amanda K.",    rating: 5, text: "The delivery calculator is so helpful! Products arrived on time and packaging was perfect. Highly recommend!", verified: true },
   { name: "Chris P.",     rating: 5, text: "Outstanding authenticity verification process. Every card was genuine and in perfect condition. Will order again!", verified: true },
-  { name: "Emily R.",     rating: 5, text: "Been collecting for 15 years and this is hands down the best TCG store I've used. Every single card was mint condition!", verified: true },
+  { name: "Emily R.",     rating: 5, text: "Been collecting for 15 years and this is hands down the best TCG store I&apos;ve used. Every single card was mint condition!", verified: true },
   { name: "Jason W.",     rating: 5, text: "Ordered a booster box for my son's birthday. Arrived perfectly packaged and he pulled some amazing cards. Thank you!", verified: true },
   { name: "Maria S.",     rating: 5, text: "Customer service went above and beyond when I had a question about my pre-order. Very impressed with their professionalism.", verified: true },
   { name: "Tyler B.",     rating: 5, text: "The website is so easy to navigate and the product descriptions are detailed. Makes shopping for TCG products a breeze!", verified: true },
   { name: "Rachel H.",    rating: 5, text: "I was skeptical about buying cards online, but the authenticity guarantee convinced me. Every card was 100% genuine!", verified: true },
   { name: "Kevin L.",     rating: 5, text: "Lightning fast shipping! Ordered on Monday, received on Wednesday. Cards were perfectly protected in bubble wrap.", verified: true },
-  { name: "Stephanie C.", rating: 5, text: "Love that they offer both new releases and vintage cards. Found some rare cards I've been hunting for years!", verified: true },
+  { name: "Stephanie C.", rating: 5, text: "Love that they offer both new releases and vintage cards. Found some rare cards I&apos;ve been hunting for years!", verified: true },
   { name: "Brandon M.",   rating: 5, text: "The pre-order system is fantastic. Got my Bloomburrow box on release day without any hassle. Will definitely pre-order again!", verified: true },
   { name: "Nicole F.",    rating: 5, text: "Competitive prices and authentic products. The free shipping threshold is very reasonable too. Highly recommend!", verified: true },
   { name: "Alex J.",      rating: 5, text: "Been a customer for 2 years now. Consistent quality, fast shipping, and excellent customer service every single time.", verified: true },
   { name: "Samantha D.",  rating: 5, text: "The packaging is incredible! My cards arrived in perfect condition, each one individually protected. Professional service!", verified: true },
   { name: "Ryan K.",      rating: 5, text: "Great selection of Pokemon, Magic, and Yu-Gi-Oh products. Found everything I needed for my tournament deck in one place.", verified: true },
-  { name: "Lisa T.",      rating: 5, text: "The return policy gave me confidence to make a large purchase. Thankfully didn't need it, but great to know it's there!", verified: true },
+  { name: "Lisa T.",      rating: 5, text: "The return policy gave me confidence to make a large purchase. Thankfully didn&apos;t need it, but great to know It&apos;s there!", verified: true },
   { name: "Matthew G.",   rating: 5, text: "Ordered a Commander deck and some singles. Everything was exactly as described and arrived faster than expected. A+ service!", verified: true },
   { name: "Hannah B.",    rating: 5, text: "The authenticity verification is top-notch. As someone who's been burned by fakes before, this store gives me total peace of mind.", verified: true },
   { name: "Daniel P.",    rating: 5, text: "Excellent communication throughout the entire process. Got tracking info immediately and updates every step of the way.", verified: true },
@@ -674,3 +674,4 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
     </div>
   )
 }
+

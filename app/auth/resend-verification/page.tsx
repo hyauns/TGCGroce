@@ -58,7 +58,7 @@ export default function ResendVerificationPage() {
                 <CheckCircle className="h-16 w-16 mx-auto text-green-600" />
                 <h2 className="text-2xl font-bold">Verification Email Sent!</h2>
                 <p className="text-gray-600">
-                  We've sent a new verification email to <strong>{email}</strong>. Please check your inbox and click the
+                  We&apos;ve sent a new verification email to <strong>{email}</strong>. Please check your inbox and click the
                   verification link.
                 </p>
                 <Link href="/auth/login">
@@ -130,3 +130,4 @@ export default function ResendVerificationPage() {
     </div>
   )
 }
+

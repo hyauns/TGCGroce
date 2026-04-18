@@ -236,7 +236,7 @@ export function WriteReviewModal({
 
           {/* Moderation notice */}
           <p className="text-xs text-gray-400">
-            Reviews are submitted for moderation and will appear publicly once approved. We don't
+            Reviews are submitted for moderation and will appear publicly once approved. We don&apos;t
             modify review content.
           </p>
 
@@ -271,3 +271,4 @@ export function WriteReviewModal({
     </div>
   )
 }
+

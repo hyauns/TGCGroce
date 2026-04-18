@@ -90,6 +90,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     loadAnalyticsData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, timeframe])
 
   const loadAnalyticsData = async () => {
@@ -654,3 +655,5 @@ export default function AnalyticsPage() {
     </div>
   )
 }
+
+

@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
                 <CardTitle className="text-2xl">Check Your Email</CardTitle>
-                <p className="text-gray-600">We've sent password reset instructions to your email</p>
+                <p className="text-gray-600">We&apos;ve sent password reset instructions to your email</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center space-y-4">
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">Didn't receive the email?</p>
+                    <p className="text-sm text-gray-600">didn&apos;t receive the email?</p>
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Forgot Password?</CardTitle>
-              <p className="text-gray-600">No worries, we'll send you reset instructions</p>
+              <p className="text-gray-600">No worries, we&apos;ll send you reset instructions</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -180,3 +180,4 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
+

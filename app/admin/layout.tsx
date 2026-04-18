@@ -93,7 +93,7 @@ export default function AdminLayout({
     <div className={`min-h-screen bg-gray-50 ${darkMode ? "dark" : ""}`}>
       {isDemoAdminAccount && (
         <div className="bg-purple-600 text-white px-4 py-2 text-center text-sm">
-          <strong>Demo Admin Mode:</strong> You're using the demo admin account with full analytics access.
+          <strong>Demo Admin Mode:</strong> you&apos;re using the demo admin account with full analytics access.
         </div>
       )}
 
@@ -224,3 +224,4 @@ export default function AdminLayout({
     </div>
   )
 }
+

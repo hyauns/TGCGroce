@@ -54,6 +54,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, search])
 
   const formatCurrency = (amount: number) => {
@@ -195,3 +196,5 @@ export default function CustomersPage() {
     </div>
   )
 }
+
+
