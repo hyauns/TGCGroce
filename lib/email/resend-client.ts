@@ -7,7 +7,7 @@ export { resend }
 
 // Configuration constants
 export const EMAIL_CONFIG = {
-  from: process.env.EMAIL_FROM || "TCG Lore Inc. <cs@tcglore.com>",
+  from: process.env.EMAIL_FROM || "TCG Lore Operated by A TOY HAULERZ LLC Company. <cs@tcglore.com>",
   adminEmail: process.env.ADMIN_EMAIL || "cs@tcglore.com",
   baseUrl: process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   testMode: process.env.NODE_ENV === "development",

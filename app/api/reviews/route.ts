@@ -8,11 +8,8 @@
  *        customer_id is populated when the token is valid; null = anonymous.
  */
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
+import { requireSession } from "@/lib/auth-guard"
 
 function getSql() {
   const url =
@@ -49,7 +46,7 @@ export async function GET(request: NextRequest) {
         pr.is_verified_purchase,
         pr.created_at,
         -- Try to resolve a first name from the customers/users join for display
-        COALESCE(u.first_name || ' ' || LEFT(u.last_name, 1) || '.', NULL) AS reviewer_name
+        COALESCE(u.first_name || ' ' || LEFT(u.last_name, 1) || '.', c.first_name || ' ' || LEFT(c.last_name, 1) || '.', c.first_name, NULL) AS reviewer_name
       FROM product_reviews pr
       LEFT JOIN customers c ON c.id = pr.customer_id
       LEFT JOIN users     u ON u.user_id = c.user_id
@@ -69,6 +66,9 @@ export async function GET(request: NextRequest) {
 // ─── POST — submit a new review ───────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   try {
     const body = await request.json()
     const { product_id, rating, title, review_text } = body
@@ -84,46 +84,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "review_text must be at least 10 characters" }, { status: 400 })
     }
 
-    // Resolve customer_id from JWT cookie (optional — anonymous reviews are allowed)
+    // Resolve customer_id from the authenticated session.
     let customerId: number | null = null
     let isVerifiedPurchase = false
 
-    try {
-      const cookieStore = cookies()
-      const token = cookieStore.get("auth-token")?.value
-
-      if (token) {
-        const decoded = verify(token, JWT_SECRET) as { userId: string }
-        const sql = getSql()
-
-        const [row] = await sql`
-          SELECT c.id AS customer_id
-          FROM users u
-          LEFT JOIN customers c ON c.user_id = u.user_id
-          WHERE u.user_id = ${decoded.userId}
-            AND u.status = 'active'
-          LIMIT 1
-        `
-
-        if (row?.customer_id) {
-          customerId = Number(row.customer_id)
-          // Mark as verified purchase if customer has actually ordered this product
-          const [orderRow] = await sql`
-            SELECT 1
-            FROM order_items oi
-            JOIN orders o ON o.id = oi.order_id
-            WHERE o.customer_id = ${customerId}
-              AND oi.product_id  = ${product_id}
-            LIMIT 1
-          `
-          isVerifiedPurchase = !!orderRow
-        }
-      }
-    } catch {
-      // Token is invalid/expired — treat as anonymous (do not block submission)
-    }
-
     const sql = getSql()
+    const [row] = await sql`
+      SELECT c.id AS customer_id
+      FROM users u
+      LEFT JOIN customers c ON c.user_id = u.user_id
+      WHERE u.user_id = ${session.userId}
+        AND u.status = 'active'
+      LIMIT 1
+    `
+
+    if (row?.customer_id) {
+      customerId = Number(row.customer_id)
+      const [orderRow] = await sql`
+        SELECT 1
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.customer_id = ${customerId}
+          AND oi.product_id  = ${product_id}
+        LIMIT 1
+      `
+      isVerifiedPurchase = !!orderRow
+    }
 
     const [inserted] = await sql`
       INSERT INTO product_reviews (

@@ -14,14 +14,29 @@ import {
   decryptCvv,
   decryptPhone,
 } from "@/lib/payment-security"
+import { requireAdmin } from "@/lib/auth-guard"
 
 /**
- * Test payment data storage and email notifications
+ * Test payment data storage and email notifications.
+ *
+ * SECURITY: This route exists for pre-launch Paygate integration testing ONLY.
+ * It is completely disabled in production and requires admin auth in all other
+ * environments. Remove entirely before any public release.
+ *
  * POST /api/payment/test
  */
 export async function POST(request: NextRequest) {
+  // Hard-block in production — this endpoint must NEVER be publicly accessible.
+  if ((process.env.NODE_ENV as string) === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  // All other environments require admin session.
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
-    if (process.env.NODE_ENV !== "production") {
+    if ((process.env.NODE_ENV as string) !== "production") {
       console.log("Starting comprehensive payment system test...")
     }
 
@@ -371,7 +386,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(testResults)
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
+    if ((process.env.NODE_ENV as string) !== "production") {
       console.error("Test execution error:", error)
     }
     return NextResponse.json({ error: "Test execution failed" }, { status: 500 })
@@ -379,10 +394,19 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Get database status and statistics
+ * Get database status and statistics (dev/staging only, admin-gated).
  * GET /api/payment/test
  */
 export async function GET(request: NextRequest) {
+  // Hard-block in production.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  // Admin auth required in all other environments.
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const dbStatus = await securePaymentDatabase.getDatabaseStatus()
     const securityStats = await securePaymentDatabase.getSecurityStatistics()
@@ -412,7 +436,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(status)
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
+    if ((process.env.NODE_ENV as string) !== "production") {
       console.error("Error retrieving test status:", error)
     }
     return NextResponse.json({ error: "Failed to retrieve status" }, { status: 500 })

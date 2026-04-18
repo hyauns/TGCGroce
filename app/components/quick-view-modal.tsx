@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { FormattedDescription } from "./formatted-description"
 import { ShoppingCart, Heart, Star, X, Plus, Minus, Clock, Calendar } from "lucide-react"
 
 export interface ProductDetails {
@@ -88,25 +89,16 @@ export function QuickViewModal({
       <DialogContent className="max-w-[95vw] max-h-[90vh] w-full mx-2 overflow-y-auto md:max-w-4xl md:mx-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">Product Quick View</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 rounded-full h-8 w-8 md:right-4 md:top-4 md:h-10 md:w-10"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4 md:h-5 md:w-5" />
-            <span className="sr-only">Close</span>
-          </Button>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 md:gap-8 md:p-6">
           {/* Product Image */}
           <div className="relative">
-            <div className="aspect-square w-full bg-gray-100 rounded-lg overflow-hidden">
+            <div className="aspect-square w-full bg-slate-50 flex items-center justify-center p-6 rounded-lg overflow-hidden">
               <img
                 src={product.image || "/placeholder.svg?height=1000&width=1000"}
                 alt={product.name}
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-contain object-center"
                 style={{ aspectRatio: "1 / 1" }}
               />
             </div>
@@ -213,22 +205,8 @@ export function QuickViewModal({
 
             {/* Description */}
             {product.description && (
-              <div>
-                <p className="text-gray-700 leading-relaxed text-sm md:text-base">{product.description}</p>
-              </div>
-            )}
-
-            {/* Features */}
-            {product.features && product.features.length > 0 && (
-              <div>
-                <h4 className="font-semibold mb-1 text-sm md:text-base md:mb-2">Key Features:</h4>
-                <ul className="list-disc list-inside space-y-0.5 text-gray-700 md:space-y-1">
-                  {product.features.slice(0, 4).map((feature, index) => (
-                    <li key={index} className="text-xs md:text-sm">
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                <FormattedDescription text={product.description} />
               </div>
             )}
 

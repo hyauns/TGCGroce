@@ -3,17 +3,29 @@ export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from "next/server"
 import { securePaymentDatabase } from "@/lib/payment-database"
 import { createAuditLog } from "@/lib/payment-security"
+import { requireSession } from "@/lib/auth-guard"
 
 /**
  * Get customer payment methods and billing addresses
  * GET /api/payment/customer/[customerId]
  */
 export async function GET(request: NextRequest, { params }: { params: { customerId: string } }) {
+  // Require authenticated session — unauthenticated reads of payment methods are not allowed.
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   try {
     const { customerId } = params
 
     if (!customerId) {
       return NextResponse.json({ error: "Customer ID is required" }, { status: 400 })
+    }
+
+    // Prevent IDOR: non-admins can only read their own payment methods.
+    // The session contains userId from the users table; the payment DB is keyed by customerId
+    // which in this app is also the user_id. Admin role can read any customer.
+    if (session.role !== "admin" && session.userId !== customerId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
 
     // Retrieve customer payment methods (encrypted data)
@@ -91,6 +103,10 @@ export async function GET(request: NextRequest, { params }: { params: { customer
  * DELETE /api/payment/customer/[customerId]
  */
 export async function DELETE(request: NextRequest, { params }: { params: { customerId: string } }) {
+  // Require authenticated session.
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   try {
     const { customerId } = params
     const body = await request.json()
@@ -98,6 +114,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { custo
 
     if (!customerId || !paymentMethodId) {
       return NextResponse.json({ error: "Customer ID and Payment Method ID are required" }, { status: 400 })
+    }
+
+    // Prevent IDOR: non-admins can only delete their own payment methods.
+    if (session.role !== "admin" && session.userId !== customerId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
 
     // Verify payment method belongs to customer

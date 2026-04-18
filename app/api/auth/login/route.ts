@@ -7,7 +7,12 @@ import { checkLoginRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { sign } from "jsonwebtoken"
 import { cookies } from "next/headers"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
+// JWT_SECRET is validated at startup by lib/env.ts — never fall back to a default.
+// If this throws, it means the server was started without proper env configuration.
+if (!process.env.JWT_SECRET) {
+  throw new Error("[auth/login] FATAL: JWT_SECRET is not set. Set it in your environment.")
+}
+const JWT_SECRET: string = process.env.JWT_SECRET
 
 export async function POST(request: NextRequest) {
   try {

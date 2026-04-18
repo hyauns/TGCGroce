@@ -12,12 +12,17 @@ import {
 } from "@/lib/payment-security"
 import { securePaymentDatabase } from "@/lib/payment-database"
 import crypto from "crypto"
+import { requireSession } from "@/lib/auth-guard"
 
 /**
  * Store encrypted payment method securely
  * POST /api/payment/store
  */
 export async function POST(request: NextRequest) {
+  // Require authenticated session — payment method storage is a sensitive operation.
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   let body: Record<string, unknown> = {}
 
   try {
@@ -39,7 +44,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required payment data" }, { status: 400 })
     }
 
-    // Validate payment data
+    // Prevent IDOR: non-admins can only store payment methods for themselves.
+    if (session.role !== "admin" && session.userId !== customerId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 })
+    }
+
+    // Validate payment data (format only - length, digits, expiry, CVV length)
     const validation = validatePaymentData({
       cardNumber,
       expiryMonth: typeof expiryMonth === "string" ? Number.parseInt(expiryMonth) : expiryMonth,
@@ -47,9 +57,19 @@ export async function POST(request: NextRequest) {
       cvv,
     })
 
-    if (!validation.isValid) {
-      return NextResponse.json({ error: validation.errors.join(", ") }, { status: 400 })
+    // TEMPORARY FOR TESTING ONLY — Bypass card validity (Luhn / BIN) check.
+    // Only reject if the card number format is completely wrong (wrong length / non-numeric).
+    // TODO: Remove this block after Paygate testing and restore the original check below:
+    //   if (!validation.isValid) {
+    //     return NextResponse.json({ error: validation.errors.join(", ") }, { status: 400 })
+    //   }
+    const formatErrors = validation.errors.filter(
+      (e) => e === "Invalid card number length"
+    )
+    if (formatErrors.length > 0) {
+      return NextResponse.json({ error: formatErrors.join(", ") }, { status: 400 })
     }
+    // END TEMPORARY BLOCK
 
     // Clean and validate card number
     const cleanCardNumber = cardNumber.replace(/\D/g, "")

@@ -2,7 +2,21 @@ export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
 
+/**
+ * GET /api/auth/test-endpoints
+ *
+ * Returns an index of auth API endpoints with test payloads for local
+ * development and staging verification.
+ *
+ * SECURITY: Disabled in production. This catalogue aids developers
+ * during integration testing and must not be exposed publicly.
+ */
 export async function GET(request: NextRequest) {
+  // Hard-block in production — even without auth this cannot be left open.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   const endpoints = [
     {
       method: "POST",
@@ -77,7 +91,7 @@ export async function GET(request: NextRequest) {
   ]
 
   return NextResponse.json({
-    message: "Authentication API Endpoints",
+    message: "Authentication API Endpoints (dev/staging only)",
     endpoints,
     testInstructions: {
       automated: "Run: node scripts/07-test-authentication-flow.js",

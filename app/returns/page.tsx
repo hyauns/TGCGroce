@@ -481,10 +481,10 @@ export default function ReturnsPage() {
                     <div className="flex items-start gap-4">
                       <MapPin className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                       <div>
-                        <h5 className="font-semibold mb-2">TGC Lore Inc. Returns Department</h5>
+                        <h5 className="font-semibold mb-2">TOY HAULERZ LLC Returns Department</h5>
                         <div className="space-y-1 text-sm">
-                          <p>1924 N Miami Ave</p>
-                          <p>Miami, FL 33136</p>
+                          <p>1757 NORTH CENTRAL AVENUE</p>
+                          <p>FLAGLER BEACH, FL 32136</p>
                           <p>United States</p>
                         </div>
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
@@ -572,7 +572,7 @@ export default function ReturnsPage() {
                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <DollarSign className="w-5 h-5 text-green-600" />
                           <div className="flex-1">
-                            <div className="font-medium text-sm">PayPal</div>
+                            
                             <div className="text-xs text-gray-600">1-2 business days</div>
                           </div>
                         </div>
@@ -778,9 +778,9 @@ export default function ReturnsPage() {
                         <div>
                           <div className="font-semibold">Returns Address</div>
                           <div className="text-sm text-gray-600">
-                            1924 N Miami Ave
+                            1757 NORTH CENTRAL AVENUE
                             <br />
-                            Miami, FL 33136
+                            FLAGLER BEACH, FL 32136
                           </div>
                         </div>
                       </div>

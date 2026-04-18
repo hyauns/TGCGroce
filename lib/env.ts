@@ -37,7 +37,7 @@ const serverSchema = z.object({
   // ── Optional server vars with sensible defaults ───────────
   EMAIL_FROM: z
     .string()
-    .default("TCG Lore Inc. <cs@tcglore.com>"),
+    .default("TCG Lore Operated by A TOY HAULERZ LLC Company. <cs@tcglore.com>"),
 
   ADMIN_EMAIL: z
     .string()
@@ -46,7 +46,7 @@ const serverSchema = z.object({
 
   BASE_URL: z
     .string()
-    .url("BASE_URL must be a valid URL (e.g. https://tgclore.com)")
+  .url("BASE_URL must be a valid URL (e.g. https://tcglore.com)")
     .default("http://localhost:3000"),
 
   // ── Rate limiting (optional — app degrades gracefully) ────
@@ -66,10 +66,10 @@ const serverSchema = z.object({
   // ── On-demand revalidation secret (optional) ──────────────
   REVALIDATION_SECRET: z.string().min(16).optional().or(z.literal("")),
 
-  // ── Tax Calculation (TaxJar) ──────────────────────────────
-  TAXJAR_API_KEY: z
-    .string({ message: "TAXJAR_API_KEY is required for calculating US Sales Tax." })
-    .min(10, "TAXJAR_API_KEY must be a valid token"),
+  // ── Tax Calculation (TaxJar) ──────────────────────────────────────────────
+  // Optional: if not set, tax calculation falls back to a 0% rate.
+  // Set this before going live in US markets that require sales tax collection.
+  TAXJAR_API_KEY: z.string().min(10).optional().or(z.literal("")),
 })
 
 // ── Client-side env schema ──────────────────────────────────
@@ -79,6 +79,7 @@ const serverSchema = z.object({
 // optional keys accordingly.
 
 const clientSchema = z.object({
+  NEXT_PUBLIC_SITE_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1).optional().or(z.literal("")),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional().or(z.literal("")),
@@ -131,6 +132,7 @@ function validateServerEnv(): ServerEnv {
 
 function validateClientEnv(): ClientEnv {
   const rawClientEnv = {
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,

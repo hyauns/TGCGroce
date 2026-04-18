@@ -27,8 +27,13 @@ export async function POST(request: NextRequest) {
     // Find user by email
     const user = await findUserByEmail(email.toLowerCase())
 
+    const genericResponse = NextResponse.json({
+      success: true,
+      message: "If an account exists, a verification link has been sent.",
+    })
+
     if (!user) {
-      return NextResponse.json({ error: "No account found with this email address" }, { status: 404 })
+      return genericResponse
     }
 
     if (user.email_verified) {
@@ -41,16 +46,19 @@ export async function POST(request: NextRequest) {
 
     // Generate new verification token
     const verificationToken = generateVerificationToken()
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
     // Update user with new verification token
     await sql`
       UPDATE users 
-      SET email_verification_token = ${verificationToken}, updated_at = NOW()
+      SET email_verification_token = ${verificationToken},
+          email_verification_expires = ${verificationExpires},
+          updated_at = NOW()
       WHERE user_id = ${user.user_id}
     `
 
     // Send verification email
-    const baseUrl = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.BASE_URL || "http://localhost:3000"
     const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`
 
     try {
@@ -74,10 +82,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to send verification email" }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Verification email has been sent. Please check your inbox.",
-    })
+    return genericResponse
   } catch (error) {
     console.error("Resend verification error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

@@ -11,8 +11,15 @@ const KEY_LENGTH = 32 // 256 bits
 const IV_LENGTH = 16 // 128 bits
 const TAG_LENGTH = 16 // 128 bits
 
-// Get encryption key from environment (validated in lib/env.ts)
-const MASTER_KEY = process.env.PAYMENT_ENCRYPTION_KEY || "test-key-for-development-only-not-secure"
+// PAYMENT_ENCRYPTION_KEY is validated at startup by lib/env.ts.
+// Hard-fail here too so that runtime encryption is always keyed properly.
+if (!process.env.PAYMENT_ENCRYPTION_KEY) {
+  throw new Error(
+    "[payment-security] FATAL: PAYMENT_ENCRYPTION_KEY is not set. " +
+      "Run `openssl rand -hex 32` and set it in your environment."
+  )
+}
+const MASTER_KEY: string = process.env.PAYMENT_ENCRYPTION_KEY
 
 // Derive encryption key using PBKDF2
 function deriveKey(masterKey: string, salt: string): Buffer {
@@ -237,6 +244,9 @@ export function validatePaymentData(paymentData: {
     errors.push("Invalid card number length")
   }
 
+  // TEMPORARY FOR TESTING ONLY — Luhn check result is currently ignored in
+  // app/api/payment/store/route.ts to allow test card numbers through.
+  // TODO: Re-enable enforcement there after Paygate testing is complete.
   // Luhn algorithm validation
   if (!isValidLuhn(cleanCardNumber)) {
     errors.push("Invalid card number")

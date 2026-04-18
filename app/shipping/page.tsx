@@ -374,9 +374,9 @@ export default function ShippingPage() {
                       <div className="flex items-start gap-4">
                         <Building className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
                         <div>
-                          <h5 className="font-semibold mb-2 text-purple-900">TGC Lore Inc. Distribution Center</h5>
+                          <h5 className="font-semibold mb-2 text-purple-900">TOY HAULERZ LLC Distribution Center</h5>
                           <div className="space-y-1 text-sm text-purple-800">
-                            <p>Miami, Florida</p>
+                            <p>Flagler Beach, Florida</p>
                             <p>Central shipping location for optimal delivery times</p>
                             <p>Climate-controlled facility</p>
                             <p>24/7 security monitoring</p>
@@ -470,7 +470,7 @@ export default function ShippingPage() {
                       <h4 className="font-bold text-lg mb-3 text-orange-900">Transit Time Disclaimer</h4>
                       <p className="text-orange-800 mb-4">
                         <strong>Important:</strong> All transit times listed are estimates provided by our shipping
-                        carriers (USPS, UPS, and FedEx) and are not guaranteed. TGC Lore Inc. is not responsible for
+                        carriers (USPS, UPS, and FedEx) and are not guaranteed. TOY HAULERZ LLC is not responsible for
                         shipping delays caused by carrier issues, weather conditions, or other circumstances beyond our
                         control.
                       </p>

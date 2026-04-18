@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next"
 import { getAllProducts } from "@/lib/products"
+import { siteUrl } from "@/lib/site-config"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.BASE_URL || "https://v0-toy-gamma.vercel.app"
+  const baseUrl = siteUrl
   const products = await getAllProducts()
   const now = new Date()
 

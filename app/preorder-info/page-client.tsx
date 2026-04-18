@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import type { Product } from "@/lib/product-filters"
 import { generateSlug } from "@/lib/utils"
 
@@ -202,8 +203,8 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                     >
                       <div className="relative">
                         <div className="aspect-square bg-gray-100 overflow-hidden">
-                          <Image
-                            src={product.image || "/placeholder.svg"}
+                          <ImageWithFallback
+                            src={product.image || "/placeholder.svg"} fallbackSrc="/placeholder.png"
                             alt={`${product.name} - ${product.category} Pre-Order`}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -591,7 +592,7 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                     { question: "What if the product is damaged during shipping?", answer: "All pre-orders are fully insured. If your product arrives damaged, contact us within 48 hours with photos and we'll send a replacement immediately at no cost." },
                     { question: "Are pre-order bonuses guaranteed?", answer: "Yes, all advertised pre-order bonuses are guaranteed for orders placed before the cutoff date. Bonuses are subject to availability and may vary by product." },
                     { question: "How do I track my pre-order status?", answer: "You can track your pre-order status through your account dashboard, via email notifications, or using our order tracking page with your order number." },
-                    { question: "What payment methods do you accept?", answer: "We accept all major credit cards (Visa, Mastercard, American Express, Discover), PayPal, and other secure payment methods. All transactions are encrypted and secure." },
+                    { question: "What payment methods do you accept?", answer: "We accept Credit Card payments. All transactions are encrypted and secure." },
                   ].map((faq, index) => (
                     <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
                       <h3 className="font-semibold text-gray-900 mb-2 flex items-start gap-2">

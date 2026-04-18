@@ -130,7 +130,7 @@ export async function sendWelcomeEmail(
 
     return await sendEmailWithRetry({
       to: user.email,
-      subject: "Welcome to TCG Lore Inc.!",
+      subject: "Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company.!",
       html,
       text,
     })
@@ -164,7 +164,7 @@ export async function sendVerificationEmail(
 
     return await sendEmailWithRetry({
       to: user.email,
-      subject: "Verify your TCG Lore Inc. email address",
+      subject: "Verify your TCG Lore Operated by A TOY HAULERZ LLC Company. email address",
       html,
       text,
     })
@@ -204,7 +204,7 @@ export async function sendPasswordResetEmail(
 
     return await sendEmailWithRetry({
       to: user.email,
-      subject: "Reset your TCG Lore Inc. password",
+      subject: "Reset your TCG Lore Operated by A TOY HAULERZ LLC Company. password",
       html,
       text,
     })
@@ -241,7 +241,7 @@ export async function sendPasswordChangedEmail(
 
     return await sendEmailWithRetry({
       to: user.email,
-      subject: "Password changed - TCG Lore Inc.",
+      subject: "Password changed - TCG Lore Operated by A TOY HAULERZ LLC Company.",
       html,
       text,
     })

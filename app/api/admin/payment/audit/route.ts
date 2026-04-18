@@ -2,23 +2,21 @@ export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
 import { securePaymentDatabase } from "@/lib/payment-database"
+import { requireAdmin } from "@/lib/auth-guard"
 
 /**
  * Admin endpoint for accessing payment audit logs
  * GET /api/admin/payment/audit
  */
 export async function GET(request: NextRequest) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const { searchParams } = new URL(request.url)
     const customerId = searchParams.get("customerId")
     const riskThreshold = searchParams.get("riskThreshold")
     const limit = searchParams.get("limit")
-
-    // TODO: Add admin authentication check here
-    // const adminUser = await verifyAdminToken(request)
-    // if (!adminUser) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    // }
 
     let auditLogs
 
@@ -57,13 +55,10 @@ export async function GET(request: NextRequest) {
  * POST /api/admin/payment/audit
  */
 export async function POST(request: NextRequest) {
-  try {
-    // TODO: Add admin authentication check here
-    // const adminUser = await verifyAdminToken(request)
-    // if (!adminUser) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    // }
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
 
+  try {
     const body = await request.json()
     const { startDate, endDate, includeStats = true } = body
 

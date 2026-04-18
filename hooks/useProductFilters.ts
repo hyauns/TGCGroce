@@ -29,6 +29,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
       inStock: params.get("inStock") === "true" ? true : undefined,
       outOfStock: params.get("outOfStock") === "true" ? true : undefined,
       isPreOrder: params.get("isPreOrder") === "true" ? true : undefined,
+      productType: params.get("productType") || undefined,
       categories: seededCategories,
       sortBy: (params.get("sortBy") as FilterOptions["sortBy"]) || undefined,
     }
@@ -81,6 +82,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     if (filters.inStock) params.set("inStock", "true")
     if (filters.outOfStock) params.set("outOfStock", "true")
     if (filters.isPreOrder) params.set("isPreOrder", "true")
+    if (filters.productType) params.set("productType", filters.productType)
     // NOTE: 'categories' (plural, client-side filter state) is intentionally NOT
     // pushed to the URL. Category navigation is handled by full-page <a> links
     // using the server-owned 'category' slug param (preserved above at line 74-76).

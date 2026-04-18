@@ -7,13 +7,13 @@ import { Footer } from "@/app/components/footer"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "About TGC Lore Inc. - Premium Trading Card Games Store | Our Story & Mission",
+  title: "About TCG Lore Operated by A TOY HAULERZ LLC Company. - Premium Trading Card Games Store | Our Story & Mission",
   description:
-    "Learn about TGC Lore Inc.'s mission to provide authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards. Founded in Miami 2019, serving 50,000+ satisfied TCG customers worldwide.",
+    "Learn about TCG Lore Operated by A TOY HAULERZ LLC Company.'s mission to provide authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards. Founded in Miami 2019, serving 50,000+ satisfied TCG customers worldwide.",
   keywords:
-    "TGC Lore Inc. history, trading card store Miami, authentic TCG products, Magic Pokemon Yu-Gi-Oh store, collectible card games company",
+    "TCG Lore Operated by A TOY HAULERZ LLC Company. history, trading card store Miami, authentic TCG products, Magic Pokemon Yu-Gi-Oh store, collectible card games company",
   openGraph: {
-    title: "About TGC Lore Inc. - Premium Trading Card Games Store",
+    title: "About TCG Lore Operated by A TOY HAULERZ LLC Company. - Premium Trading Card Games Store",
     description: "Learn about our mission to provide authentic trading cards and serve the TCG community since 2019.",
     url: "https://tcglore.com/about",
   },
@@ -32,7 +32,7 @@ export default function AboutPage() {
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="mb-4 bg-blue-600 hover:bg-blue-700">Est. 2019</Badge>
               <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
-                About TGC Lore Inc.
+                About TCG Lore.
               </h1>
               <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed">
                 Where passion meets play, and every trading card tells a story of authentic TCG experiences
@@ -40,7 +40,7 @@ export default function AboutPage() {
               <div className="flex flex-wrap justify-center gap-4 text-sm">
                 <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
                   <MapPin className="w-4 h-4" />
-                  <span>Miami, Florida TGC Lore Inc.</span>
+                  <span>Flagler Beach, Florida TCG Lore.</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
                   <Users className="w-4 h-4" />
@@ -69,7 +69,7 @@ export default function AboutPage() {
                   <div className="text-center">
                     <Heart className="w-16 h-16 text-red-500 mx-auto mb-6" />
                     <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-8">
-                      At TGC Lore Inc., we're more than just a trading card store – we're a community of passionate
+                      At TCG Lore Operated by A TOY HAULERZ LLC Company., we're more than just a trading card store – we're a community of passionate
                       Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors, competitive players, and gaming
                       enthusiasts. Our mission is to fuel your passion for collectible card games by providing
                       authentic, high-quality TCG products and fostering connections within the global trading card
@@ -104,8 +104,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">The Beginning (2019)</h3>
                       <p className="text-gray-600">
-                        Founded in the heart of Miami by lifelong TCG enthusiasts Marcus Chen and Sarah Rodriguez, TGC
-                        Lore Inc. started as a small local trading card store with a big dream: to create the ultimate
+                        Founded in the heart of Miami by lifelong TCG enthusiasts Marcus Chen and Sarah Rodriguez, TCG Lore Operated by A TOY HAULERZ LLC Company. started as a small local trading card store with a big dream: to create the ultimate
                         destination for Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors.
                       </p>
                     </div>
@@ -250,9 +249,9 @@ export default function AboutPage() {
                     <MapPin className="w-8 h-8 text-purple-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2 text-white">Visit Our Trading Card Store</h3>
                     <p className="text-purple-200">
-                      1924 N Miami Ave
+                      1757 NORTH CENTRAL AVENUE
                       <br />
-                      Miami, FL 33136
+                      FLAGLER BEACH, FL 32136
                       <br />
                       United States
                     </p>

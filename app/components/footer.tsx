@@ -9,30 +9,38 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">TGC</span>
-              </div>
-              <span className="text-xl font-bold text-black hover:text-[rgb(37,99,235)] transition-colors">
-                TGC Lore Inc.
+            <div className="flex flex-col items-start gap-1">
+              <Image 
+                src="/logo.png" 
+                alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" 
+                width={120} 
+                height={40} 
+                className="h-10 w-auto object-contain"
+              />
+              <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
+                A TOY HAULERZ LLC Company
               </span>
             </div>
             <p className="text-black text-sm leading-relaxed hover:text-[rgb(37,99,235)] transition-colors">
               Your trusted destination for authentic trading cards, collectibles, and gaming accessories. We bring you
-              the best selection with guaranteed authenticity from Miami, Florida.
+              the best selection with guaranteed authenticity from Flagler Beach, Florida.
             </p>
-            <div className="flex space-x-4">
-              <Link href="#" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
+            <div className="flex space-x-4 mt-2">
+              <Link href="https://facebook.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
                 <Facebook className="w-5 h-5" />
+                <span className="sr-only">Facebook</span>
               </Link>
-              <Link href="#" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
+              <Link href="https://twitter.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
                 <Twitter className="w-5 h-5" />
+                <span className="sr-only">Twitter</span>
               </Link>
-              <Link href="#" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
+              <Link href="https://instagram.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
                 <Instagram className="w-5 h-5" />
+                <span className="sr-only">Instagram</span>
               </Link>
-              <Link href="#" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
+              <Link href="https://youtube.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
                 <Youtube className="w-5 h-5" />
+                <span className="sr-only">Youtube</span>
               </Link>
             </div>
           </div>
@@ -128,9 +136,9 @@ export function Footer() {
                 <a href="tel:+13036683245" className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">+1 (303) 668-3245</a>
               </div>
               <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors" />
-                <span className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">
-                  1924 N Miami Ave, Miami, FL 33136
+                <MapPin className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors flex-shrink-0" />
+                <span className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors leading-tight">
+                  1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
                 </span>
               </div>
             </div>
@@ -192,7 +200,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">
-            Copyright © {new Date().getFullYear()} TGC Lore Inc. All rights reserved.
+            Copyright © {new Date().getFullYear()} TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
           </p>
 
           {/* Trading Card Game Copyright Information */}

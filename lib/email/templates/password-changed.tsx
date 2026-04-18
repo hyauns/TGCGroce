@@ -1,3 +1,5 @@
+import { getLogoUrl } from "./shared"
+
 interface PasswordChangedProps {
   firstName: string
   email: string
@@ -12,7 +14,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Password Changed - TCG Lore Inc.</title>
+        <title>Password Changed - TCG Lore Operated by A TOY HAULERZ LLC Company</title>
       </head>
       <body
         style={{
@@ -33,7 +35,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
               textAlign: "center",
             }}
           >
-            <h1 style={{ color: "white", margin: 0, fontSize: "32px" }}>TCG Lore Inc.</h1>
+            <img src={getLogoUrl()} alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
             <p style={{ color: "white", margin: "15px 0 0 0", opacity: 0.9, fontSize: "18px" }}>
               Password Changed Successfully
             </p>
@@ -44,7 +46,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
             <h2 style={{ color: "#333", marginTop: 0 }}>Hello {firstName}!</h2>
 
             <p>
-              This is a confirmation that the password for your TCG Lore Inc. account <strong>{email}</strong> has been
+              This is a confirmation that the password for your TCG Lore Operated by A TOY HAULERZ LLC Company. account <strong>{email}</strong> has been
               successfully changed.
             </p>
 
@@ -115,7 +117,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
             <div style={{ background: "#e3f2fd", padding: "20px", borderRadius: "8px", margin: "30px 0" }}>
               <h3 style={{ margin: "0 0 15px 0", color: "#1976d2" }}>Security Tips</h3>
               <ul style={{ margin: 0, paddingLeft: "20px", color: "#333", fontSize: "14px" }}>
-                <li>Use a unique password for your TCG Lore Inc. account</li>
+                <li>Use a unique password for your TCG Lore Operated by A TOY HAULERZ LLC Company. account</li>
                 <li>Consider using a password manager</li>
                 <li>Enable two-factor authentication for extra security</li>
                 <li>Never share your password with anyone</li>
@@ -149,7 +151,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
             <p style={{ color: "#666", fontSize: "14px" }}>
               Best regards,
               <br />
-              The TCG Lore Inc. Security Team
+              The TCG Lore Operated by A TOY HAULERZ LLC Company. Security Team
             </p>
           </div>
 
@@ -163,15 +165,15 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Inc.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#28a745", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="tel:+13036683245" style={{ color: "#28a745", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
-            <p style={{ margin: "4px 0 0 0" }}>1924 N Miami Ave, Miami, FL 33136, United States</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Inc. All rights reserved.</p>
+            <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -188,11 +190,11 @@ export function getPasswordChangedText({
   userAgent,
 }: PasswordChangedProps): string {
   return `
-TCG Lore Inc. - Password Changed Successfully
+TCG Lore Operated by A TOY HAULERZ LLC Company. - Password Changed Successfully
 
 Hello ${firstName}!
 
-This is a confirmation that the password for your TCG Lore Inc. account ${email} has been successfully changed.
+This is a confirmation that the password for your TCG Lore Operated by A TOY HAULERZ LLC Company. account ${email} has been successfully changed.
 
 ✅ PASSWORD UPDATED
 Your account is now secured with your new password
@@ -208,7 +210,7 @@ If you didn't change your password, your account may have been compromised. Plea
 • Consider enabling two-factor authentication
 
 SECURITY TIPS:
-• Use a unique password for your TCG Lore Inc. account
+• Use a unique password for your TCG Lore Operated by A TOY HAULERZ LLC Company. account
 • Consider using a password manager
 • Enable two-factor authentication for extra security
 • Never share your password with anyone
@@ -219,10 +221,10 @@ Contact Support: ${process.env.BASE_URL || "http://localhost:3000"}/contact
 If you have any questions about your account security, please don't hesitate to contact our support team.
 
 Best regards,
-The TCG Lore Inc. Security Team
+The TCG Lore Operated by A TOY HAULERZ LLC Company. Security Team
 
-© 2026 TCG Lore Inc. All rights reserved.
+© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
 Support: cs@tcglore.com | Phone: +1 (303) 668-3245
-1924 N Miami Ave, Miami, FL 33136, United States
+1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()
 }

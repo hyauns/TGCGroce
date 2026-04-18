@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       email_verification_token: verificationToken,
     })
 
-    const baseUrl = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.BASE_URL || "http://localhost:3000"
     const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`
 
     try {

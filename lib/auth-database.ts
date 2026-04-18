@@ -30,15 +30,17 @@ export interface CreateUserData {
 }
 
 export async function createUser(userData: CreateUserData): Promise<User> {
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
   const [user] = await sql`
     INSERT INTO users (
       email, password_hash, first_name, last_name, 
-      email_verification_token, email_verified, status, role, login_attempts
+      email_verification_token, email_verification_expires, email_verified, status, role, login_attempts
     )
     VALUES (
       ${userData.email}, ${userData.password_hash}, 
       ${userData.first_name}, ${userData.last_name},
-      ${userData.email_verification_token}, false, 'active', 'user', 0
+      ${userData.email_verification_token}, ${verificationExpires}, false, 'active', 'user', 0
     )
     RETURNING *
   `
@@ -77,8 +79,13 @@ export async function findUserById(id: string): Promise<User | null> {
 export async function verifyUserEmail(token: string): Promise<{ success: boolean; user?: User }> {
   const result = await sql`
     UPDATE users 
-    SET email_verified = true, email_verification_token = null, updated_at = NOW()
-    WHERE email_verification_token = ${token} AND email_verified = false
+    SET email_verified = true,
+        email_verification_token = null,
+        email_verification_expires = null,
+        updated_at = NOW()
+    WHERE email_verification_token = ${token}
+      AND email_verification_expires > NOW()
+      AND email_verified = false
     RETURNING *
   `
 
@@ -87,6 +94,19 @@ export async function verifyUserEmail(token: string): Promise<{ success: boolean
   }
 
   return { success: false }
+}
+
+export async function validatePasswordResetToken(tokenHash: string): Promise<boolean> {
+  const [user] = await sql`
+    SELECT user_id
+    FROM users
+    WHERE password_reset_token = ${tokenHash}
+      AND password_reset_expires > NOW()
+      AND status = 'active'
+    LIMIT 1
+  `
+
+  return !!user
 }
 
 export async function setPasswordResetToken(email: string, tokenHash: string, expiresAt: Date): Promise<boolean> {

@@ -55,6 +55,42 @@ class MockPaymentProcessor {
   async processPayment(request: PaymentProcessorRequest): Promise<PaymentProcessorResponse> {
     const startTime = Date.now()
 
+    // ── TEST MODE BYPASS ──────────────────────────────────────────────────────
+    // In non-production, ALL payment attempts are forced to succeed regardless
+    // of card number, expiry, or CVV. This allows end-to-end checkout testing
+    // without a real payment gateway.
+    //
+    // The full payment record (transaction ID, auth code, card brand, amount,
+    // etc.) is still generated and saved to the database as a successful charge.
+    //
+    // TODO: Remove this block (or gate it behind a PAYMENT_TEST_MODE env flag)
+    //       before going live in production.
+    if (process.env.NODE_ENV !== "production") {
+      const cleanCardNumber = request.cardNumber.replace(/\D/g, "")
+      const last4 = cleanCardNumber.slice(-4) || "0000"
+      const brand = this.detectCardBrand(cleanCardNumber)
+      const transactionId = `txn_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const authorizationCode = Math.random().toString(36).substr(2, 8).toUpperCase()
+
+      console.log(
+        `[TEST MODE] Payment auto-approved — txn: ${transactionId}, brand: ${brand}, last4: ${last4}`
+      )
+
+      return {
+        success: true,
+        transactionId,
+        authorizationCode,
+        last4,
+        brand,
+        expiryMonth: request.expiryMonth,
+        expiryYear: request.expiryYear,
+        billingDetails: request.billingDetails,
+        processingTime: Date.now() - startTime,
+        riskScore: 1, // lowest risk score in test mode
+      }
+    }
+    // ── END TEST MODE BYPASS ──────────────────────────────────────────────────
+
     try {
       // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000 + 500))
@@ -172,6 +208,13 @@ class MockPaymentProcessor {
    * Validate payment method (mock validation)
    */
   async validatePaymentMethod(request: PaymentProcessorRequest): Promise<{ valid: boolean; errors: string[] }> {
+    // TEST MODE: Skip all validation — accept any card data during testing.
+    // TODO: Remove this block before going live.
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[TEST MODE] Payment validation bypassed — all cards accepted")
+      return { valid: true, errors: [] }
+    }
+
     const errors: string[] = []
 
     // Basic validation

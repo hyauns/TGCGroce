@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, X, Eye, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { generateSlug } from "@/lib/utils"
 
 interface AddToCartPopupProps {
@@ -106,8 +107,8 @@ export function AddToCartPopup({ isOpen, onClose, product, cartCount }: AddToCar
               <div className="flex gap-4 mb-6">
                 {/* Product Image */}
                 <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border">
-                  <Image
-                    src={product.image || "/placeholder.svg?height=80&width=80"}
+                  <ImageWithFallback
+                    src={product.image || "/placeholder.svg?height=80&width=80"} fallbackSrc="/placeholder.png"
                     alt={product.name}
                     width={80}
                     height={80}

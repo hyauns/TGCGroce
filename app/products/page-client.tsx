@@ -23,6 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { Header } from "../components/header"
 import { Footer } from "../components/footer"
@@ -260,7 +261,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {/* Price Range Filter */}
                 <div>
                   <h4 className="font-medium mb-3">Price Range</h4>
@@ -327,9 +328,32 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                   </div>
                 </div>
 
+                {/* Product Type Filter */}
+                <div>
+                  <h4 className="font-medium mb-3">Product Type</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="type-sealed"
+                        checked={filters.productType === "sealed"}
+                        onCheckedChange={(checked) => setFilter("productType", checked ? "sealed" : undefined)}
+                      />
+                      <label htmlFor="type-sealed" className="text-sm">Sealed Products</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="type-single"
+                        checked={filters.productType === "single"}
+                        onCheckedChange={(checked) => setFilter("productType", checked ? "single" : undefined)}
+                      />
+                      <label htmlFor="type-single" className="text-sm">Cards / Singles</label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Categories Filter — each item is a full-page navigation link so
                     the URL always uses the clean slug, never a raw/encoded name */}
-                <div className="md:col-span-2">
+                <div className="md:col-span-3 lg:col-span-2">
                   <h4 className="font-medium mb-3">Categories</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {/* "All" reset option */}
@@ -428,13 +452,15 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         <div className="relative overflow-hidden rounded-t-lg">
                           <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                             <div
-                              className={`bg-gray-100 overflow-hidden ${viewMode === "list" ? "w-48 h-48 rounded-l-lg rounded-t-none" : "w-full aspect-square rounded-t-lg"}`}
+                              className={`bg-slate-50 border-b flex items-center justify-center p-6 overflow-hidden ${viewMode === "list" ? "w-48 h-48 rounded-l-lg rounded-t-none" : "w-full aspect-square rounded-t-lg"}`}
                             >
-                              <img
+                              <Image
                                 src={product.image || "/placeholder.svg?height=1000&width=1000"}
                                 alt={`${product.name} - Premium ${product.category} Trading Cards and Booster Packs`}
-                                className="w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                                style={{ aspectRatio: "1 / 1" }}
+                                width={1000}
+                                height={1000}
+                                sizes={viewMode === "list" ? "192px" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"}
+                                className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-110"
                               />
                             </div>
                           </Link>
@@ -463,7 +489,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                             )}
                           </div>
 
-                          <div className="absolute top-3 right-3">
+                          <div className="absolute top-3 right-3 z-10">
                             <Button
                               variant="ghost"
                               size="icon"

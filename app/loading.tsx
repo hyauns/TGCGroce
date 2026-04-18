@@ -259,7 +259,7 @@ export default function Loading() {
                 letterSpacing="2.5"
                 opacity="0.6"
               >
-                TGC LORE
+                TCG Lore Operated by A TOY HAULERZ LLC Company
               </text>
 
               {/* ── Bottom label strip ── */}
@@ -337,7 +337,7 @@ export default function Loading() {
             margin: 0,
           }}
         >
-          TGC Lore Inc.
+          TCG Lore Operated by A TOY HAULERZ LLC Company.
         </p>
       </div>
     </>

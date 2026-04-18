@@ -1,4 +1,6 @@
-﻿interface WelcomeEmailProps {
+import { getLogoUrl } from "./shared"
+
+interface WelcomeEmailProps {
   firstName: string
   email: string
   discountCode?: string
@@ -11,7 +13,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Welcome to TCG Lore Inc.</title>
+        <title>Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company</title>
       </head>
       <body
         style={{
@@ -32,7 +34,8 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
               textAlign: "center",
             }}
           >
-            <h1 style={{ color: "white", margin: 0, fontSize: "32px" }}>Welcome to TCG Lore Inc.!</h1>
+            <img src={getLogoUrl()} alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
+            <p style={{ color: "white", margin: "10px 0 0 0", fontSize: "20px" }}>Welcome to our community!</p>
             <p style={{ color: "white", margin: "15px 0 0 0", opacity: 0.9, fontSize: "18px" }}>
               Your Trading Card Adventure Begins
             </p>
@@ -43,7 +46,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
             <h2 style={{ color: "#333", marginTop: 0 }}>Hello {firstName}!</h2>
 
             <p>
-              Welcome to the TCG Lore Inc. family! We're thrilled to have you join our community of trading card
+              Welcome to the TCG Lore Operated by A TOY HAULERZ LLC Company. family! We're thrilled to have you join our community of trading card
               enthusiasts.
             </p>
 
@@ -196,7 +199,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
             <p style={{ color: "#666", fontSize: "14px" }}>
               Happy collecting!
               <br />
-              The TCG Lore Inc. Team
+              The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
             </p>
           </div>
 
@@ -210,15 +213,15 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Inc.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#667eea", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="tel:+13036683245" style={{ color: "#667eea", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
-            <p style={{ margin: "4px 0 0 0" }}>1924 N Miami Ave, Miami, FL 33136, United States</p>
-            <p style={{ margin: "8px 0 0 0" }}>Â© 2026 TCG Lore Inc. All rights reserved.</p>
+            <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
+            <p style={{ margin: "8px 0 0 0" }}>Â© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -229,11 +232,11 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
 // Plain text version
 export function getWelcomeText({ firstName, email, discountCode, discountAmount }: WelcomeEmailProps): string {
   return `
-Welcome to TCG Lore Inc.!
+Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company.!
 
 Hello ${firstName}!
 
-Welcome to the TCG Lore Inc. family! We're thrilled to have you join our community of trading card enthusiasts.
+Welcome to the TCG Lore Operated by A TOY HAULERZ LLC Company. family! We're thrilled to have you join our community of trading card enthusiasts.
 
 Your email address ${email} has been verified and your account is now active.
 
@@ -265,10 +268,10 @@ Start shopping: ${process.env.BASE_URL || "http://localhost:3000"}/products
 If you have any questions, our support team is here to help. Just reply to this email or contact us through your account.
 
 Happy collecting!
-The TCG Lore Inc. Team
+The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
 
-Â© 2026 TCG Lore Inc. All rights reserved.
+Â© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
 Support: cs@tcglore.com | Phone: +1 (303) 668-3245
-1924 N Miami Ave, Miami, FL 33136, United States
+1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()
 }

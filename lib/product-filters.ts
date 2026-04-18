@@ -29,6 +29,7 @@ export interface FilterOptions {
   inStock?: boolean
   outOfStock?: boolean
   isPreOrder?: boolean
+  productType?: string
   categories?: string[]
   sortBy?: "price-asc" | "price-desc" | "name-asc" | "name-desc" | "newest"
 }

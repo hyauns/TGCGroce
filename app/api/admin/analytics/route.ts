@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import {
   getRevenueReport,
   getTopSellingProducts,
@@ -9,8 +9,12 @@ import {
   getConversionFunnelData,
   getAnalyticsSummary,
 } from "@/lib/analytics"
+import { requireAdmin } from "@/lib/auth-guard"
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const { searchParams } = new URL(request.url)
     const startDate =

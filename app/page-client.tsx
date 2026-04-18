@@ -17,6 +17,7 @@ import {
   Check,
   ShieldCheck,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { Header } from "./components/header"
 import { Footer } from "./components/footer"
@@ -219,7 +220,7 @@ export default function HomePageClient({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 mb-12">
               {preOrderProducts.map((product) => {
                 const buttonState = getButtonState(product.id)
                 return (
@@ -231,12 +232,14 @@ export default function HomePageClient({
                     <CardHeader className="p-0 relative flex-shrink-0">
                       <div className="relative overflow-hidden rounded-t-lg">
                         <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                          <div className="aspect-square w-full bg-gray-100 rounded-t-lg overflow-hidden">
-                            <img
+                          <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
+                            <Image
                               src={product.image || "/placeholder.svg?height=1000&width=1000"}
-                              alt={`${product.name} - Premium ${product.category} Trading Cards for Pre-Order`}
-                              className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
-                              style={{ aspectRatio: "1 / 1" }}
+                              alt={`${product.name} - Premium ${product.category} Trading Cards`}
+                              width={1000}
+                              height={1000}
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                              className="w-full h-full object-contain object-center transition-transform duration-700 group-hover:scale-110"
                             />
                           </div>
                         </Link>
@@ -276,10 +279,10 @@ export default function HomePageClient({
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 lg:p-5 relative z-10 flex-grow flex flex-col">
-                      <div className="text-xs sm:text-sm text-purple-600 font-semibold mb-2 uppercase tracking-wide">{product.category}</div>
+                    <CardContent className="p-3 sm:p-4 relative z-10 flex-grow flex flex-col">
+                      <div className="text-[10px] sm:text-xs text-purple-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                        <CardTitle className="text-base lg:text-lg mb-3 line-clamp-2 hover:text-purple-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[3.5rem] flex items-start">
+                        <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-purple-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                           {product.name}
                         </CardTitle>
                       </Link>
@@ -290,27 +293,26 @@ export default function HomePageClient({
                       </div>
                       <div className="flex items-center justify-between mb-4 lg:mb-6">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl lg:text-2xl font-bold text-purple-600">${product.price.toFixed(2)}</span>
+                          <span className="text-lg sm:text-xl font-bold text-purple-600">${product.price.toFixed(2)}</span>
                           {product.originalPrice && (
-                            <span className="text-sm lg:text-base text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+                            <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
                           )}
                         </div>
                       </div>
                     </CardContent>
-                    <div className="p-4 lg:p-5 pt-0 mt-auto">
+                    <div className="p-3 sm:p-4 pt-0 mt-auto">
                       <Button
-                        className={`w-full h-11 lg:h-12 text-white transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-sm lg:text-base relative overflow-hidden transform ${
-                          buttonState === "loading" ? "bg-gradient-to-r from-purple-400 to-blue-400 cursor-not-allowed scale-95"
-                            : buttonState === "success" ? "bg-gradient-to-r from-green-500 to-green-600 scale-105"
+                        className={`w-full h-10 text-white transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-xs sm:text-sm px-2 relative overflow-hidden transform ${buttonState === "loading" ? "bg-gradient-to-r from-purple-400 to-blue-400 cursor-not-allowed scale-95"
+                          : buttonState === "success" ? "bg-gradient-to-r from-green-500 to-green-600 scale-105"
                             : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105 active:scale-95"
-                        }`}
+                          }`}
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (buttonState === "idle") addToCart(product, true) }}
                         disabled={buttonState !== "idle"}
                         aria-label={`Pre-order ${product.name} trading cards`}
                       >
                         {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
                           : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />Pre-Ordered!</>)
-                          : (<><Clock className="h-4 w-4 mr-2" />Pre-Order Trading Cards</>)}
+                            : (<><Clock className="h-4 w-4 mr-2" />Pre-Order Now</>)}
                         {buttonState === "idle" && <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>}
                       </Button>
                     </div>
@@ -349,7 +351,7 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             {featuredProducts.map((product) => {
               const buttonState = getButtonState(product.id)
               return (
@@ -357,12 +359,14 @@ export default function HomePageClient({
                   <CardHeader className="p-0 flex-shrink-0">
                     <div className="relative overflow-hidden rounded-t-lg">
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                        <div className="aspect-square w-full bg-gray-100 rounded-t-lg overflow-hidden">
-                          <img
+                        <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
+                          <Image
                             src={product.image || "/placeholder.svg?height=1000&width=1000"}
                             alt={`${product.name} - Premium ${product.category} Trading Cards and Booster Packs`}
-                            className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
-                            style={{ aspectRatio: "1 / 1" }}
+                            width={1000}
+                            height={1000}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            className="w-full h-full object-contain object-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
                           />
                         </div>
                       </Link>
@@ -396,10 +400,10 @@ export default function HomePageClient({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-5 flex-grow flex flex-col">
-                    <div className="text-sm text-gray-600 font-semibold mb-2 uppercase tracking-wide">{product.category}</div>
+                  <CardContent className="p-3 sm:p-4 flex-grow flex flex-col">
+                    <div className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                      <CardTitle className="text-lg mb-3 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[3.5rem] flex items-start">
+                      <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
                       </CardTitle>
                     </Link>
@@ -413,27 +417,26 @@ export default function HomePageClient({
                     </div>
                     <div className="flex items-center justify-between mb-6 flex-grow items-end">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                        <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
-                          <span className="text-base text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+                          <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
                         )}
                       </div>
                     </div>
                   </CardContent>
-                  <div className="p-5 pt-0 mt-auto">
+                  <div className="p-3 sm:p-4 pt-0 mt-auto">
                     <Button
-                      className={`w-full h-12 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-base transform ${
-                        buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
-                          : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
+                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-xs sm:text-sm px-2 transform ${buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
+                        : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
                           : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
-                      }`}
+                        }`}
                       onClick={() => addToCart(product, false)}
                       disabled={!product.inStock || buttonState !== "idle"}
                       aria-label={`Add ${product.name} to cart`}
                     >
                       {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
                         : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />Added!</>)
-                        : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
+                          : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
                     </Button>
                   </div>
                 </Card>
@@ -473,7 +476,7 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             {bestSellingProducts.map((product, index) => {
               const buttonState = getButtonState(product.id)
               return (
@@ -481,12 +484,14 @@ export default function HomePageClient({
                   <CardHeader className="p-0 flex-shrink-0">
                     <div className="relative overflow-hidden rounded-t-lg">
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                        <div className="aspect-square w-full bg-gray-100 rounded-t-lg overflow-hidden">
-                          <img
+                        <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
+                          <Image
                             src={product.image || "/placeholder.svg?height=1000&width=1000"}
                             alt={`${product.name} - Best Selling ${product.category} Trading Cards and Collectibles`}
-                            className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
-                            style={{ aspectRatio: "1 / 1" }}
+                            width={1000}
+                            height={1000}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="w-full h-full object-contain object-center transition-transform duration-700 group-hover:scale-110"
                           />
                         </div>
                       </Link>
@@ -520,10 +525,10 @@ export default function HomePageClient({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 flex-grow flex flex-col">
-                    <div className="text-sm text-gray-600 font-semibold mb-2 uppercase tracking-wide">{product.category}</div>
+                  <CardContent className="p-3 sm:p-4 flex-grow flex flex-col">
+                    <div className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                      <CardTitle className="text-xl mb-4 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[3.5rem] flex items-start">
+                      <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
                       </CardTitle>
                     </Link>
@@ -538,27 +543,26 @@ export default function HomePageClient({
                     </div>
                     <div className="flex items-center justify-between mb-6 flex-grow items-end">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                        <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
-                          <span className="text-base text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
+                          <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
                         )}
                       </div>
                     </div>
                   </CardContent>
-                  <div className="p-6 pt-0 mt-auto">
+                  <div className="p-3 sm:p-4 pt-0 mt-auto">
                     <Button
-                      className={`w-full h-14 transition-all duration-300 shadow-lg hover:shadow-xl text-lg font-semibold transform ${
-                        buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
-                          : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
+                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl text-xs sm:text-sm px-2 font-semibold transform ${buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
+                        : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
                           : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
-                      }`}
+                        }`}
                       onClick={() => addToCart(product, false)}
                       disabled={!product.inStock || buttonState !== "idle"}
                       aria-label={`Add ${product.name} to cart`}
                     >
                       {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
                         : buttonState === "success" ? (<><Check className="h-5 w-5 mr-2 animate-bounce" />Added!</>)
-                        : (<><ShoppingCart className="h-5 w-5 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
+                          : (<><ShoppingCart className="h-5 w-5 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
                     </Button>
                   </div>
                 </Card>
@@ -590,14 +594,14 @@ export default function HomePageClient({
           {/* Category slider — uses component-level sliderRef + scrollCategories */}
           {(() => {
             const categoryList = [
-              { name: "Magic: The Gathering", image: "/placeholder.svg?height=400&width=400&text=MTG",       description: "Premium Magic cards and booster packs" },
-              { name: "Pokemon TCG",           image: "/placeholder.svg?height=400&width=400&text=Pokemon",   description: "Authentic Pokemon trading cards" },
-              { name: "Yu-Gi-Oh!",             image: "/placeholder.svg?height=400&width=400&text=YuGiOh",   description: "Yu-Gi-Oh! cards and collectibles" },
-              { name: "Disney Lorcana",        image: "/placeholder.svg?height=400&width=400&text=Lorcana",  description: "Disney Lorcana trading card game" },
-              { name: "One Piece Card Game",   image: "/placeholder.svg?height=400&width=400&text=OnePiece", description: "One Piece collectible cards" },
-              { name: "Digimon Card Game",     image: "/placeholder.svg?height=400&width=400&text=Digimon",  description: "Digimon Card Game products" },
-              { name: "Star Wars: Unlimited",  image: "/placeholder.svg?height=400&width=400&text=StarWars", description: "Star Wars: Unlimited TCG" },
-              { name: "Flesh and Blood",       image: "/placeholder.svg?height=400&width=400&text=FAB",       description: "Flesh and Blood TCG products" },
+              { name: "Magic: The Gathering", image: "/images/Magic.png", description: "Premium Magic cards and booster packs" },
+              { name: "Pokemon TCG", image: "/images/Pokemon.png", description: "Authentic Pokemon trading cards" },
+              { name: "Yu-Gi-Oh!", image: "/images/Yugioh.png", description: "Yu-Gi-Oh! cards and collectibles" },
+              { name: "Disney Lorcana", image: "/images/Disney Lorcana.png", description: "Disney Lorcana trading card game" },
+              { name: "One Piece", image: "/images/One Piece.png", description: "One Piece collectible cards" },
+              { name: "Digimon Card Game", image: "/images/Digimon Card.png", description: "Digimon Card Game products" },
+              { name: "Star Wars: Unlimited", image: "/images/Star Wars Unlimited.png", description: "Star Wars: Unlimited TCG" },
+              { name: "Flesh and Blood", image: "/images/Flesh and Blood.png", description: "Flesh and Blood TCG products" },
             ]
             return (
               <div className="relative">
@@ -628,11 +632,14 @@ export default function HomePageClient({
                         <Card className="hover:shadow-xl transition-all duration-500 border-0 shadow-md bg-white h-full">
                           <CardContent className="p-4 text-center">
                             {/* Square image container — same across all cards */}
-                            <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
-                              <img
+                            <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3 p-2">
+                              <Image
                                 src={category.image}
                                 alt={`${category.name} - ${category.description}`}
-                                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                                width={1000}
+                                height={1000}
+                                sizes="(max-width: 768px) 160px, 176px"
+                                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                               />
                             </div>
                             {/* whitespace-nowrap on mobile keeps text on one line */}

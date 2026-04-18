@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getAllProducts, getProductBySlug, getRelatedProducts } from "@/lib/products"
+import { siteUrl } from "@/lib/site-config"
 
 interface PageProps {
   params: { slug: string }
@@ -25,12 +26,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   if (!product) {
     return {
-      title: "Product Not Found | TGC Lore Inc.",
+      title: "Product Not Found | TCG Lore Operated by A TOY HAULERZ LLC Company",
     }
   }
 
   return {
-    title: `${product.name} | Premium ${product.category} Products | TGC Lore Inc.`,
+    title: `${product.name} | Premium ${product.category} Products | TCG Lore Operated by A TOY HAULERZ LLC Company`,
     description: (product.description || "").slice(0, 160),
     keywords: [
       product.name,
@@ -40,12 +41,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       "collectibles",
       "TCG",
     ],
+    alternates: {
+      canonical: `${siteUrl}/products/${product.slug || params.slug}`,
+    },
     openGraph: {
       title: product.name,
       description: (product.description || "").slice(0, 160),
       images: [{ url: product.image, alt: product.name }],
       type: "website",
-      siteName: "TGC Lore Inc.",
+      siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company",
     },
   }
 }
@@ -63,10 +67,46 @@ export default async function ProductPage({ params }: PageProps) {
   // We'll use dynamic import for the client component
   const ProductPageClient = (await import("./page-client")).default
 
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": [
+      `${siteUrl}${product.image}`
+    ],
+    "description": product.description,
+    "sku": product.id.toString(),
+    "mpn": product.id.toString(),
+    "brand": {
+      "@type": "Brand",
+      "name": "Official"
+    },
+    "identifier_exists": false,
+    "offers": {
+      "@type": "Offer",
+      "url": `${siteUrl}/products/${product.slug || params.slug}`,
+      "priceCurrency": "USD",
+      "price": product.price.toFixed(2),
+      "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "TOY HAULERZ LLC"
+      }
+    }
+  }
+
   return (
-    <ProductPageClient 
-      product={product} 
-      relatedProducts={relatedProducts} 
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <ProductPageClient 
+        product={product} 
+        relatedProducts={relatedProducts} 
+      />
+    </>
   )
 }

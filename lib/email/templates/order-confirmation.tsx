@@ -6,6 +6,8 @@ interface OrderItem {
   image?: string
 }
 
+import { getLogoUrl } from "./shared"
+
 interface OrderConfirmationProps {
   orderNumber: string
   orderDate: Date
@@ -68,7 +70,7 @@ export function OrderConfirmationTemplate({
               textAlign: "center",
             }}
           >
-            <h1 style={{ color: "white", margin: 0, fontSize: "28px" }}>TCG Lore Inc.</h1>
+            <img src={getLogoUrl()} alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
             <p style={{ color: "white", margin: "10px 0 0 0", opacity: 0.9 }}>Order Confirmation</p>
           </div>
 
@@ -177,13 +179,13 @@ export function OrderConfirmationTemplate({
             </div>
 
             <p style={{ color: "#666", fontSize: "14px" }}>
-              Thank you for choosing TCG Lore Inc. for your trading card needs!
+              Thank you for choosing TCG Lore Operated by A TOY HAULERZ LLC Company for your trading card needs!
             </p>
 
             <p style={{ color: "#666", fontSize: "14px" }}>
               Best regards,
               <br />
-              The TCG Lore Inc. Team
+              The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
             </p>
           </div>
 
@@ -197,15 +199,15 @@ export function OrderConfirmationTemplate({
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Inc.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#667eea", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="tel:+13036683245" style={{ color: "#667eea", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
-            <p style={{ margin: "4px 0 0 0" }}>1924 N Miami Ave, Miami, FL 33136, United States</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Inc. All rights reserved.</p>
+            <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -229,7 +231,7 @@ export function getOrderConfirmationText({
   trackingNumber,
 }: OrderConfirmationProps): string {
   return `
-Order Confirmation - TCG Lore Inc.
+Order Confirmation - TCG Lore Operated by A TOY HAULERZ LLC Company.
 
 Thank you for your order, ${customerName}!
 
@@ -261,13 +263,13 @@ WHAT'S NEXT:
 • You can track your order status in your account
 • Contact us if you have any questions about your order
 
-Thank you for choosing TCG Lore Inc. for your trading card needs!
+Thank you for choosing TCG Lore Operated by A TOY HAULERZ LLC Company. for your trading card needs!
 
 Best regards,
-The TCG Lore Inc. Team
+The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
 
-© 2026 TCG Lore Inc. All rights reserved.
+© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
 Support: cs@tcglore.com | Phone: +1 (303) 668-3245
-1924 N Miami Ave, Miami, FL 33136, United States
+1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()
 }

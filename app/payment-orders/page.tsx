@@ -472,7 +472,7 @@ export default function PaymentOrdersPage() {
                       <li>• Virtual credit cards</li>
                       <li>• Debit gift cards</li>
                       <li>• Prepaid cards</li>
-                      <li>• Digital wallets (PayPal, Apple Pay, etc.)</li>
+                      
                       <li>• Bank transfers or wire payments</li>
                       <li>• Cryptocurrency payments</li>
                     </ul>

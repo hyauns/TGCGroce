@@ -148,7 +148,7 @@ export default function ContactPage() {
       questions: [
         {
           q: "What payment methods do you accept?",
-          a: "We accept all major credit cards (Visa, MasterCard, American Express, Discover), PayPal, and Apple Pay for secure transactions.",
+          a: "We accept Credit Card payments.",
         },
         {
           q: "When will my card be charged?",
@@ -344,11 +344,11 @@ export default function ContactPage() {
                   <div>
                     <h4 className="font-semibold">Mailing Address</h4>
                     <p className="text-sm text-gray-600">
-                      TGC Lore Inc. Customer Service
+                      TOY HAULERZ LLC Customer Service
                       <br />
-                      1924 N Miami Ave
+                      1757 NORTH CENTRAL AVENUE
                       <br />
-                      Miami, FL 33136, United States
+                      FLAGLER BEACH, FL 32136, United States
                     </p>
                   </div>
                 </div>

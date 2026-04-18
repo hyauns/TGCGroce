@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/database"
 import { revalidateProductPages } from "@/lib/admin-actions"
+import { requireAdmin } from "@/lib/auth-guard"
 import { decryptPhone } from "@/lib/payment-security"
 
 /**
@@ -33,6 +34,9 @@ function decryptAddressPhones(address: any): any {
 }
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const order = await adminDb.getOrderById(params.id)
     if (!order) {
@@ -55,6 +59,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const { status, tracking } = await request.json()
     await adminDb.updateOrderStatus(params.id, status, tracking)

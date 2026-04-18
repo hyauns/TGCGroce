@@ -1,28 +1,15 @@
 export const dynamic = 'force-dynamic'
 
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
+import { requireSession } from "@/lib/auth-guard"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
 const sql = neon(process.env.DATABASE_URL!)
 
-async function getUserIdFromRequest(): Promise<string | null> {
-  try {
-    const cookieStore = cookies()
-    const token = cookieStore.get("auth-token")?.value
-    if (!token) return null
-    const decoded = verify(token, JWT_SECRET) as { userId: string }
-    return decoded.userId
-  } catch {
-    return null
-  }
-}
-
 export async function GET() {
-  const userId = await getUserIdFromRequest()
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+  const userId = session.userId
 
   try {
     // Resolve the customers.id for this user (the FK used in orders.customer_id)

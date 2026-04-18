@@ -152,7 +152,7 @@ export function WriteReviewModal({
           {user && (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
               <Star className="w-4 h-4 fill-green-600 text-green-600 flex-shrink-0" />
-              Reviewing as <strong>{user.first_name} {user.last_name.charAt(0)}.</strong>
+              Reviewing as <strong>{user.first_name || "Verified User"} {user.last_name ? `${user.last_name.charAt(0)}.` : ""}</strong>
               {user.customer_id && " · Verified Purchase status will be checked automatically"}
             </div>
           )}

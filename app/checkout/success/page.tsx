@@ -22,12 +22,149 @@ import Link from "next/link"
 import { Header } from "../../components/header"
 import { Footer } from "../../components/footer"
 import { useSearchParams } from "next/navigation"
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
+
+type OrderSuccessPayload = {
+  success: boolean
+  order: {
+    id: string
+    orderNumber: string
+    status: string
+    actualStatus: string
+    paymentStatus: string
+    subtotal: number
+    tax: number
+    shipping: number
+    total: number
+    customerEmail: string | null
+    orderDate: string
+    createdAt: string
+    trackingNumber: string | null
+    estimatedDelivery: string
+    items: Array<{
+      id: string
+      productId: string
+      productName: string
+      quantity: number
+      unitPrice: number
+      totalPrice: number
+    }>
+  }
+  emailNotifications: {
+    adminNotificationSent: boolean
+    customerConfirmationSent: boolean
+  }
+}
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
-  const orderNumber = searchParams.get("orderNumber") || `TCG-${Date.now().toString().slice(-6)}`
-  const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString()
+  const orderNumber = searchParams.get("orderNumber")
+  const [orderData, setOrderData] = useState<OrderSuccessPayload | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadOrder() {
+      if (!orderNumber) {
+        if (isMounted) {
+          setError("Missing order number.")
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+
+        const response = await fetch(`/api/orders/complete?orderNumber=${encodeURIComponent(orderNumber)}`, {
+          credentials: "include",
+          cache: "no-store",
+        })
+
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as { error?: string } | null
+          throw new Error(payload?.error || "Unable to verify this order.")
+        }
+
+        const payload = (await response.json()) as OrderSuccessPayload
+
+        if (isMounted) {
+          setOrderData(payload)
+        }
+      } catch (fetchError) {
+        if (isMounted) {
+          setError(fetchError instanceof Error ? fetchError.message : "Unable to verify this order.")
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadOrder()
+
+    return () => {
+      isMounted = false
+    }
+  }, [orderNumber])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Verifying your order...</p>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error || !orderData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto">
+            <Card className="border-red-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-700">
+                  <AlertTriangle className="h-5 w-5" />
+                  We Couldn't Verify This Order
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">
+                  {error || "This order confirmation link is invalid or you do not have access to this order."}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/checkout">
+                    <Button className="w-full sm:w-auto">Return to Checkout</Button>
+                  </Link>
+                  <Link href="/contact">
+                    <Button variant="outline" className="w-full sm:w-auto bg-transparent">
+                      Contact Support
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  const verifiedOrder = orderData.order
+  const estimatedDelivery = verifiedOrder.estimatedDelivery
+  const paymentStatusLabel =
+    verifiedOrder.actualStatus?.toLowerCase() === "pending" ? "Processing" : "Processed"
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +208,7 @@ function CheckoutSuccessContent() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Order Number:</span>
-                    <span className="font-mono text-blue-600">#{orderNumber}</span>
+                    <span className="font-mono text-blue-600">#{verifiedOrder.orderNumber}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Estimated Delivery:</span>
@@ -89,11 +226,13 @@ function CheckoutSuccessContent() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Payment Status:</span>
-                    <span className="text-green-600 font-medium">Processed</span>
+                    <span className="text-green-600 font-medium">{paymentStatusLabel}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Confirmation Email:</span>
-                    <span className="text-green-600">Sent</span>
+                    <span className="text-green-600">
+                      {orderData.emailNotifications.customerConfirmationSent ? "Sent" : "Processing"}
+                    </span>
                   </div>
                 </div>
               </div>

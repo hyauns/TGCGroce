@@ -4,6 +4,7 @@ import { getAllProducts, getProductsByCategorySlug, getCategoryBySlug, searchPro
 import { generateCategorySlug, normalizeCategoryParam } from "@/lib/products"
 import type { Product as ProductFilter } from "@/lib/product-filters"
 import ProductsPageClient from "./page-client"
+import { siteUrl } from "@/lib/site-config"
 
 // Dynamic rendering — required for searchParams + per-category SEO metadata
 export const dynamic = "force-dynamic"
@@ -21,27 +22,27 @@ export async function generateMetadata({
   // Decode percent-encoded input (%3A → :) then re-slugify for a clean canonical
   const categorySlug = normalizeCategoryParam(params?.category)
 
-  const BASE_URL = "https://tgclore.com"
+  const BASE_URL = siteUrl
 
   if (!categorySlug || categorySlug === "all") {
     return {
-      title: "All Trading Card Products | TCG Cards, Booster Packs & Boxes | TGC Lore",
+      title: "All Trading Card Products | TCG Cards, Booster Packs & Boxes | TCG Lore Operated by A TOY HAULERZ LLC Company",
       description:
         "Shop our full collection of authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Free shipping on orders over $75.",
       keywords:
         "trading cards, TCG, booster packs, booster boxes, Magic The Gathering, Pokemon cards, Yu-Gi-Oh cards, Disney Lorcana, One Piece Card Game, card shop, collectible card games",
       alternates: { canonical: `${BASE_URL}/products` },
       openGraph: {
-        title: "All Trading Card Products | TGC Lore",
+        title: "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
         description:
           "Browse our complete collection of authentic trading cards and collectibles.",
         url: `${BASE_URL}/products`,
-        siteName: "TGC Lore Inc.",
+        siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
         type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title: "All Trading Card Products | TGC Lore",
+        title: "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
         description:
           "Browse our complete collection of authentic trading cards and collectibles.",
       },
@@ -53,7 +54,7 @@ export async function generateMetadata({
   const categoryName = categoryMeta?.name ?? slugToTitle(categorySlug)
   const canonicalUrl = `${BASE_URL}/products?category=${categorySlug}`
 
-  const title = `${categoryName} TCG Cards | Authentic Cards & Boxes | TGC Lore`
+  const title = `${categoryName} TCG Cards | Authentic Cards & Boxes | TCG Lore Operated by A TOY HAULERZ LLC Company`
   const description =
     categoryMeta?.description ??
     `Shop authentic ${categoryName} trading cards, booster packs, and collectibles at TGC Lore. 100% genuine products, fast US shipping, and the best prices guaranteed.`
@@ -61,14 +62,14 @@ export async function generateMetadata({
   return {
     title,
     description,
-    keywords: `${categoryName}, ${categoryName} cards, ${categoryName} booster packs, buy ${categoryName} TCG, ${categoryName} collectibles, TGC Lore`,
+    keywords: `${categoryName}, ${categoryName} cards, ${categoryName} booster packs, buy ${categoryName} TCG, ${categoryName} collectibles, TCG Lore Operated by A TOY HAULERZ LLC Company`,
     alternates: { canonical: canonicalUrl },
     robots: { index: true, follow: true },
     openGraph: {
       title,
       description,
       url: canonicalUrl,
-      siteName: "TGC Lore Inc.",
+      siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
       type: "website",
     },
     twitter: {
@@ -99,8 +100,8 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: categoryName
-      ? `${categoryName} TCG Cards | TGC Lore`
-      : "All Trading Card Products | TGC Lore",
+      ? `${categoryName} TCG Cards | TCG Lore Operated by A TOY HAULERZ LLC Company`
+      : "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
     description: categoryName
       ? `Authentic ${categoryName} trading cards, booster packs, and collectibles at TGC Lore.`
       : "Complete catalog of authentic trading cards and collectibles at TGC Lore.",
@@ -108,8 +109,8 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
     numberOfItems: productCount,
     provider: {
       "@type": "Organization",
-      name: "TGC Lore Inc.",
-      url: "https://tgclore.com",
+      name: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
+      url: siteUrl,
       contactPoint: {
         "@type": "ContactPoint",
         telephone: "+1-303-668-3245",
@@ -122,8 +123,8 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
     breadcrumb: {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://tgclore.com" },
-        { "@type": "ListItem", position: 2, name: "Products", item: "https://tgclore.com/products" },
+        { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+        { "@type": "ListItem", position: 2, name: "Products", item: `${siteUrl}/products` },
         ...(categoryName
           ? [
               {
@@ -144,7 +145,7 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
 // ============================================================
 
 interface ProductsPageProps {
-  searchParams: Promise<{ category?: string; search?: string; page?: string; q?: string }>
+  searchParams: Promise<{ category?: string; search?: string; page?: string; q?: string; productType?: string }>
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
@@ -168,7 +169,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect(target) // next/navigation redirect — throws internally (permanent)
   }
 
-  const BASE_URL = "https://tgclore.com"
+  const rawProductType = typeof params?.productType === 'string' ? params.productType : null;
+
+  const BASE_URL = siteUrl
 
   // Server-side DB fetch:
   // Priority: search > category > all products
@@ -177,14 +180,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   if (searchQuery) {
     // Full-text DB search — ILIKE across name / category / joined category name
-    products = await searchProducts(searchQuery)
+    products = await searchProducts(searchQuery, rawProductType)
   } else if (categorySlug && categorySlug !== "all") {
     ;[products, categoryMeta] = await Promise.all([
-      getProductsByCategorySlug(categorySlug),
+      getProductsByCategorySlug(categorySlug, rawProductType),
       getCategoryBySlug(categorySlug),
     ])
   } else {
-    products = await getAllProducts()
+    products = await getAllProducts(rawProductType)
   }
 
   const activeCategoryName = categoryMeta?.name ?? null

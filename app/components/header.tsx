@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -43,7 +44,7 @@ const categories = [
   "Pokemon",
   "Yu-Gi-Oh!",
   "Disney Lorcana",
-  "One Piece Card Game",
+  "One Piece",
   "Digimon Card Game",
   "Star Wars: Unlimited",
   "Flesh and Blood",
@@ -144,12 +145,18 @@ export function Header() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-blue-600 text-white p-2 rounded-lg">
-              <Package className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">TGC Lore Inc.</h1>
-              <p className="text-xs text-gray-600 hidden sm:block">Trading Card Games</p>
+            <div className="flex flex-col items-start gap-1">
+              <Image 
+                src="/logo.png" 
+                alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" 
+                width={120} 
+                height={40} 
+                className="h-10 w-auto object-contain"
+                priority
+              />
+              <p className="text-[10px] text-gray-500 hidden sm:block uppercase tracking-wider font-semibold">
+                A TOY HAULERZ LLC Company
+              </p>
             </div>
           </Link>
 
@@ -369,7 +376,7 @@ export function Header() {
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <p className="text-gray-700 font-medium mb-3">Welcome to TGC Lore Inc.</p>
+                          <p className="text-gray-700 font-medium mb-3">Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company</p>
                           <div className="space-y-2">
                             <Link href="/auth/login" onClick={closeMobileMenu}>
                               <Button className="w-full bg-blue-600 hover:bg-blue-700">

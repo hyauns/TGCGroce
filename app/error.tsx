@@ -52,15 +52,15 @@ export default function Error({
 
           <Button variant="outline" className="flex items-center justify-center gap-2">
             <Mail className="w-4 h-4" />
-            <a href="mailto:support@tcglore.com">Contact Support</a>
+            <a href="mailto:cs@tcglore.com">Contact Support</a>
           </Button>
         </div>
 
         <div className="mt-8 p-4 bg-gray-100 rounded-lg">
           <p className="text-sm text-gray-500">
             If this problem persists, please email us at{" "}
-            <a href="mailto:support@tcglore.com" className="text-blue-600 hover:underline">
-              support@tcglore.com
+            <a href="mailto:cs@tcglore.com" className="text-blue-600 hover:underline">
+              cs@tcglore.com
             </a>
           </p>
         </div>

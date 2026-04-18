@@ -1,14 +1,15 @@
 import type { MetadataRoute } from "next"
+import { siteUrl } from "@/lib/site-config"
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.BASE_URL || "https://v0-toy-gamma.vercel.app"
+  const baseUrl = siteUrl
 
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/*", "/api/*"],
+        disallow: ["/admin/*", "/api/*", "/checkout/*", "/cart", "/account/*"],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

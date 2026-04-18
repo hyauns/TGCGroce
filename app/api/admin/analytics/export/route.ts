@@ -9,8 +9,13 @@ import {
   getConversionFunnelData,
   getAnalyticsSummary,
 } from "@/lib/analytics"
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function POST(request: NextRequest) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
+
   try {
     const { startDate, endDate } = await request.json()
 

@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 ${message}
           </div>
           <p style="font-size: 12px; color: #9ca3af; margin-top: 16px;">
-            Received on ${timestamp} (PST) via TGC Lore Contact Form
+            Received on ${timestamp} (PST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form
           </p>
         </div>
       </div>
@@ -72,7 +72,7 @@ ${message}
       `Message:`,
       message,
       ``,
-      `Received on ${timestamp} (PST) via TGC Lore Contact Form`,
+      `Received on ${timestamp} (PST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form`,
     ].join("\n")
 
     // ── Send via Resend ──────────────────────────────────────────────────
@@ -81,7 +81,7 @@ ${message}
       subject: `[Contact Form] ${subject}`,
       html,
       text,
-      from: EMAIL_CONFIG.from, // "TCG Lore Inc. <cs@tcglore.com>"
+      from: EMAIL_CONFIG.from, // "TCG Lore Operated by A TOY HAULERZ LLC Company. <cs@tcglore.com>"
     })
 
     if (!result.success) {

@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import { EnhancedDeliveryCalculator } from "../components/enhanced-delivery-calculator"
@@ -315,8 +316,8 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
                       {/* Product image + Auth badge */}
                       <div className="relative flex-shrink-0">
                         <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg overflow-hidden relative">
-                          <Image
-                            src={item.image || "/placeholder.svg"}
+                          <ImageWithFallback
+                            src={item.image || "/placeholder.svg"} fallbackSrc="/placeholder.png"
                             alt={item.name}
                             fill
                             className="object-cover"

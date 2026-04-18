@@ -1,23 +1,10 @@
 export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
+import { requireSession } from "@/lib/auth-guard"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
 const sql = neon(process.env.DATABASE_URL!)
-
-function getUserId(): string | null {
-  try {
-    const token = cookies().get("auth-token")?.value
-    if (!token) return null
-    const decoded = verify(token, JWT_SECRET) as { userId: string }
-    return decoded.userId
-  } catch {
-    return null
-  }
-}
 
 /**
  * POST /api/analytics
@@ -26,13 +13,16 @@ function getUserId(): string | null {
  * Silent endpoint — always returns 200 so the client never retries.
  */
 export async function POST(request: NextRequest) {
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   try {
     const body = await request.json()
     const { eventType, pageUrl, productId, sessionId, metadata } = body
 
     if (!eventType) return NextResponse.json({ ok: true })
 
-    const customerId = getUserId()
+    const customerId = session.userId
 
     await sql`
       INSERT INTO website_analytics (

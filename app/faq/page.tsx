@@ -152,7 +152,7 @@ const faqData: FAQCategory[] = [
       {
         question: "What payment methods do you accept?",
         answer:
-          "We accept all major credit cards (Visa, MasterCard, American Express, Discover), PayPal, Apple Pay, Google Pay, and Shop Pay. All payments are processed securely through encrypted connections.",
+          "We accept Credit Card payments. All payments are processed securely through encrypted connections.",
       },
       {
         question: "Is my payment information secure?",

@@ -1,24 +1,11 @@
 export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
+import { requireSession } from "@/lib/auth-guard"
+import { assertSameOrigin } from "@/lib/csrf"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
 const sql = neon(process.env.DATABASE_URL!)
-
-/** Resolve the authenticated user_id (uuid) from the JWT cookie, or null for guests. */
-function getUserId(): string | null {
-  try {
-    const token = cookies().get("auth-token")?.value
-    if (!token) return null
-    const decoded = verify(token, JWT_SECRET) as { userId: string }
-    return decoded.userId
-  } catch {
-    return null
-  }
-}
 
 /**
  * Resolve customers.id (integer) from users.user_id (uuid).
@@ -33,8 +20,9 @@ async function getCustomerId(userId: string): Promise<number | null> {
 
 /** GET /api/cart — Return all cart rows for the authenticated user. */
 export async function GET() {
-  const userId = getUserId()
-  if (!userId) return NextResponse.json({ items: [] })
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+  const userId = session.userId
 
   const rows = await sql`
     SELECT
@@ -56,8 +44,12 @@ export async function GET() {
 
 /** POST /api/cart — Upsert a product into the cart (add or increment). */
 export async function POST(request: NextRequest) {
-  const userId = getUserId()
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const csrfError = assertSameOrigin(request)
+  if (csrfError) return csrfError
+
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+  const userId = session.userId
 
   const { productId, quantity = 1 } = await request.json()
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 })
@@ -95,8 +87,12 @@ export async function POST(request: NextRequest) {
 
 /** PATCH /api/cart — Set an exact quantity (0 = remove). */
 export async function PATCH(request: NextRequest) {
-  const userId = getUserId()
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const csrfError = assertSameOrigin(request)
+  if (csrfError) return csrfError
+
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+  const userId = session.userId
 
   const { productId, quantity } = await request.json()
   if (!productId || quantity === undefined) return NextResponse.json({ error: "productId and quantity required" }, { status: 400 })
@@ -132,8 +128,12 @@ export async function PATCH(request: NextRequest) {
 
 /** DELETE /api/cart — Remove a single item, or pass clearAll=true to wipe the cart. */
 export async function DELETE(request: NextRequest) {
-  const userId = getUserId()
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const csrfError = assertSameOrigin(request)
+  if (csrfError) return csrfError
+
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+  const userId = session.userId
 
   const { productId, clearAll } = await request.json()
 

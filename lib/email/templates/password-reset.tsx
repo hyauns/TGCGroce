@@ -1,3 +1,5 @@
+import { getLogoUrl } from "./shared"
+
 interface PasswordResetProps {
   firstName: string
   email: string
@@ -20,7 +22,7 @@ export function PasswordResetTemplate({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Reset Your Password - TCG Lore Inc.</title>
+        <title>Reset Your Password - TCG Lore Operated by A TOY HAULERZ LLC Company</title>
       </head>
       <body
         style={{
@@ -41,7 +43,7 @@ export function PasswordResetTemplate({
               textAlign: "center",
             }}
           >
-            <h1 style={{ color: "white", margin: 0, fontSize: "32px" }}>TCG Lore Inc.</h1>
+            <img src={getLogoUrl()} alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
             <p style={{ color: "white", margin: "15px 0 0 0", opacity: 0.9, fontSize: "18px" }}>
               Password Reset Request
             </p>
@@ -165,7 +167,7 @@ export function PasswordResetTemplate({
             <p style={{ color: "#666", fontSize: "14px" }}>
               Best regards,
               <br />
-              The TCG Lore Inc. Security Team
+              The TCG Lore Operated by A TOY HAULERZ LLC Company. Security Team
             </p>
           </div>
 
@@ -179,15 +181,15 @@ export function PasswordResetTemplate({
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Inc.</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company.</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#dc3545", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="tel:+13036683245" style={{ color: "#dc3545", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
-            <p style={{ margin: "4px 0 0 0" }}>1924 N Miami Ave, Miami, FL 33136, United States</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Inc. All rights reserved.</p>
+            <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -205,11 +207,11 @@ export function getPasswordResetText({
   userAgent,
 }: PasswordResetProps): string {
   return `
-TCG Lore Inc. - Password Reset Request
+TCG Lore Operated by A TOY HAULERZ LLC Company. - Password Reset Request
 
 Hello ${firstName}!
 
-We received a request to reset the password for your TCG Lore Inc. account associated with ${email}.
+We received a request to reset the password for your TCG Lore Operated by A TOY HAULERZ LLC Company. account associated with ${email}.
 
 If you made this request, click the link below to reset your password. If you didn't request this, you can safely ignore this email.
 
@@ -234,10 +236,10 @@ WHAT TO DO NEXT:
 If you have any questions or concerns, please contact our support team at cs@tcglore.com immediately.
 
 Best regards,
-The TCG Lore Inc. Security Team
+The TCG Lore Operated by A TOY HAULERZ LLC Company. Security Team
 
-© 2026 TCG Lore Inc. All rights reserved.
+© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
 Support: cs@tcglore.com | Phone: +1 (303) 668-3245
-1924 N Miami Ave, Miami, FL 33136, United States
+1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()
 }

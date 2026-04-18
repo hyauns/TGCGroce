@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 mb-4">
-                Welcome to our Trading Card Game Store ("we," "our," or "us"). We are committed to protecting your
+                Welcome to our TCG Lore Operated by A TOY HAULERZ LLC Store ("we," "our," or "us"). We are committed to protecting your
                 privacy and ensuring the security of your personal information. This Privacy Policy explains how we
                 collect, use, disclose, and safeguard your information when you visit our website and make purchases
                 from our online store.
@@ -120,7 +120,7 @@ export default function PrivacyPolicy() {
               <h3 className="text-xl font-medium text-gray-800 mb-3">4.1 Service Providers</h3>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li>
-                  <strong>Payment Processors:</strong> Stripe, PayPal, and other secure payment gateways
+                  <strong>Payment Processors:</strong> secure Credit Card processing gateways
                 </li>
                 <li>
                   <strong>Shipping Partners:</strong> USPS, UPS, FedEx, DHL for order delivery
@@ -300,7 +300,7 @@ export default function PrivacyPolicy() {
                   <strong>Phone:</strong> <a href="tel:+13036683245">+1 (303) 668-3245</a>
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Mail:</strong> Privacy Officer, TGC Lore Inc., 1924 N Miami Ave, Miami, FL 33136, United States
+                  <strong>Mail:</strong> Privacy Officer, TOY HAULERZ LLC, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136, United States
                 </p>
                 <p className="text-gray-700">
                   <strong>Contact Form:</strong>{" "}

@@ -1,6 +1,5 @@
 import "server-only"
 import { neon } from "@neondatabase/serverless"
-import { generateReviewCount } from "./review-generator"
 import { generateRealisticSalesCount } from "./sales-generator"
 
 // ============================================================
@@ -50,8 +49,10 @@ interface DbProductRaw {
   name: string
   category: string          // legacy varchar column (still populated)
   category_id: number | null // new FK column (nullable during migration)
+  description: string | null
   price: string
   original_price: string | null
+  image_url: string | null
   cost: string | null
   stock_quantity: number
   is_active: boolean
@@ -68,6 +69,8 @@ interface DbProductJoined extends DbProductRaw {
   // New columns added in migration
   is_pre_order: boolean | null   // NULL when column doesn't exist yet (caught via try/catch)
   release_date: Date | string | null
+  avg_rating?: string | null
+  review_count?: string | null
 }
 
 // ============================================================
@@ -95,7 +98,7 @@ function getSqlConnection() {
     return null
   }
 
-  return neon(url)
+  return neon(url, { fetchOptions: { cache: 'no-store' } })
 }
 
 // ============================================================
@@ -143,6 +146,12 @@ const PRODUCT_JOIN_SQL = `
   LEFT JOIN product_categories pc
          ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
          OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+  LEFT JOIN (
+    SELECT product_id, AVG(rating) as avg_rating, COUNT(id) as review_count
+    FROM product_reviews
+    WHERE is_approved = true
+    GROUP BY product_id
+  ) pr ON p.id = pr.product_id
 ` as const
 
 // Badge helpers are re-exported above from lib/product-utils.
@@ -162,7 +171,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
   const categorySlug = row.pc_slug ?? _categorySlug(categoryName)
   const categoryId = row.pc_id ?? row.category_id ?? undefined
 
-  const image = `/placeholder.svg?height=400&width=400&text=${encodeURIComponent(categoryName)}`
+  const image = row.image_url || `/placeholder.svg?height=400&width=400&text=${encodeURIComponent(categoryName)}`
 
   const stockQuantity = row.stock_quantity || 0
   const inStock = stockQuantity > 0
@@ -174,32 +183,14 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
   // See isHotProduct() JSDoc in lib/product-utils.ts for rationale.
   const isHot = _isHot(row.id)
 
-  // ─── Seeded rating ──────────────────────────────────────────────────────────
-  // No `rating` column exists in the products table yet.
-  // We derive a deterministic, product-specific rating using the same seeded
-  // Math.sin approach used across review-generator and sales-generator so that
-  // all display surfaces (homepage cards, category page, PDP header, review tab)
-  // show perfectly consistent numbers from a single source.
-  const seedVal = Math.sin(row.id * 9301 + 49297) * 233280
-  const norm = seedVal - Math.floor(seedVal)            // 0..1
-  const seededRating = Math.round((3.8 + norm * 1.2) * 10) / 10  // 3.8 – 5.0, 1dp
-
-  // ─── Review count (seeded) ────────────────────────────────────────────────
-  const reviewFactors = {
-    productId: row.id,
-    productName: row.name,
-    category: categoryName,
-    price,
-    rating: seededRating,
-    isNew,
-    isHot,
-    isPreOrder: false,
-  }
-  const seededReviewCount = generateReviewCount(reviewFactors)
+  // ─── Real DB Rating & Reviews ───────────────────────────────────────────────
+  const dbRating = row.avg_rating ? parseFloat(row.avg_rating) : 0
+  const realRating = dbRating > 0 ? Math.round(dbRating * 10) / 10 : undefined
+  const realReviewCount = row.review_count ? parseInt(row.review_count, 10) : 0
 
   // ─── Sales count (seeded) ─────────────────────────────────────────────────
   const seededSalesCount = generateRealisticSalesCount(
-    row.id, price, categoryName, seededRating, isNew, isHot, false,
+    row.id, price, categoryName, realRating || 5, isNew, isHot, false,
   )
 
   // ─── Pre-order & release date ────────────────────────────────────────────
@@ -232,8 +223,8 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
     category: categoryName,
     categorySlug,
     categoryId: typeof categoryId === "number" ? categoryId : undefined,
-    rating: seededRating,
-    reviews: seededReviewCount,
+    rating: realRating,
+    reviews: realReviewCount,
     inStock,
     isNew,
     isHot,
@@ -241,7 +232,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
     releaseDate,
     stock: stockQuantity,
     salesCount: seededSalesCount,
-    description: `Premium ${categoryName} trading card product. Shop with confidence at TGC Lore Inc.`,
+    description: row.description || undefined,
     features: [
       `${stockQuantity} units available`,
       "Authentic product",
@@ -257,22 +248,27 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
 /**
  * Fetch all active products, enriched with category metadata via JOIN.
  */
-export async function getAllProducts(): Promise<Product[]> {
+export async function getAllProducts(productType?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
 
+    const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
+
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
+      ${typeFilter}
       ORDER BY p.created_at DESC
     ` as DbProductJoined[]
 
@@ -295,13 +291,15 @@ export async function getProductById(id: number): Promise<Product | undefined> {
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.id = ${id}
       LIMIT 1
@@ -329,13 +327,15 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
     ` as DbProductJoined[]
@@ -365,13 +365,15 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND (p.category = ${category} OR pc.name = ${category})
@@ -436,11 +438,13 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryMeta | nu
  *   3. Slug-derived match against raw products.category string
  *      (last resort — no product_categories data at all)
  */
-export async function getProductsByCategorySlug(slug: string): Promise<Product[]> {
-  if (!slug || slug === "all") return getAllProducts()
+export async function getProductsByCategorySlug(slug: string, productType?: string | null): Promise<Product[]> {
+  if (!slug || slug === "all") return getAllProducts(productType)
 
   const sql = getSqlConnection()
   if (!sql) return []
+
+  const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
 
   try {
     // ── Strategy 1 & 2 combined in one query via LEFT JOIN ──────────────────
@@ -448,17 +452,20 @@ export async function getProductsByCategorySlug(slug: string): Promise<Product[]
     // falls back to name-match. We filter WHERE the resolved pc.slug matches.
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND pc.slug = ${slug}
         AND pc.is_active = true
+        ${typeFilter}
       ORDER BY p.created_at DESC
     ` as DbProductJoined[]
 
@@ -481,7 +488,7 @@ export async function getProductsByCategorySlug(slug: string): Promise<Product[]
 
     const fallbackRows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         NULL::integer AS pc_id,
@@ -490,6 +497,7 @@ export async function getProductsByCategorySlug(slug: string): Promise<Product[]
         NULL::text    AS pc_description
       FROM products p
       WHERE p.is_active = true AND p.category = ${matchedCategory.category}
+      ${typeFilter}
       ORDER BY p.created_at DESC
     ` as DbProductJoined[]
 
@@ -548,13 +556,15 @@ export async function getFeaturedProducts(): Promise<Product[]> {
     try {
       const featuredRows = await sql`
         SELECT
-          p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           pc.id   AS pc_id,
           pc.name AS pc_name,
           pc.slug AS pc_slug,
-          pc.description AS pc_description
+          pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true AND p.is_featured = true
         ORDER BY p.created_at DESC
@@ -569,13 +579,15 @@ export async function getFeaturedProducts(): Promise<Product[]> {
     // Strategy 2: products with a discount (visible "sale" items make good featured cards)
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.original_price IS NOT NULL
       ORDER BY p.created_at DESC
@@ -586,13 +598,15 @@ export async function getFeaturedProducts(): Promise<Product[]> {
     if (rows.length === 0) {
       const anyRows = await sql`
         SELECT
-          p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           pc.id   AS pc_id,
           pc.name AS pc_name,
           pc.slug AS pc_slug,
-          pc.description AS pc_description
+          pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
@@ -622,13 +636,15 @@ export async function getBestSellingProducts(): Promise<Product[]> {
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.stock_quantity > 0
       ORDER BY p.created_at DESC
@@ -639,13 +655,15 @@ export async function getBestSellingProducts(): Promise<Product[]> {
     if (rows.length === 0) {
       const anyRows = await sql`
         SELECT
-          p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           pc.id   AS pc_id,
           pc.name AS pc_name,
           pc.slug AS pc_slug,
-          pc.description AS pc_description
+          pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
@@ -682,13 +700,15 @@ export async function getPreOrderProducts(): Promise<Product[]> {
   try {
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND p.is_pre_order = true
@@ -707,14 +727,16 @@ export async function getPreOrderProducts(): Promise<Product[]> {
   try {
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         NULL::boolean AS is_pre_order,
         NULL::date    AS release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND LOWER(p.condition) = 'pre-order'
@@ -734,14 +756,16 @@ export async function getPreOrderProducts(): Promise<Product[]> {
   try {
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_preorder AS is_pre_order,
         NULL::date    AS release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.is_preorder = true
       ORDER BY p.created_at DESC
@@ -777,13 +801,15 @@ export async function getRelatedProducts(productId: number): Promise<Product[]> 
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND p.id != ${productId}
@@ -815,22 +841,25 @@ export async function getRelatedProductsBySlug(slug: string): Promise<Product[]>
 /**
  * Full-text search across product name and category.
  */
-export async function searchProducts(query: string): Promise<Product[]> {
+export async function searchProducts(query: string, productType?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
 
     const searchPattern = `%${query}%`
+    const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.category, p.category_id, p.price, p.original_price,
+        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
-        pc.description AS pc_description
+        pc.description AS pc_description,
+        pr.avg_rating,
+        pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND (
@@ -838,6 +867,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
           OR p.category ILIKE ${searchPattern}
           OR pc.name    ILIKE ${searchPattern}
         )
+        ${typeFilter}
       ORDER BY p.created_at DESC
     ` as DbProductJoined[]
 

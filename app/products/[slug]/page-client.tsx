@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { useRouter } from "next/navigation"
 import { Header } from "../../components/header"
 import { Footer } from "../../components/footer"
@@ -37,15 +38,19 @@ import { useWishlist } from "@/lib/wishlist-context"
 import { useToast } from "@/hooks/use-toast"
 import type { Product } from "@/lib/products"
 import { generateRealisticSalesCount, formatSalesCount } from "@/lib/sales-generator"
-import {
-  generateProductReviews,
-  generateReviewCount,
-  getReviewSummary,
-  formatReviewCount,
-  type GeneratedReview,
-  type DbReview,
-} from "@/lib/review-generator"
+export interface DbReview {
+  id: string
+  product_id: number
+  customer_id: number | null
+  rating: number
+  title: string | null
+  review_text: string
+  is_verified_purchase: boolean
+  created_at: string
+  reviewer_name: string | null
+}
 import { WriteReviewModal } from "../../components/write-review-modal"
+import { FormattedDescription } from "../../components/formatted-description"
 
 interface ProductPageClientProps {
   product: Product
@@ -95,64 +100,51 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
     ), [product.id, product.price, product.category, productRating, product.isNew, product.isHot, product.isPreOrder]
   )
 
-  const reviewFactors = useMemo(() => ({
-    productId: product.id,
-    productName: product.name,
-    category: product.category,
-    price: product.price,
-    rating: productRating,
-    isNew: product.isNew,
-    isHot: product.isHot,
-    isPreOrder: product.isPreOrder,
-  }), [product.id, product.name, product.category, product.price, productRating, product.isNew, product.isHot, product.isPreOrder])
-
-  const generatedReviewCount = useMemo(() => generateReviewCount(reviewFactors), [reviewFactors])
-  const generatedReviews = useMemo(() => generateProductReviews(reviewFactors, generatedReviewCount), [reviewFactors, generatedReviewCount])
-  const reviewSummary = useMemo(() => getReviewSummary(generatedReviews), [generatedReviews])
-
   // ── Real DB reviews state ─────────────────────────────────────────────────
   const [dbReviews, setDbReviews] = useState<DbReview[]>([])
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
 
-  // Fetch approved real reviews on mount. Runs silently — generator reviews
-  // fill the UI immediately while this request completes in the background.
+  // Fetch approved real reviews on mount.
   useEffect(() => {
     fetch(`/api/reviews?product_id=${product.id}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => { if (data?.reviews) setDbReviews(data.reviews) })
-      .catch(() => { /* non-fatal: generator reviews remain visible */ })
+      .catch(() => { console.error("Failed to fetch reviews") })
   }, [product.id])
 
-  // ── Hybrid display list (real reviews first, generator fills the rest) ────
-  const FILL_TARGET = 10
-  const hybridReviews = useMemo(() => {
-    // Normalise DbReview rows into the same display shape as GeneratedReview
-    const realNormalised = dbReviews.map((r) => ({
-      id: r.id.charCodeAt(0),       // stable numeric key for React
-      _dbId: r.id,                  // keep UUID for dedup if needed
-      userName: r.reviewer_name ?? "Anonymous",
-      rating: r.rating,
-      title: r.title ?? "Customer Review",
-      comment: r.review_text,
-      date: r.created_at,
-      verified: r.is_verified_purchase,
-      helpful: 0,
-      images: undefined as string[] | undefined,  // DB reviews have no images yet
-      isReal: true,
-    }))
-    const fillerCount = Math.max(0, FILL_TARGET - realNormalised.length)
-    const filler = generatedReviews.slice(0, fillerCount).map((r) => ({ ...r, isReal: false }))
-    return [...realNormalised, ...filler]
-  }, [dbReviews, generatedReviews])
+  const totalReviewCount = product.reviews || 0
+  const combinedRating = product.rating || 0
 
-  // ── Combined count and rating (real + seeded) ─────────────────────────────
-  const totalReviewCount = generatedReviewCount + dbReviews.length
-  const combinedRating = useMemo(() => {
-    if (dbReviews.length === 0) return reviewSummary.averageRating
-    const dbSum = dbReviews.reduce((s, r) => s + r.rating, 0)
-    const genSum = reviewSummary.averageRating * generatedReviewCount
-    return Math.round(((dbSum + genSum) / totalReviewCount) * 10) / 10
-  }, [dbReviews, reviewSummary.averageRating, generatedReviewCount, totalReviewCount])
+  const reviewSummary = useMemo(() => {
+    const defaultDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    if (dbReviews.length === 0) {
+      return { totalReviews: 0, averageRating: 0, ratingDistribution: defaultDist, verifiedPercentage: 0 }
+    }
+    const dist = { ...defaultDist }
+    let verifiedCount = 0
+    dbReviews.forEach(r => {
+      if (r.rating >= 1 && r.rating <= 5) dist[r.rating as keyof typeof dist]++
+      if (r.is_verified_purchase) verifiedCount++
+    })
+    return {
+      totalReviews: totalReviewCount,
+      averageRating: combinedRating,
+      ratingDistribution: dist,
+      verifiedPercentage: Math.round((verifiedCount / dbReviews.length) * 100),
+    }
+  }, [dbReviews, totalReviewCount, combinedRating])
+
+  const displayReviews = dbReviews.map((r) => ({
+    id: r.id,
+    userName: r.reviewer_name ?? "Anonymous",
+    rating: r.rating,
+    title: r.title ?? "Customer Review",
+    comment: r.review_text,
+    date: r.created_at,
+    verified: r.is_verified_purchase,
+    helpful: 0,
+    images: undefined as string[] | undefined,
+  }))
 
   // Mobile sticky bar scroll detection
   useEffect(() => {
@@ -247,7 +239,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title
   }
 
-  const images = [productImage, productImage, productImage, productImage]
+  const images = [productImage]
   const isWishlisted = isInWishlist(product.id)
 
   return (
@@ -284,13 +276,15 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
           {/* Product Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group">
-              <Image
-                src={images[selectedImage] || "/placeholder.svg"}
-                alt={product.name}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+            <div className="aspect-square bg-slate-50 border rounded-xl p-8 flex items-center justify-center relative group overflow-hidden">
+              <div className="relative w-full h-full flex items-center justify-center">
+                <ImageWithFallback
+                  src={images[selectedImage] || "/placeholder.svg"} fallbackSrc="/placeholder.png"
+                  alt={product.name}
+                  fill
+                  className="object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
 
               {/* Badges — visual overlay only, NOT in JSON-LD or alt text */}
               <div className="absolute top-4 left-4 space-y-1.5">
@@ -337,36 +331,61 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                   onClick={handleWishlistToggle}
                 >
                   <Heart className={`w-4 h-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                  <span className="sr-only">{isWishlisted ? "Remove from wishlist" : "Add to wishlist"}</span>
                 </Button>
-                <Button size="icon" variant="secondary" className="bg-white/90 hover:bg-white">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="bg-white/90 hover:bg-white"
+                  onClick={async () => {
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: product.name,
+                          text: `Check out ${product.name} on TCG Lore Operated by A TOY HAULERZ LLC Company!`,
+                          url: window.location.href,
+                        })
+                      } catch (error) {
+                        console.error("Error sharing", error)
+                      }
+                    } else {
+                      navigator.clipboard.writeText(window.location.href)
+                      toast({
+                        title: "Link Copied",
+                        description: "Product link copied to clipboard.",
+                        duration: 2000,
+                      })
+                    }
+                  }}
+                >
                   <Share2 className="w-4 h-4" />
-                </Button>
-                <Button size="icon" variant="secondary" className="bg-white/90 hover:bg-white">
-                  <Eye className="w-4 h-4" />
+                  <span className="sr-only">Share product</span>
                 </Button>
               </div>
             </div>
 
             {/* Thumbnail Images */}
-            <div className="flex gap-2 overflow-x-auto">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImage === index ? "border-blue-500" : "border-transparent hover:border-gray-300"
-                  }`}
-                >
-                  <Image
-                    src={image || "/placeholder.svg"}
-                    alt={`${product.name} ${index + 1}`}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto">
+                {images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`flex-shrink-0 w-20 h-20 bg-slate-50 rounded-lg overflow-hidden border-2 p-1.5 flex items-center justify-center transition-colors ${
+                      selectedImage === index ? "border-blue-500" : "border-transparent hover:border-gray-300"
+                    }`}
+                  >
+                    <ImageWithFallback
+                      src={image || "/placeholder.svg"} fallbackSrc="/placeholder.png"
+                      alt={`${product.name} ${index + 1}`}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -385,7 +404,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     />
                   ))}
                   <span className="text-sm text-gray-600 ml-2">
-                    {combinedRating} ({formatReviewCount(totalReviewCount)} reviews)
+                    {combinedRating} ({totalReviewCount.toLocaleString()} reviews)
                   </span>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -569,33 +588,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
               </CardContent>
             </Card>
 
-            {/* Secure Purchase Guarantee */}
-            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Shield className="w-6 h-6 text-green-600" />
-                  <h3 className="font-semibold text-green-900">Secure Purchase Guarantee</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>SSL encrypted checkout</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Money-back guarantee</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Authentic products only</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>24/7 customer support</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -639,21 +631,18 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
           {/* ── Desktop: standard Tabs ────────────────────────────────────── */}
           <div className="hidden md:block">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({formatReviewCount(generatedReviewCount)})</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews ({totalReviewCount.toLocaleString()})</TabsTrigger>
                 <TabsTrigger value="authenticity">Authenticity</TabsTrigger>
               </TabsList>
 
               <TabsContent value="description" className="p-6">
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Product Description</h3>
-                  <p className="text-gray-700 leading-relaxed">
-                    {productDescription}
-                  </p>
+                  <FormattedDescription text={productDescription} className="text-gray-700" />
 
-                  {product.features && product.features.length > 0 && (
+                  {(!product.description && product.features && product.features.length > 0) && (
                     <div className="mt-6">
                       <h4 className="font-semibold mb-3">Key Features:</h4>
                       <ul className="space-y-2">
@@ -669,51 +658,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                 </div>
               </TabsContent>
 
-              <TabsContent value="specifications" className="p-6">
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Product Specifications</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Product ID:</span>
-                        <span className="text-gray-600">
-                          {product.specifications?.SKU || `TCG-${product.id.toString().padStart(6, "0")}`}
-                        </span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Category:</span>
-                        <span className="text-gray-600">{product.category}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Brand:</span>
-                        <span className="text-gray-600">{product.specifications?.Brand || "Official"}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Weight:</span>
-                        <span className="text-gray-600">{product.specifications?.Weight || "0.5 lbs"}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Dimensions:</span>
-                        <span className="text-gray-600">{product.specifications?.Dimensions || '5" x 3" x 1"'}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Stock Quantity:</span>
-                        <span className="text-gray-600">{product.inStock ? "In Stock" : "Out of Stock"}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Release Date:</span>
-                        <span className="text-gray-600">{product.releaseDate || "Available Now"}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium">Age Rating:</span>
-                        <span className="text-gray-600">{product.specifications?.["Age Range"] || "13+"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
 
               <TabsContent value="reviews" className="p-6">
                 <div className="space-y-6">
@@ -739,7 +683,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                             />
                           ))}
                         </div>
-                        <p className="text-gray-600">Based on {formatReviewCount(totalReviewCount)} reviews</p>
+                        <p className="text-gray-600">Based on {totalReviewCount.toLocaleString()} reviews</p>
                         <p className="text-sm text-green-600 mt-1">
                           {reviewSummary.verifiedPercentage}% verified purchases
                         </p>
@@ -768,7 +712,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
 
                   {/* Individual Reviews — real DB reviews first, generator fills remainder */}
                   <div className="space-y-6">
-                    {hybridReviews.map((review) => (
+                    {displayReviews.map((review) => (
                       <div key={review.id} className="border-b border-gray-200 pb-6">
                         <div className="flex items-start justify-between mb-3">
                           <div>
@@ -807,8 +751,8 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                           <div className="flex gap-2 mb-3">
                             {(review.images as string[]).map((image: string, index: number) => (
                               <div key={index} className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                                <Image
-                                  src={image || "/placeholder.svg"}
+                                <ImageWithFallback
+                                  src={image || "/placeholder.svg"} fallbackSrc="/placeholder.png"
                                   alt={`Review image ${index + 1}`}
                                   width={64}
                                   height={64}
@@ -848,9 +792,9 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                       </div>
                     ))}
 
-                    {totalReviewCount > FILL_TARGET && (
+                    {totalReviewCount > displayReviews.length && (
                       <div className="text-center pt-4">
-                        <Button variant="outline">Load More Reviews ({totalReviewCount - FILL_TARGET} remaining)</Button>
+                        <Button variant="outline" disabled>Load More Reviews ({totalReviewCount - displayReviews.length} remaining)</Button>
                       </div>
                     )}
                   </div>
@@ -961,8 +905,8 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                 content: (
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold">Product Description</h3>
-                    <p className="text-gray-700 leading-relaxed">{productDescription}</p>
-                    {product.features && product.features.length > 0 && (
+                    <FormattedDescription text={productDescription} className="text-gray-700" />
+                    {(!product.description && product.features && product.features.length > 0) && (
                       <div className="mt-4">
                         <h4 className="font-semibold mb-3">Key Features:</h4>
                         <ul className="space-y-2">
@@ -979,31 +923,8 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                 ),
               },
               {
-                key: "specifications",
-                label: "Specifications",
-                content: (
-                  <div className="space-y-3">
-                    {[
-                      ["Product ID", product.specifications?.SKU || `TCG-${product.id.toString().padStart(6, "0")}`],
-                      ["Category", product.category],
-                      ["Brand", product.specifications?.Brand || "Official"],
-                      ["Weight", product.specifications?.Weight || "0.5 lbs"],
-                      ["Dimensions", product.specifications?.Dimensions || '5" x 3" x 1"'],
-                      ["Stock", product.inStock ? "In Stock" : "Out of Stock"],
-                      ["Release Date", product.releaseDate || "Available Now"],
-                      ["Age Rating", product.specifications?.["Age Range"] || "13+"],
-                    ].map(([label, value]) => (
-                      <div key={label} className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="font-medium text-sm">{label}:</span>
-                        <span className="text-gray-600 text-sm">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                ),
-              },
-              {
                 key: "reviews",
-                label: `Reviews (${formatReviewCount(generatedReviewCount)})`,
+                label: `Reviews (${totalReviewCount.toLocaleString()})`,
                 content: (
                   <div className="space-y-4">
                     {/* Quick rating summary on mobile */}
@@ -1015,10 +936,10 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                             <Star key={i} className={`w-4 h-4 ${i < Math.floor(reviewSummary.averageRating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
                           ))}
                         </div>
-                        <p className="text-xs text-gray-500">{formatReviewCount(generatedReviewCount)} reviews</p>
+                        <p className="text-xs text-gray-500">{totalReviewCount.toLocaleString()} reviews</p>
                       </div>
                     </div>
-                    {generatedReviews.slice(0, 5).map((review) => (
+                    {displayReviews.slice(0, 5).map((review) => (
                       <div key={review.id} className="border-b border-gray-100 pb-4">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-sm">{review.userName}</span>
@@ -1032,7 +953,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                         <p className="text-sm text-gray-700">{review.comment}</p>
                       </div>
                     ))}
-                    {generatedReviewCount > 5 && (
+                    {totalReviewCount > 5 && (
                       <Button variant="outline" className="w-full text-sm">Load More Reviews</Button>
                     )}
                   </div>
@@ -1111,35 +1032,21 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                   relatedProduct.isPreOrder,
                 )
 
-                const relatedReviewCount = generateReviewCount({
-                  productId: relatedProduct.id,
-                  productName: relatedProduct.name,
-                  category: relatedProduct.category,
-                  price: relatedProduct.price,
-                  rating: relatedProduct.rating ?? 4.5,
-                  isNew: relatedProduct.isNew,
-                  isHot: relatedProduct.isHot,
-                  isPreOrder: relatedProduct.isPreOrder,
-                })
+                const relatedReviewCount = relatedProduct.reviews || 0
 
                 const relatedProductSlug = relatedProduct.slug || relatedProduct.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
                 return (
                   <Card key={relatedProduct.id} className="group hover:shadow-lg transition-shadow">
-                    <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden relative">
+                    <div className="aspect-square w-full bg-slate-50 border-b flex items-center justify-center p-6 rounded-t-lg overflow-hidden relative">
                       <Image
                         src={relatedProduct.image || "/placeholder.svg"}
                         alt={relatedProduct.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        width={1000}
+                        height={1000}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/products/${relatedProductSlug}`}>
-                          <Button size="icon" variant="secondary" className="bg-white/90 hover:bg-white h-8 w-8">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                      </div>
                     </div>
                     <CardContent className="p-4">
                       <Link href={`/products/${relatedProductSlug}`}>
@@ -1158,7 +1065,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                             }`}
                           />
                         ))}
-                        <span className="text-xs text-gray-600 ml-1">({formatReviewCount(relatedReviewCount)})</span>
+                        <span className="text-xs text-gray-600 ml-1">({relatedReviewCount.toLocaleString()})</span>
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -1197,8 +1104,8 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
         <div className="px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
-              <Image
-                src={productImage}
+              <ImageWithFallback
+                src={productImage} fallbackSrc="/placeholder.png"
                 alt={product.name}
                 width={48}
                 height={48}

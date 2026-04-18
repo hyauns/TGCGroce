@@ -5,9 +5,10 @@ import ClientRootLayout from "./client-layout"
 import "./globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { siteUrl } from "@/lib/site-config"
 
 export const metadata: Metadata = {
-  title: "TGC Lore Inc. - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
+  title: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
   description:
     "Shop authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Fast shipping, guaranteed authenticity, competitive prices.",
   keywords: [
@@ -32,30 +33,30 @@ export const metadata: Metadata = {
     "mint condition cards",
     "sealed products",
   ].join(", "),
-  authors: [{ name: "TGC Lore Inc.", url: "https://tcglore.com" }],
-  creator: "TGC Lore Inc. - Premium Trading Card Games",
-  publisher: "TGC Lore Inc.",
+  authors: [{ name: "TOY HAULERZ LLC", url: siteUrl }],
+  creator: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Card Games",
+  publisher: "TOY HAULERZ LLC",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://tcglore.com"),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "TGC Lore Inc. - Premium Trading Cards & Collectibles | Authentic Products",
+    title: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards & Collectibles | Authentic Products",
     description:
       "Shop authentic trading cards from Magic: The Gathering, Pokemon, Yu-Gi-Oh! & more. Premium booster packs, rare collectibles, fast shipping & guaranteed authenticity.",
-    url: "https://tcglore.com",
-    siteName: "TGC Lore Inc. - Premium Trading Card Games",
+    url: siteUrl,
+    siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Card Games",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "TGC Lore Inc. - Premium Trading Cards, Booster Packs and Collectibles",
+        alt: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs and Collectibles",
       },
     ],
     locale: "en_US",
@@ -63,7 +64,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TGC Lore Inc. - Premium Trading Cards & Collectibles",
+    title: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards & Collectibles",
     description:
       "Shop authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards & more. Premium booster packs, rare collectibles, fast shipping & guaranteed authenticity.",
     images: ["/og-image.jpg"],
@@ -96,7 +97,7 @@ export const metadata: Metadata = {
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "TGC Lore Inc.",
+    "apple-mobile-web-app-title": "TCG Lore Operated by A TOY HAULERZ LLC Company",
     "mobile-web-app-capable": "yes",
     "msapplication-TileColor": "#2563eb",
     "theme-color": "#2563eb",
@@ -108,8 +109,52 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "TOY HAULERZ LLC",
+    "alternateName": "TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "url": siteUrl,
+    "logo": `${siteUrl}/logo.png`,
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+1-303-668-3245",
+      "contactType": "customer service",
+      "email": "cs@tcglore.com",
+      "availableLanguage": ["English"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1757 NORTH CENTRAL AVENUE",
+      "addressLocality": "FLAGLER BEACH",
+      "addressRegion": "FL",
+      "postalCode": "32136",
+      "addressCountry": "US"
+    }
+  }
+
+  const webSiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "url": siteUrl,
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${siteUrl}/products?search={search_term_string}`,
+      "query-input": "required name=search_term_string"
+    }
+  }
+
   return (
     <ClientRootLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+      />
       {children}
       <Analytics />
       <SpeedInsights />

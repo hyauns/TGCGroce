@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { type NextRequest, NextResponse } from "next/server"
 import { revalidateProductPages } from "@/lib/admin-actions"
+import { requireAdmin } from "@/lib/auth-guard"
 
 /**
  * POST /api/admin/products/revalidate
@@ -19,10 +20,16 @@ import { revalidateProductPages } from "@/lib/admin-actions"
  * (suitable for development / trusted internal networks).
  */
 export async function POST(request: NextRequest) {
+  // Server-side admin auth — middleware is not sufficient for API routes.
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   try {
     const body = await request.json().catch(() => ({}))
 
-    // ── Auth guard ──────────────────────────────────────────────
+    // ── Optional secondary secret for external webhook callers ──────────────
+    // If REVALIDATION_SECRET is set, callers must also supply it.
+    // Admin auth above is the primary gate.
     const expectedSecret = process.env.REVALIDATION_SECRET
     if (expectedSecret && body.secret !== expectedSecret) {
       return NextResponse.json(

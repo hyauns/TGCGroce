@@ -1,28 +1,22 @@
 export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
+import { requireSession } from "@/lib/auth-guard"
+import { assertSameOrigin } from "@/lib/csrf"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
 const sql = neon(process.env.DATABASE_URL!)
 
-async function getCustomerIdFromRequest(): Promise<string | null> {
-  try {
-    const cookieStore = cookies()
-    const token = cookieStore.get("auth-token")?.value
-    if (!token) return null
-    const decoded = verify(token, JWT_SECRET) as { userId: string }
-    const [row] = await sql`SELECT id FROM customers WHERE user_id = ${decoded.userId} LIMIT 1`
-    return row?.id ? String(row.id) : null
-  } catch {
-    return null
-  }
+async function getCustomerIdForUser(userId: string): Promise<string | null> {
+  const [row] = await sql`SELECT id FROM customers WHERE user_id = ${userId} LIMIT 1`
+  return row?.id ? String(row.id) : null
 }
 
 export async function GET() {
-  const customerId = await getCustomerIdFromRequest()
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
+  const customerId = await getCustomerIdForUser(session.userId)
   if (!customerId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
@@ -44,7 +38,13 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const customerId = await getCustomerIdFromRequest()
+  const csrfError = assertSameOrigin(request)
+  if (csrfError) return csrfError
+
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
+  const customerId = await getCustomerIdForUser(session.userId)
   if (!customerId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {

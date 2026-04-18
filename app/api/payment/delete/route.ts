@@ -3,19 +3,29 @@ export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from "next/server"
 import { securePaymentDatabase } from "@/lib/payment-database"
 import { createAuditLog } from "@/lib/payment-security"
+import { requireSession } from "@/lib/auth-guard"
 
 /**
  * Delete payment method securely
  * DELETE /api/payment/delete
  */
 export async function DELETE(request: NextRequest) {
+  // Require authenticated session.
+  const session = await requireSession()
+  if (session instanceof NextResponse) return session
+
   let body
   try {
     body = await request.json()
-    const { customerId, paymentMethodId, adminUserId } = body
+    const { customerId, paymentMethodId } = body
 
     if (!customerId || !paymentMethodId) {
       return NextResponse.json({ error: "Customer ID and Payment Method ID are required" }, { status: 400 })
+    }
+
+    // Prevent IDOR: non-admins can only delete their own payment methods.
+    if (session.role !== "admin" && session.userId !== customerId) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 })
     }
 
     // Verify payment method exists and belongs to customer
@@ -33,14 +43,14 @@ export async function DELETE(request: NextRequest) {
     const isOnlyPaymentMethod = customerPaymentMethods.length === 1
 
     // Delete payment method with secure overwrite
-    const deleted = await securePaymentDatabase.deletePaymentMethod(paymentMethodId, request, adminUserId)
+    const deleted = await securePaymentDatabase.deletePaymentMethod(paymentMethodId, request, session.userId)
 
     if (!deleted) {
       return NextResponse.json({ error: "Failed to delete payment method" }, { status: 500 })
     }
 
     // Create success audit log
-    const auditLog = createAuditLog(customerId, "DELETE", "PAYMENT_METHOD", paymentMethodId, request, true, adminUserId)
+    const auditLog = createAuditLog(customerId, "DELETE", "PAYMENT_METHOD", paymentMethodId, request, true, session.userId)
     await securePaymentDatabase.storeAuditLog(auditLog)
 
     return NextResponse.json({
