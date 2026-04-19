@@ -7,7 +7,7 @@ export default async function PaymentSettingsPage() {
   
   // Checking health based on the presence of WEBHOOK_SECRET
   const isSecretConfigured = !!process.env.WEBHOOK_SECRET
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tcglore.com"
   const webhookEndpoint = `${siteUrl}/api/webhooks/gateway`
 
   return (
