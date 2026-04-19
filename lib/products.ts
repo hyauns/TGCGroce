@@ -868,6 +868,12 @@ export async function searchProducts(query: string, productType?: string | null)
     const searchPattern = `%${query}%`
     const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
 
+    // pg_trgm constraint: ensure query length is at least 3 for meaningful similarity,
+    // otherwise fallback to safe ILIKE wildcard search.
+    const trgmThreshold = query.length > 2 ? 0.15 : 1.0; 
+
+    // A fuzzy search that uses traditional ILIKE for exact substring matches (giving them highest priority)
+    // and pg_trgm similarity() for typo-tolerance on product name.
     const rows = await sql`
       SELECT
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
@@ -879,17 +885,23 @@ export async function searchProducts(query: string, productType?: string | null)
         pc.slug AS pc_slug,
         pc.description AS pc_description,
         pr.avg_rating,
-        pr.review_count
+        pr.review_count,
+        similarity(p.name, ${query}) as name_sim
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND (
           p.name     ILIKE ${searchPattern}
           OR p.category ILIKE ${searchPattern}
           OR pc.name    ILIKE ${searchPattern}
+          OR similarity(p.name, ${query}) > ${trgmThreshold}
         )
         ${typeFilter}
-      ORDER BY p.created_at DESC
-    ` as DbProductJoined[]
+      ORDER BY 
+        CASE WHEN p.name ILIKE ${searchPattern} THEN 1 ELSE 0 END DESC,
+        name_sim DESC,
+        p.created_at DESC
+      LIMIT 50
+    ` as (DbProductJoined & { name_sim: number })[]
 
     return rows.map(mapJoinedRowToProduct)
   } catch (error) {

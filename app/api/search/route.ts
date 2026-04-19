@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   // Return empty array for very short or empty queries
   if (query.length < 2) {
-    return NextResponse.json({ suggestions: [] })
+    return NextResponse.json({ suggestions: [], products: [] })
   }
 
   // Sanitize: strip SQL wildcard characters the caller might inject
@@ -39,9 +39,12 @@ export async function GET(request: NextRequest) {
       ...Array.from(cats).slice(0, Math.max(0, limit - names.size)),
     ].slice(0, limit)
 
-    return NextResponse.json({ suggestions })
+    // Return the top 4 full products for the right column of the Mega Dropdown
+    const products = results.slice(0, 4)
+
+    return NextResponse.json({ suggestions, products })
   } catch {
     // Fail gracefully — never crash the header
-    return NextResponse.json({ suggestions: [] })
+    return NextResponse.json({ suggestions: [], products: [] })
   }
 }

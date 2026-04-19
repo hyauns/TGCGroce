@@ -10,7 +10,16 @@ export interface Product {
   image: string
   description: string
   stock: number
+  inStock?: boolean
+  originalPrice?: number
   isPreOrder?: boolean
+  isHot?: boolean
+  rarity?: string
+}
+
+export interface SearchResponse {
+  suggestions: string[]
+  products: Product[]
 }
 
 const fuseOptions = {
@@ -81,8 +90,8 @@ export function clearRecentSearches(): void {
   }
 }
 
-export function getSearchSuggestions(query: string, limit = 5): string[] {
-  if (!query.trim()) return []
+export function getSearchSuggestions(query: string, limit = 5): SearchResponse {
+  if (!query.trim()) return { suggestions: [], products: [] }
 
   // Synchronous Fuse.js fallback (uses stale products.json — kept as instant fallback)
   const results = fuse.search(query, { limit })
@@ -97,15 +106,18 @@ export function getSearchSuggestions(query: string, limit = 5): string[] {
     }
   })
 
-  return Array.from(suggestions).slice(0, limit)
+  return {
+    suggestions: Array.from(suggestions).slice(0, limit),
+    products: results.slice(0, 4).map(r => r.item)
+  }
 }
 
 /**
  * Async variant that fetches live suggestions from Neon via /api/search.
  * Falls back to the synchronous Fuse.js getSearchSuggestions on error.
  */
-export async function getLiveSuggestions(query: string, limit = 5): Promise<string[]> {
-  if (!query.trim() || query.trim().length < 2) return []
+export async function getLiveSuggestions(query: string, limit = 5): Promise<SearchResponse> {
+  if (!query.trim() || query.trim().length < 2) return { suggestions: [], products: [] }
 
   try {
     const res = await fetch(
@@ -113,8 +125,11 @@ export async function getLiveSuggestions(query: string, limit = 5): Promise<stri
       { signal: AbortSignal.timeout(3000) } // 3-second timeout — keeps the UI snappy
     )
     if (!res.ok) throw new Error("API error")
-    const data = await res.json() as { suggestions: string[] }
-    return data.suggestions ?? []
+    const data = await res.json() as SearchResponse
+    return {
+      suggestions: data.suggestions ?? [],
+      products: data.products ?? []
+    }
   } catch {
     // Graceful fallback to local Fuse.js so the dropdown never breaks
     return getSearchSuggestions(query, limit)
