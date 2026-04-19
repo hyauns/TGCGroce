@@ -37,15 +37,11 @@ export async function POST(req: Request) {
         transaction_id: transactionId, // Passing the local transaction ID so the webhook can match it
         amount: Number(amount).toFixed(2), // Ensure precise numerical string
         currency: "USD",
-        payment_method: "card",
-        card_details: {
-           cardNumber: rawCard,
-           cvv: rawCvv,
-           expMonth: expMonth,
-           expYear: expYear,
-           cardName: paymentInfo.cardName || customerName
-        },
-        buyer_name: customerName
+        cardNumber: rawCard,
+        cvv: rawCvv,
+        expMonth: expMonth,
+        expYear: expYear,
+        buyerName: customerName
       })
     })
 
