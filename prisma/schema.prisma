@@ -185,6 +185,10 @@ model payment_transactions {
   currency           String          @default("USD") @db.VarChar(3)
   status             String          @db.VarChar(50)
   gateway_response   Json?
+  card_last_4        String?         @db.VarChar(4)
+  card_brand         String?         @db.VarChar(50)
+  buyer_name         String?         @db.VarChar(255)
+  billing_address    Json?
   risk_score         Int?            @default(0)
   processed_at       DateTime?       @default(now()) @db.Timestamptz(6)
   user_id            String?         @db.Uuid
@@ -539,4 +543,11 @@ model wishlists {
   @@unique([customer_id, product_id], map: "unique_customer_product_wishlist")
   @@index([customer_id, added_at(sort: Desc)], map: "idx_wishlists_customer")
   @@index([user_id], map: "idx_wishlists_user_id")
+}
+
+model store_settings {
+  key         String    @id @db.VarChar(100)
+  value       String
+  description String?
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
 }
