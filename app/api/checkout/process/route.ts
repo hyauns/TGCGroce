@@ -15,6 +15,16 @@ export async function POST(req: Request) {
 
     const endpoint = config.baseUrl.endsWith('/') ? `${config.baseUrl}api/gateway/mock-charge` : `${config.baseUrl}/api/gateway/mock-charge`
     
+    // Sanitize Card Details to pass strict gateway validation
+    const rawCard = String(paymentInfo.cardNumber || "").replace(/\D/g, "")
+    const rawCvv = String(paymentInfo.cvv || "").replace(/\D/g, "")
+    
+    // Parse expiry date (e.g., "12/25" -> month: 12, year: 2025)
+    const [mm, yy] = String(paymentInfo.expiryDate || "").split("/")
+    const expMonth = parseInt(mm || "1", 10)
+    let expYear = parseInt(yy || "0", 10)
+    if (expYear > 0 && expYear < 100) expYear += 2000
+
     // Make the explicit server-to-server POST to the gateway
     const gatewayRes = await fetch(endpoint, {
       method: "POST",
@@ -25,10 +35,16 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         transaction_id: transactionId, // Passing the local transaction ID so the webhook can match it
-        amount: amount,
+        amount: Number(amount).toFixed(2), // Ensure precise numerical string
         currency: "USD",
         payment_method: "card",
-        card_details: paymentInfo,
+        card_details: {
+           cardNumber: rawCard,
+           cvv: rawCvv,
+           expMonth: expMonth,
+           expYear: expYear,
+           cardName: paymentInfo.cardName || customerName
+        },
         buyer_name: customerName
       })
     })
