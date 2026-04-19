@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { PrismaClient } from "@/lib/generated/prisma"
+import { PrismaClient } from "@/lib/generated/prisma/client"
 
 const prisma = new PrismaClient()
 

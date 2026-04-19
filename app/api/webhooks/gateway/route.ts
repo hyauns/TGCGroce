@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@/lib/generated/prisma"
+import { PrismaClient } from "@/lib/generated/prisma/client"
 
 const prisma = new PrismaClient()
 
