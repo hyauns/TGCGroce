@@ -73,7 +73,7 @@ export function Header() {
 
   useEffect(() => {
     if (searchQuery.trim().length <= 1) {
-      setSuggestions([])
+      setSuggestions({ suggestions: [], products: [] })
       setShowSuggestions(false)
       return
     }
