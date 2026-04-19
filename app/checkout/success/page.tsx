@@ -83,19 +83,27 @@ function CheckoutSuccessContent() {
       }
 
       try {
-        const response = await fetch(`/api/orders/complete?orderNumber=${encodeURIComponent(orderNumber)}`, {
+        const cacheBuster = Date.now()
+        const response = await fetch(`/api/orders/complete?orderNumber=${encodeURIComponent(orderNumber)}&_t=${cacheBuster}`, {
           credentials: "include",
           cache: "no-store",
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
         })
 
         if (!response.ok) {
           const payload = (await response.json().catch(() => null)) as { error?: string } | null
+          console.warn(`[polling] API returned ${response.status}:`, payload?.error)
           throw new Error(payload?.error || "Unable to verify this order.")
         }
 
         const payload = (await response.json()) as OrderSuccessPayload
         const status = payload.order?.actualStatus?.toUpperCase()
         const paymentStatus = payload.order?.paymentStatus?.toUpperCase()
+        
+        console.log(`[polling] Attempt ${pollAttempts + 1}/${MAX_ATTEMPTS} — actualStatus=${status}, paymentStatus=${paymentStatus}`)
 
         if (status === "PENDING" || paymentStatus === "PENDING") {
           pollAttempts++
@@ -119,6 +127,7 @@ function CheckoutSuccessContent() {
         }
 
         // Webhook arrived and order is completed/failed
+        console.log(`[polling] ✅ Order confirmed! Transitioning to success UI.`)
         if (isMounted) {
           setIsPending(false)
           setOrderData(payload)

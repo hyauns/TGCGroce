@@ -232,11 +232,14 @@ export async function GET(request: NextRequest) {
     const accessError = await assertOrderAccess(order)
     if (accessError) return accessError
 
+    // Log the raw DB values for debugging
+    console.log(`[orders/complete GET] orderNumber=${orderNumber}, status=${order.status}, payment_status=${order.payment_status}`)
+
     if (!isSuccessfulOrderStatus(order.status)) {
       return NextResponse.json({ error: "Order is not complete" }, { status: 400 })
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       order: {
         id: String(order.id),
@@ -265,6 +268,17 @@ export async function GET(request: NextRequest) {
       emailNotifications: {
         adminNotificationSent: true,
         customerConfirmationSent: true,
+      },
+    }
+
+    return NextResponse.json(responseBody, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+        'Pragma': 'no-cache',
+        'Expires': '0',
       },
     })
   } catch (error) {
