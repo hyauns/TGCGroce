@@ -216,6 +216,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       />
 
       <ProductsPageClient
+        key={`${categorySlug || 'all'}-${searchQuery || 'none'}`}
         initialProducts={productsForClient}
         activeCategory={activeCategoryName}
         activeCategorySlug={categorySlug}
