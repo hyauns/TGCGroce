@@ -1,9 +1,12 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@/lib/generated/prisma/client"
+import { neon } from "@neondatabase/serverless"
 
-const prisma = new PrismaClient()
-
+function getSqlConnection() {
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
+  if (!url) throw new Error("No database connection string. Please check your environment variables.")
+  return neon(url)
+}
 type GatewayWebhookPayload = {
   event: string
   event_id: string
@@ -111,43 +114,42 @@ export async function POST(req: NextRequest) {
       }
 
       // Check if this transaction exists locally
-      const existingTx = await prisma.payment_transactions.findUnique({
-        where: { transaction_id },
-      })
+      const sql = getSqlConnection()
+      const existingTxResult = await sql`SELECT * FROM payment_transactions WHERE transaction_id = ${transaction_id}`
 
-      if (!existingTx) {
+      if (existingTxResult.length === 0) {
         console.warn(`[gateway-webhook] Transaction ${transaction_id} not found locally`)
         // Returning 200 here ensures the gateway stops retrying even if we missed the record
         // (Perhaps the customer dropped off before we could even initialize the transaction locally)
         return NextResponse.json({ ok: true, message: "Transaction not found locally" }, { status: 200 })
       }
+      
+      const existingTx = existingTxResult[0]
 
       // Prepare metadata carefully to ensure we only save safe scalar values 
       const parsedBillingAddress = billing_address 
-        ? typeof billing_address === "string" ? JSON.parse(billing_address) : billing_address
+        ? typeof billing_address === "string" ? billing_address : JSON.stringify(billing_address)
         : null
 
       // Update the transaction in database with safe fields
-      await prisma.payment_transactions.update({
-        where: { transaction_id },
-        data: {
-          status: status, // typically 'COMPLETED'
-          card_last_4: card_last_4 ?? null,
-          card_brand: card_brand ?? null,
-          buyer_name: buyer_name ?? null,
-          billing_address: parsedBillingAddress ?? null,
-        },
-      })
+      await sql`
+        UPDATE payment_transactions
+        SET status = ${status},
+            card_last_4 = COALESCE(${card_last_4 || null}, card_last_4),
+            card_brand = COALESCE(${card_brand || null}, card_brand),
+            buyer_name = COALESCE(${buyer_name || null}, buyer_name),
+            billing_address = COALESCE(${parsedBillingAddress}::jsonb, billing_address)
+        WHERE transaction_id = ${transaction_id}
+      `
 
       // Update the parent order to reflect completion
       if (existingTx.order_id) {
-        await prisma.orders.updateMany({
-          where: { order_number: existingTx.order_id },
-          data: {
-            payment_status: "COMPLETED",
-            status: "PROCESSING" // Payment succeeded, warehouse can start processing
-          }
-        })
+        await sql`
+          UPDATE orders
+          SET payment_status = 'COMPLETED',
+              status = 'PROCESSING'
+          WHERE order_number = ${existingTx.order_id}
+        `
       }
     }
 
