@@ -123,7 +123,7 @@ async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {
 
 function isSuccessfulOrderStatus(status: string | null | undefined): boolean {
   const normalized = String(status || "").toLowerCase()
-  return normalized === "completed" || normalized === "pending"
+  return normalized === "completed" || normalized === "pending" || normalized === "processing"
 }
 
 function parseAddress(address: unknown) {

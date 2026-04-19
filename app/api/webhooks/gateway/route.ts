@@ -127,31 +127,52 @@ export async function POST(req: NextRequest) {
       }
       
       const existingTx = existingTxResult[0]
+      console.log(`[gateway-webhook] Found local transaction: id=${existingTx.id}, order_id=${existingTx.order_id}, current_status=${existingTx.status}`)
 
       // Prepare metadata carefully to ensure we only save safe scalar values 
       const parsedBillingAddress = billing_address 
         ? typeof billing_address === "string" ? billing_address : JSON.stringify(billing_address)
         : null
 
+      // Map gateway status values to local DB-compatible status values.
+      // The payment_transactions table has a CHECK constraint: 
+      // status IN ('pending', 'succeeded', 'failed', 'refunded', 'partially_refunded')
+      // The gateway sends 'COMPLETED', 'FAILED', etc. which violates the constraint.
+      const statusMap: Record<string, string> = {
+        'COMPLETED': 'succeeded',
+        'SUCCEEDED': 'succeeded',
+        'FAILED': 'failed',
+        'REFUNDED': 'refunded',
+        'PENDING': 'pending',
+      }
+      const mappedStatus = statusMap[status?.toUpperCase()] || 'succeeded'
+
       // Update the transaction in database with safe fields
       await sql`
         UPDATE payment_transactions
-        SET status = ${status},
+        SET status = ${mappedStatus},
             card_last_4 = COALESCE(${card_last_4 || null}, card_last_4),
             card_brand = COALESCE(${card_brand || null}, card_brand),
             buyer_name = COALESCE(${buyer_name || null}, buyer_name),
             billing_address = COALESCE(${parsedBillingAddress}::jsonb, billing_address)
         WHERE transaction_id = ${transaction_id}
       `
+      console.log(`[gateway-webhook] Updated payment_transactions: transaction_id=${transaction_id}, status=${status} -> ${mappedStatus}`)
 
       // Update the parent order to reflect completion
       if (existingTx.order_id) {
-        await sql`
+        const orderUpdateResult = await sql`
           UPDATE orders
           SET payment_status = 'COMPLETED',
               status = 'PROCESSING'
-          WHERE id = ${existingTx.order_id}
+          WHERE id = ${Number(existingTx.order_id)}
+          RETURNING id, order_number, payment_status, status
         `
+        if (orderUpdateResult.length > 0) {
+          console.log(`[gateway-webhook] ✅ Order updated: id=${orderUpdateResult[0].id}, order_number=${orderUpdateResult[0].order_number}, payment_status=${orderUpdateResult[0].payment_status}, status=${orderUpdateResult[0].status}`)
+        } else {
+          console.error(`[gateway-webhook] ⚠️ ORDER UPDATE MATCHED 0 ROWS! order_id=${existingTx.order_id} — the polling page will never see COMPLETED.`)
+        }
         
         // Fire & Forget Background Email Tasks
         // We use an async IIFE to detach it from the main request lifecycle,
