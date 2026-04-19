@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
+import { getWebhookSecret } from "@/app/actions/settings"
 
 function getSqlConnection() {
   const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
@@ -55,9 +56,9 @@ function verifyGatewaySignature(input: {
 }
 
 export async function POST(req: NextRequest) {
-  const webhookSecret = process.env.WEBHOOK_SECRET
+  const webhookSecret = await getWebhookSecret()
   if (!webhookSecret) {
-    console.error("[gateway-webhook] Missing WEBHOOK_SECRET")
+    console.error("[gateway-webhook] Missing WEBHOOK_SECRET in Database")
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
   }
 

@@ -1,12 +1,14 @@
-import { getPaymentGatewayStatus } from "@/app/actions/settings"
+import { getPaymentGatewayStatus, getGatewayProviderSettings } from "@/app/actions/settings"
 import { PaymentSettingsClient } from "./client"
-import { ShieldCheck, ShieldAlert } from "lucide-react"
+import { ProviderForm } from "./provider-form"
+import { ShieldCheck, ShieldAlert, Server } from "lucide-react"
 
 export default async function PaymentSettingsPage() {
   const isGatewayEnabled = await getPaymentGatewayStatus()
+  const providerConfig = await getGatewayProviderSettings()
   
-  // Checking health based on the presence of WEBHOOK_SECRET
-  const isSecretConfigured = !!process.env.WEBHOOK_SECRET
+  // Checking health based on whether the DB contains the SECRET
+  const isSecretConfigured = !!providerConfig.webhookSecret
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tcglore.com"
   const webhookEndpoint = `${siteUrl}/api/webhooks/gateway`
 
@@ -18,12 +20,27 @@ export default async function PaymentSettingsPage() {
       </div>
 
       <div className="grid gap-6">
+        
+        {/* Card 0: Provider Gateway Configuration */}
+        <div className="bg-white rounded-lg border shadow-sm items-start overflow-hidden">
+          <div className="p-6 border-b bg-gray-50/50">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Server className="w-5 h-5 mr-2 text-blue-600" />
+              Gateway Connection
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Configure the secure channel between this storefront and your payment processor.</p>
+          </div>
+          <div className="p-6">
+            <ProviderForm initialData={providerConfig} />
+          </div>
+        </div>
+
         {/* Card 1: Webhook Identity (Read Only) */}
-        <div className="bg-white rounded-lg border shadow-sm flex flex-col">
-          <div className="p-6 border-b">
+        <div className="bg-white rounded-lg border shadow-sm flex flex-col overflow-hidden">
+          <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Webhook Integration</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Webhook Identity</h2>
                 <p className="text-sm text-gray-500 mt-1">This endpoint receives realtime payment events from the Gateway.</p>
               </div>
               
@@ -64,7 +81,7 @@ export default async function PaymentSettingsPage() {
         </div>
 
         {/* Card 2: Checkout Frontend Visibility */}
-        <div className="bg-white rounded-lg border shadow-sm p-6">
+        <div className="bg-white rounded-lg border shadow-sm p-6 overflow-hidden">
            <PaymentSettingsClient 
               webhookEndpoint={webhookEndpoint} 
               initialGatewayState={isGatewayEnabled} 

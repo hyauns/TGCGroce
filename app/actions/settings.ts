@@ -45,3 +45,80 @@ export async function togglePaymentGateway(enabled: boolean) {
   
   return { success: true, enabled }
 }
+
+export async function getGatewayProviderSettings() {
+  const sql = getSqlConnection()
+  const result = await sql`SELECT key, value FROM store_settings WHERE key IN ('GATEWAY_BASE_URL', 'GATEWAY_API_KEY', 'GATEWAY_WEBHOOK_SECRET')`
+  
+  const settings = {
+    baseUrl: "",
+    apiKey: "",
+    webhookSecret: ""
+  }
+  
+  result.forEach((row: any) => {
+    if (row.key === "GATEWAY_BASE_URL") settings.baseUrl = row.value
+    if (row.key === "GATEWAY_API_KEY") settings.apiKey = row.value
+    if (row.key === "GATEWAY_WEBHOOK_SECRET") settings.webhookSecret = row.value
+  })
+  
+  return settings
+}
+
+export async function saveGatewayProviderSettings(baseUrl: string, apiKey: string, webhookSecret: string) {
+  const sql = getSqlConnection()
+  
+  // Neon doesn't have an explicit .begin() via default neon() http client without driver. 
+  // For HTTP neon, we just run the queries sequentially in a Promise.all or one block.
+  await Promise.all([
+    sql`
+      INSERT INTO store_settings (key, value, updated_at) 
+      VALUES ('GATEWAY_BASE_URL', ${baseUrl}, NOW())
+      ON CONFLICT (key) DO UPDATE SET value = ${baseUrl}, updated_at = NOW()
+    `,
+    sql`
+      INSERT INTO store_settings (key, value, updated_at) 
+      VALUES ('GATEWAY_API_KEY', ${apiKey}, NOW())
+      ON CONFLICT (key) DO UPDATE SET value = ${apiKey}, updated_at = NOW()
+    `,
+    sql`
+      INSERT INTO store_settings (key, value, updated_at) 
+      VALUES ('GATEWAY_WEBHOOK_SECRET', ${webhookSecret}, NOW())
+      ON CONFLICT (key) DO UPDATE SET value = ${webhookSecret}, updated_at = NOW()
+    `
+  ])
+
+  revalidatePath("/admin/settings/payments")
+  return { success: true }
+}
+
+export async function testGatewayConnection(baseUrl: string, apiKey: string) {
+  try {
+    if (!baseUrl || !apiKey) return { success: false, message: "Missing Gateway URL or API Key." }
+    
+    // Fallback logic to check various typical health endpoints
+    const endpoint = baseUrl.endsWith('/') ? `${baseUrl}api/health` : `${baseUrl}/api/health`
+    
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "X-API-Key": apiKey
+      },
+      signal: AbortSignal.timeout(5000)
+    })
+    
+    if (res.ok) {
+      return { success: true, message: "Connection Successful: Store recognized by Gateway" }
+    } else {
+      return { success: false, message: `Connection Failed: Gateway responded with status ${res.status}` }
+    }
+  } catch (error: any) {
+    return { success: false, message: `Connection Failed: Invalid API Key or Gateway unreachable` }
+  }
+}
+
+export async function getWebhookSecret() {
+   const sql = getSqlConnection()
+   const result = await sql`SELECT value FROM store_settings WHERE key = 'GATEWAY_WEBHOOK_SECRET'`
+   return result.length > 0 ? result[0].value : process.env.WEBHOOK_SECRET
+}
