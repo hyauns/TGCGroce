@@ -68,8 +68,12 @@ function CheckoutSuccessContent() {
   useEffect(() => {
     let isMounted = true
     let pollTimer: NodeJS.Timeout | null = null
+    let pollAttempts = 0
+    const MAX_ATTEMPTS = 10 // 30 seconds
 
-    async function loadOrder() {
+    async function loadOrder(isManualRefresh = false) {
+      if (isManualRefresh) pollAttempts = 0
+
       if (!orderNumber) {
         if (isMounted) {
           setError("Missing order number.")
@@ -90,15 +94,26 @@ function CheckoutSuccessContent() {
         }
 
         const payload = (await response.json()) as OrderSuccessPayload
-        const status = payload.order?.actualStatus?.toLowerCase()
-        const paymentStatus = payload.order?.paymentStatus?.toLowerCase()
+        const status = payload.order?.actualStatus?.toUpperCase()
+        const paymentStatus = payload.order?.paymentStatus?.toUpperCase()
 
-        if (status === "pending" || paymentStatus === "pending") {
+        if (status === "PENDING" || paymentStatus === "PENDING") {
+          pollAttempts++
+          if (pollAttempts >= MAX_ATTEMPTS) {
+            if (isMounted) {
+              setLoading(false)
+              setIsPending(false)
+              setError("We are still waiting for the payment gateway to confirm your charge. It is taking longer than expected. Please check back later or contact support if the issue persists.")
+            }
+            return
+          }
+
           // Webhook hasn't arrived yet. Keep polling.
           if (isMounted) {
             setIsPending(true)
             setLoading(false)
-            pollTimer = setTimeout(loadOrder, 3000)
+            if (pollTimer) clearTimeout(pollTimer)
+            pollTimer = setTimeout(() => loadOrder(false), 3000)
           }
           return
         }
@@ -108,6 +123,7 @@ function CheckoutSuccessContent() {
           setIsPending(false)
           setOrderData(payload)
           setLoading(false)
+          setError(null)
         }
       } catch (fetchError) {
         if (isMounted) {
@@ -118,11 +134,19 @@ function CheckoutSuccessContent() {
       }
     }
 
+    // Expose loadOrder to the component so manual refresh button can use it
+    if (typeof window !== "undefined") {
+      ;(window as any).__retryLoadOrder = () => loadOrder(true)
+    }
+
     loadOrder()
 
     return () => {
       isMounted = false
       if (pollTimer) clearTimeout(pollTimer)
+      if (typeof window !== "undefined") {
+        delete (window as any).__retryLoadOrder
+      }
     }
   }, [orderNumber])
 
@@ -177,9 +201,21 @@ function CheckoutSuccessContent() {
                   {error || "This order confirmation link is invalid or you do not have access to this order."}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/checkout">
-                    <Button className="w-full sm:w-auto">Return to Checkout</Button>
-                  </Link>
+                  <Button 
+                    variant="default" 
+                    className="w-full sm:w-auto" 
+                    onClick={() => {
+                      setLoading(true)
+                      setError(null)
+                      if (typeof window !== "undefined" && (window as any).__retryLoadOrder) {
+                        ;(window as any).__retryLoadOrder()
+                      } else {
+                        window.location.reload()
+                      }
+                    }}
+                  >
+                    Refresh Status
+                  </Button>
                   <Link href="/contact">
                     <Button variant="outline" className="w-full sm:w-auto bg-transparent">
                       Contact Support

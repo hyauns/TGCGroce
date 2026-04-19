@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
           UPDATE orders
           SET payment_status = 'COMPLETED',
               status = 'PROCESSING'
-          WHERE order_number = ${existingTx.order_id}
+          WHERE id = ${existingTx.order_id}
         `
       }
     }
