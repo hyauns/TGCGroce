@@ -20,6 +20,7 @@ export interface Product {
   salesCount?: number
   description?: string
   features?: string[]
+  rarity?: string
 }
 
 export interface FilterOptions {

@@ -116,6 +116,14 @@ export function Footer() {
                   Best Price Guarantee
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/payment-orders"
+                  className="text-black hover:text-[rgb(37,99,235)] transition-colors text-sm"
+                >
+                  Payment & Orders Guide
+                </Link>
+              </li>
             </ul>
           </div>
 

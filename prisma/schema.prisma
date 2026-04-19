@@ -280,6 +280,7 @@ model products {
   release_date         DateTime?              @db.Date
   upc                  String?                @unique @db.VarChar(50)
   product_type         String?                @db.VarChar(50)
+  rarity               String?                @db.VarChar(50)
   inventory_movements  inventory_movements[]
   product_reviews      product_reviews[]
   product_variants     product_variants[]

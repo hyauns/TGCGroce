@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FormattedDescription } from "./formatted-description"
+import { RarityBadge } from "./rarity-badge"
 import { ShoppingCart, Heart, Star, X, Plus, Minus, Clock, Calendar } from "lucide-react"
 
 export interface ProductDetails {
@@ -25,6 +26,7 @@ export interface ProductDetails {
   releaseDate?: string
   description?: string
   features?: string[]
+  rarity?: string
 }
 
 interface QuickViewModalProps {
@@ -96,8 +98,9 @@ export function QuickViewModal({
           {/* Product Image */}
           <div className="relative">
             <div className="aspect-square w-full bg-slate-50 flex items-center justify-center p-6 rounded-lg overflow-hidden relative">
-              <Image
-                src={product.image || "/placeholder.svg?height=1000&width=1000"}
+              <ImageWithFallback
+                src={product.image || "/placeholder.png"}
+                fallbackSrc="/placeholder.png"
                 alt={product.name}
                 width={500}
                 height={500}
@@ -122,7 +125,10 @@ export function QuickViewModal({
           {/* Product Details */}
           <div className="space-y-3 md:space-y-4">
             <div>
-              <div className="text-xs text-gray-600 mb-1 md:text-sm md:mb-2">{product.category}</div>
+              <div className="flex items-center gap-2 mb-1 md:mb-2 flex-wrap">
+                <div className="text-xs text-gray-600 md:text-sm">{product.category}</div>
+                <RarityBadge rarity={product.rarity} />
+              </div>
               <h2 className="text-lg font-bold mb-2 leading-tight md:text-2xl md:mb-4 md:leading-normal">
                 {product.name}
               </h2>

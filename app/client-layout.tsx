@@ -12,6 +12,7 @@ import { ScrollToTop } from "./components/scroll-to-top"
 import { AddToCartPopup } from "./components/add-to-cart-popup"
 import { useCart } from "@/lib/cart-context"
 import { useAnalytics } from "@/hooks/use-analytics"
+import { CategoryProvider, type Category } from "@/lib/category-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -36,13 +37,16 @@ function AddToCartPopupWrapper() {
 
 export default function ClientRootLayout({
   children,
+  categories,
 }: {
   children: React.ReactNode
+  categories: Category[]
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
+        <CategoryProvider categories={categories}>
+          <AuthProvider>
           <CartProvider>
             <WishlistProvider>
               <AnalyticsTracker />
@@ -53,6 +57,7 @@ export default function ClientRootLayout({
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
+      </CategoryProvider>
       </body>
     </html>
   )

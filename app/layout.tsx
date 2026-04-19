@@ -6,6 +6,7 @@ import "./globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { siteUrl } from "@/lib/site-config"
+import { neon } from "@neondatabase/serverless"
 
 export const metadata: Metadata = {
   title: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
@@ -104,11 +105,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const sql = neon(process.env.DATABASE_URL!)
+  const dbCategories = await sql`SELECT name, slug FROM product_categories WHERE is_active = true ORDER BY display_order ASC`
+  const categories = dbCategories.map((c: any) => ({ name: c.name, slug: c.slug }))
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -146,7 +150,7 @@ export default function RootLayout({
   }
 
   return (
-    <ClientRootLayout>
+    <ClientRootLayout categories={categories}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}

@@ -34,6 +34,7 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
+import { RarityBadge } from "@/app/components/rarity-badge"
 import type { Product } from "@/lib/product-filters"
 import { generateSlug } from "@/lib/utils"
 
@@ -219,8 +220,11 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                       </div>
 
                       <CardContent className="p-4">
-                        <div className="text-xs text-purple-600 font-semibold mb-1 uppercase tracking-wide">
-                          {product.category}
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <div className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
+                            {product.category}
+                          </div>
+                          <RarityBadge rarity={product.rarity} />
                         </div>
                         <h3 className="text-sm font-bold mb-2 line-clamp-2 leading-snug">{product.name}</h3>
 

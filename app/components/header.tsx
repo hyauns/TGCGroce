@@ -38,17 +38,9 @@ import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { useAuth } from "@/lib/auth-context"
 import { saveSearchQuery, getRecentSearches, getLiveSuggestions } from "@/lib/search"
+import { useCategories } from "@/lib/category-context"
 
-const categories = [
-  "Magic: The Gathering",
-  "Pokemon",
-  "Yu-Gi-Oh!",
-  "Disney Lorcana",
-  "One Piece",
-  "Digimon Card Game",
-  "Star Wars: Unlimited",
-  "Flesh and Blood",
-]
+
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -61,6 +53,7 @@ export function Header() {
   const { getCartCount, recentlyAddedItem } = useCart()
   const { getWishlistCount } = useWishlist()
   const { user, isAuthenticated, logout } = useAuth()
+  const { categories } = useCategories()
   const [cartBounce, setCartBounce] = useState(false)
 
   const cartCount = getCartCount()
@@ -438,12 +431,12 @@ export function Header() {
                         </Link>
                         {categories.map((category) => (
                           <Link
-                            key={category}
-                            href={`/products?category=${encodeURIComponent(category)}`}
+                            key={category.slug}
+                            href={`/products?category=${encodeURIComponent(category.slug)}`}
                             onClick={closeMobileMenu}
                             className="block py-3 px-4 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                           >
-                            {category}
+                            {category.name}
                           </Link>
                         ))}
                       </div>
@@ -498,19 +491,19 @@ export function Header() {
             </Link>
             {categories.slice(0, 6).map((category) => (
               <Link
-                key={category}
-                href={`/products?category=${encodeURIComponent(category)}`}
+                key={category.slug}
+                href={`/products?category=${encodeURIComponent(category.slug)}`}
                 className="text-sm hover:text-blue-600 transition-colors whitespace-nowrap"
               >
-                {category}
+                {category.name}
               </Link>
             ))}
             <DropdownMenu>
               <DropdownMenuTrigger className="text-sm hover:text-blue-600 transition-colors">More</DropdownMenuTrigger>
               <DropdownMenuContent>
                 {categories.slice(6).map((category) => (
-                  <DropdownMenuItem key={category} asChild>
-                    <Link href={`/products?category=${encodeURIComponent(category)}`}>{category}</Link>
+                  <DropdownMenuItem key={category.slug} asChild>
+                    <Link href={`/products?category=${encodeURIComponent(category.slug)}`}>{category.name}</Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

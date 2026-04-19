@@ -23,8 +23,9 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import Image from "next/image"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import Link from "next/link"
+import { RarityBadge } from "@/app/components/rarity-badge"
 import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import { useCart } from "@/lib/cart-context"
@@ -454,8 +455,9 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                             <div
                               className={`bg-slate-50 border-b flex items-center justify-center p-6 overflow-hidden ${viewMode === "list" ? "w-48 h-48 rounded-l-lg rounded-t-none" : "w-full aspect-square rounded-t-lg"}`}
                             >
-                              <Image
-                                src={product.image || "/placeholder.svg?height=1000&width=1000"}
+                              <ImageWithFallback
+                                src={product.image || "/placeholder.png"}
+                                fallbackSrc="/placeholder.png"
                                 alt={`${product.name} - Premium ${product.category} Trading Cards and Booster Packs`}
                                 width={1000}
                                 height={1000}
@@ -527,7 +529,10 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
 
                       <div className={`flex flex-col flex-grow ${viewMode === "list" ? "p-6" : ""}`}>
                         <CardContent className={`flex-grow flex flex-col ${viewMode === "list" ? "p-0" : "p-4"}`}>
-                          <div className="text-sm text-gray-600 mb-1">{product.category}</div>
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <div className="text-sm text-gray-600">{product.category}</div>
+                            <RarityBadge rarity={product.rarity} />
+                          </div>
                           <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                             <CardTitle
                               className={`mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight ${

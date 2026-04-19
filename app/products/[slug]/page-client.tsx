@@ -27,12 +27,12 @@ import {
   MapPin,
 } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import { useRouter } from "next/navigation"
 import { Header } from "../../components/header"
 import { Footer } from "../../components/footer"
 import { EnhancedDeliveryCalculator } from "../../components/enhanced-delivery-calculator"
+import { RarityBadge } from "../../components/rarity-badge"
 import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { useToast } from "@/hooks/use-toast"
@@ -392,7 +392,10 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
           <div className="space-y-6">
             {/* Title and Rating */}
             <div>
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900">{product.name}</h1>
+                <RarityBadge rarity={product.rarity} className="text-sm px-3 py-1" />
+              </div>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -1039,8 +1042,9 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                 return (
                   <Card key={relatedProduct.id} className="group hover:shadow-lg transition-shadow">
                     <div className="aspect-square w-full bg-slate-50 border-b flex items-center justify-center p-6 rounded-t-lg overflow-hidden relative">
-                      <Image
-                        src={relatedProduct.image || "/placeholder.svg"}
+                      <ImageWithFallback
+                        src={relatedProduct.image || "/placeholder.png"}
+                        fallbackSrc="/placeholder.png"
                         alt={relatedProduct.name}
                         width={1000}
                         height={1000}
@@ -1050,6 +1054,9 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     </div>
                     <CardContent className="p-4">
                       <Link href={`/products/${relatedProductSlug}`}>
+                        <div className="mb-1 flex items-center">
+                           <RarityBadge rarity={relatedProduct.rarity} />
+                        </div>
                         <h3 className="font-semibold text-sm mb-2 line-clamp-2 hover:text-blue-600 cursor-pointer transition-colors">
                           {relatedProduct.name}
                         </h3>

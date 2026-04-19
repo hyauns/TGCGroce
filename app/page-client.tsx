@@ -16,8 +16,24 @@ import {
   Calendar,
   Check,
   ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  CheckCircle,
+  Package,
+  Truck,
+  Filter,
+  SlidersHorizontal,
+  RefreshCw,
+  Box,
+  AlertTriangle,
+  Tags,
+  BookOpen,
+  User,
+  Menu,
 } from "lucide-react"
-import Image from "next/image"
+import { RarityBadge } from "@/app/components/rarity-badge"
+import { ImageWithFallback } from "@/components/ui/image-with-fallback"
 import Link from "next/link"
 import { Header } from "./components/header"
 import { Footer } from "./components/footer"
@@ -233,8 +249,9 @@ export default function HomePageClient({
                       <div className="relative overflow-hidden rounded-t-lg">
                         <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                           <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
-                            <Image
-                              src={product.image || "/placeholder.svg?height=1000&width=1000"}
+                            <ImageWithFallback
+                              src={product.image || "/placeholder.png"}
+                              fallbackSrc="/placeholder.png"
                               alt={`${product.name} - Premium ${product.category} Trading Cards`}
                               width={1000}
                               height={1000}
@@ -280,7 +297,10 @@ export default function HomePageClient({
                       </div>
                     </CardHeader>
                     <CardContent className="p-3 sm:p-4 relative z-10 flex-grow flex flex-col">
-                      <div className="text-[10px] sm:text-xs text-purple-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <div className="text-[10px] sm:text-xs text-purple-600 font-semibold uppercase tracking-wide">{product.category}</div>
+                        <RarityBadge rarity={product.rarity} />
+                      </div>
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                         <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-purple-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                           {product.name}
@@ -360,8 +380,9 @@ export default function HomePageClient({
                     <div className="relative overflow-hidden rounded-t-lg">
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                         <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
-                          <Image
-                            src={product.image || "/placeholder.svg?height=1000&width=1000"}
+                          <ImageWithFallback
+                            src={product.image || "/placeholder.png"}
+                            fallbackSrc="/placeholder.png"
                             alt={`${product.name} - Premium ${product.category} Trading Cards and Booster Packs`}
                             width={1000}
                             height={1000}
@@ -401,7 +422,10 @@ export default function HomePageClient({
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-4 flex-grow flex flex-col">
-                    <div className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="text-[10px] sm:text-xs text-gray-600 font-semibold uppercase tracking-wide">{product.category}</div>
+                      <RarityBadge rarity={product.rarity} />
+                    </div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                       <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
@@ -487,8 +511,9 @@ export default function HomePageClient({
                     <div className="relative overflow-hidden rounded-t-lg">
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                         <div className="aspect-[3/4] w-full bg-slate-50 border-b flex items-center justify-center p-3 sm:p-4 rounded-t-lg overflow-hidden">
-                          <Image
-                            src={product.image || "/placeholder.svg?height=1000&width=1000"}
+                          <ImageWithFallback
+                            src={product.image || "/placeholder.png"}
+                            fallbackSrc="/placeholder.png"
                             alt={`${product.name} - Best Selling ${product.category} Trading Cards and Collectibles`}
                             width={1000}
                             height={1000}
@@ -528,7 +553,10 @@ export default function HomePageClient({
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-4 flex-grow flex flex-col">
-                    <div className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-1 uppercase tracking-wide">{product.category}</div>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="text-[10px] sm:text-xs text-gray-600 font-semibold uppercase tracking-wide">{product.category}</div>
+                      <RarityBadge rarity={product.rarity} />
+                    </div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                       <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
@@ -637,8 +665,9 @@ export default function HomePageClient({
                           <CardContent className="p-4 text-center">
                             {/* Square image container — same across all cards */}
                             <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3 p-2">
-                              <Image
+                              <ImageWithFallback
                                 src={category.image}
+                                fallbackSrc="/placeholder.png"
                                 alt={`${category.name} - ${category.description}`}
                                 width={1000}
                                 height={1000}
