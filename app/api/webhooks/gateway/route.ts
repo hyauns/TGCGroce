@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { getWebhookSecret } from "@/app/actions/settings"
+import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
 
 function getSqlConnection() {
   const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
@@ -151,6 +152,78 @@ export async function POST(req: NextRequest) {
               status = 'PROCESSING'
           WHERE id = ${existingTx.order_id}
         `
+        
+        // Fire & Forget Background Email Tasks
+        // We use an async IIFE to detach it from the main request lifecycle,
+        // so the Gateway receives 200 OK immediately and doesn't time out.
+        ;(async () => {
+          try {
+            console.log(`[gateway-webhook] Dispatching background email for Order ${existingTx.order_id}`)
+            
+            const rows = await sql`
+              SELECT o.order_number, o.subtotal, o.tax_amount, o.shipping_amount, o.total_amount, o.shipping_address,
+                     c.email as customer_email, o.tracking_number, o.created_at,
+                     COALESCE(
+                       json_agg(
+                         json_build_object('id', oi.id, 'name', oi.product_name, 'price', oi.unit_price, 'quantity', oi.quantity)
+                       ) FILTER (WHERE oi.id IS NOT NULL),
+                       '[]'::json
+                     ) as items
+              FROM orders o
+              LEFT JOIN customers c ON c.id::text = o.customer_id
+              LEFT JOIN order_items oi ON oi.order_id = o.id
+              WHERE o.id = ${existingTx.order_id}
+              GROUP BY o.id, c.email
+              LIMIT 1
+            `
+            const order = rows[0]
+            if (!order) return
+
+            let parsedShipping
+            try {
+              parsedShipping = typeof order.shipping_address === "string" ? JSON.parse(order.shipping_address) : order.shipping_address
+            } catch (e) { parsedShipping = null }
+
+            const shippingName = parsedShipping?.firstName ? `${parsedShipping.firstName} ${parsedShipping.lastName || ''}`.trim() : payload.buyer_name || "Customer"
+
+            const orderEmailData = {
+              orderId: String(existingTx.order_id),
+              orderNumber: order.order_number,
+              customerId: existingTx.customer_id || '',
+              customerEmail: order.customer_email || "cs@tcglore.com", 
+              customerPhone: "",
+              paymentMethodId: "",
+              transactionId: transaction_id,
+              amount: Number(order.subtotal),
+              currency: payload.currency || "USD",
+              items: order.items,
+              shippingMethod: "Standard Shipping",
+              shippingCost: Number(order.shipping_amount),
+              tax: Number(order.tax_amount),
+              total: Number(order.total_amount),
+              orderDate: new Date(order.created_at),
+              estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US"),
+              shippingAddress: {
+                name: shippingName,
+                street: parsedShipping?.address1 || "Address not provided",
+                city: parsedShipping?.city || "City not provided",
+                state: parsedShipping?.state || "State not provided",
+                zipCode: parsedShipping?.postalCode || "ZIP not provided",
+                country: parsedShipping?.country || "Country not provided",
+              },
+              trackingNumber: order.tracking_number,
+            }
+
+            // Await these internally so we catch errors, but it's detached from the HTTP response
+            const customerName = payload.buyer_name || shippingName
+            await sendOrderConfirmation(orderEmailData, customerName)
+            await sendAdminOrderNotification(orderEmailData, customerName, Number(order.total_amount) > 500 ? "high" : "normal")
+            
+            console.log(`[gateway-webhook] Background emails sent efficiently for Order ${existingTx.order_id}`)
+          } catch (bgError) {
+            console.error("[gateway-webhook] Background email processing failed:", bgError)
+          }
+        })();
       }
     }
 
