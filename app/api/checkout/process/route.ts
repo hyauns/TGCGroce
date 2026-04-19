@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { neon } from "@neondatabase/serverless"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
 
 export async function POST(req: Request) {
@@ -53,6 +54,18 @@ export async function POST(req: Request) {
     }
 
     // Success response: Webhooks will asynchronously handle saving the success status.
+    const gatewayData = await gatewayRes.json()
+    
+    if (gatewayData.transaction_id) {
+       const sql = neon(process.env.DATABASE_URL!)
+       await sql`
+         UPDATE payment_transactions
+         SET transaction_id = ${gatewayData.transaction_id}
+         WHERE transaction_id = ${transactionId}
+       `
+       console.log(`[checkout-process] Synced local transaction ${transactionId} -> ${gatewayData.transaction_id}`)
+    }
+
     return NextResponse.json({ success: true, message: "Payment accepted by gateway" })
   } catch (err) {
     console.error(`[checkout-process] Exception:`, err)
