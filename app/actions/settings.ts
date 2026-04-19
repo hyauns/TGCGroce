@@ -48,16 +48,18 @@ export async function togglePaymentGateway(enabled: boolean) {
 
 export async function getGatewayProviderSettings() {
   const sql = getSqlConnection()
-  const result = await sql`SELECT key, value FROM store_settings WHERE key IN ('GATEWAY_BASE_URL', 'GATEWAY_API_KEY', 'GATEWAY_WEBHOOK_SECRET')`
+  const result = await sql`SELECT key, value FROM store_settings WHERE key IN ('GATEWAY_BASE_URL', 'GATEWAY_STORE_ID', 'GATEWAY_API_KEY', 'GATEWAY_WEBHOOK_SECRET')`
   
   const settings = {
     baseUrl: "",
+    storeId: "",
     apiKey: "",
     webhookSecret: ""
   }
   
   result.forEach((row: any) => {
     if (row.key === "GATEWAY_BASE_URL") settings.baseUrl = row.value
+    if (row.key === "GATEWAY_STORE_ID") settings.storeId = row.value
     if (row.key === "GATEWAY_API_KEY") settings.apiKey = row.value
     if (row.key === "GATEWAY_WEBHOOK_SECRET") settings.webhookSecret = row.value
   })
@@ -65,7 +67,7 @@ export async function getGatewayProviderSettings() {
   return settings
 }
 
-export async function saveGatewayProviderSettings(baseUrl: string, apiKey: string, webhookSecret: string) {
+export async function saveGatewayProviderSettings(baseUrl: string, storeId: string, apiKey: string, webhookSecret: string) {
   const sql = getSqlConnection()
   
   // Neon doesn't have an explicit .begin() via default neon() http client without driver. 
@@ -75,6 +77,11 @@ export async function saveGatewayProviderSettings(baseUrl: string, apiKey: strin
       INSERT INTO store_settings (key, value, updated_at) 
       VALUES ('GATEWAY_BASE_URL', ${baseUrl}, NOW())
       ON CONFLICT (key) DO UPDATE SET value = ${baseUrl}, updated_at = NOW()
+    `,
+    sql`
+      INSERT INTO store_settings (key, value, updated_at) 
+      VALUES ('GATEWAY_STORE_ID', ${storeId}, NOW())
+      ON CONFLICT (key) DO UPDATE SET value = ${storeId}, updated_at = NOW()
     `,
     sql`
       INSERT INTO store_settings (key, value, updated_at) 
@@ -92,16 +99,17 @@ export async function saveGatewayProviderSettings(baseUrl: string, apiKey: strin
   return { success: true }
 }
 
-export async function testGatewayConnection(baseUrl: string, apiKey: string) {
+export async function testGatewayConnection(baseUrl: string, storeId: string, apiKey: string) {
   try {
-    if (!baseUrl || !apiKey) return { success: false, message: "Missing Gateway URL or API Key." }
+    if (!baseUrl || !storeId || !apiKey) return { success: false, message: "Missing Gateway URL, Store ID, or API Key." }
     
-    // Fallback logic to check various typical health endpoints
-    const endpoint = baseUrl.endsWith('/') ? `${baseUrl}api/health` : `${baseUrl}/api/health`
+    // Explicit health status endpoint requested
+    const endpoint = baseUrl.endsWith('/') ? `${baseUrl}api/gateway/auth-check` : `${baseUrl}/api/gateway/auth-check`
     
     const res = await fetch(endpoint, {
       method: "GET",
       headers: {
+        "X-Store-ID": storeId,
         "X-API-Key": apiKey
       },
       signal: AbortSignal.timeout(5000)

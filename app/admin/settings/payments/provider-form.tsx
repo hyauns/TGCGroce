@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface ProviderSettings {
   baseUrl: string
+  storeId: string
   apiKey: string
   webhookSecret: string
 }
@@ -27,7 +28,7 @@ export function ProviderForm({ initialData }: { initialData: ProviderSettings })
     e.preventDefault()
     setIsSaving(true)
     try {
-      await saveGatewayProviderSettings(data.baseUrl, data.apiKey, data.webhookSecret)
+      await saveGatewayProviderSettings(data.baseUrl, data.storeId, data.apiKey, data.webhookSecret)
       toast({
         title: "Settings Saved",
         description: "Payment Provider config updated successfully."
@@ -46,7 +47,7 @@ export function ProviderForm({ initialData }: { initialData: ProviderSettings })
   const handleTest = async () => {
     setIsTesting(true)
     try {
-      const res = await testGatewayConnection(data.baseUrl, data.apiKey)
+      const res = await testGatewayConnection(data.baseUrl, data.storeId, data.apiKey)
       if (res.success) {
         toast({
           title: "Connection Successful",
@@ -85,6 +86,20 @@ export function ProviderForm({ initialData }: { initialData: ProviderSettings })
           onChange={e => setData({...data, baseUrl: e.target.value})}
         />
         <p className="text-xs text-gray-500">The root URL assigned to your Payment Gateway.</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-sm font-semibold text-gray-700 flex items-center">
+          <Fingerprint className="w-4 h-4 mr-2 text-gray-400" />
+          Gateway Store ID
+        </label>
+        <Input 
+          required 
+          placeholder="store_xyz..." 
+          value={data.storeId}
+          onChange={e => setData({...data, storeId: e.target.value})}
+        />
+        <p className="text-xs text-gray-500">The unique identifier for your storefront given by the gateway.</p>
       </div>
 
       <div className="space-y-1.5">
