@@ -457,6 +457,11 @@ export async function POST(request: NextRequest) {
           encrypted_cvv, cvv_hash,
           is_default
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
+        ON CONFLICT (customer_id, card_number_hash) 
+        DO UPDATE SET 
+          last_used = NOW(),
+          is_default = true,
+          billing_address_id = EXCLUDED.billing_address_id
         RETURNING id`,
         [
           pmUserId ? String(pmUserId) : null,
