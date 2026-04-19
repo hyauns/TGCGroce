@@ -1149,45 +1149,33 @@ export default function CheckoutPage() {
       const confirmedOrderId = orderResult?.order?.id || orderId
       const confirmedPaymentMethodId = orderResult?.order?.paymentMethodId || null
 
-      // Stage 3: Process payment (mock for now, but structured for real integration)
+      // Stage 3: Process payment by deferring to our internal server action route
       setPaymentStage(3)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Stage 4: Send confirmation emails (non-critical — failure does NOT block success)
-      setPaymentStage(4)
-
-      try {
-        await fetch("/api/orders/complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: confirmedOrderId,
-            orderNumber,
-            customerId: userId || "guest",
-            customerEmail: userEmail,
-            customerPhone: formData.phone,
-            // Pass the real paymentMethodId from orders/create if available
-            paymentMethodId: confirmedPaymentMethodId,
-            transactionId: orderResult?.order?.transactionId || `txn_${Date.now()}`,
-            authorizationCode: `auth_${Math.random().toString(36).substr(2, 8)}`,
-            amount: totalAmount,
-            currency: "USD",
-            items: state.items,
-            shippingMethod: formData.shippingMethod === "express" ? "Express Shipping" : "Standard Shipping",
-            shippingCost: shippingAmount,
-            tax: taxAmount,
-            total: totalAmount,
-            estimatedDelivery: formData.shippingMethod === "express" ? "2-3 business days" : "5-7 business days",
-            shippingAddress: formData,
-            customerName: `${formData.firstName} ${formData.lastName}`,
-          }),
+      
+      const processResponse = await fetch("/api/checkout/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: confirmedOrderId,
+          transactionId: orderResult?.order?.transactionId || `txn_${Date.now()}`,
+          amount: totalAmount,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          paymentInfo: formData.cardNumber ? {
+            cardNumber: formData.cardNumber,
+            expiryDate: formData.expiryDate,
+            cvv: formData.cvv,
+            cardName: formData.nameOnCard
+          } : null
         })
-      } catch (emailErr) {
-        // Email notifications are best-effort — the order is already persisted.
-        console.warn("Order notification emails failed (non-fatal):", emailErr)
+      })
+
+      if (!processResponse.ok) {
+        throw new Error("Payment processing failed at Gateway.")
       }
 
-      // Order is confirmed in the database — redirect to success.
+      setPaymentStage(4)
+
+      // Order is confirmed in the database & gateway accepted the charge.
       await new Promise((resolve) => setTimeout(resolve, 1500))
       window.location.href = `/checkout/success?orderNumber=${orderNumber}`
     } catch (error) {
