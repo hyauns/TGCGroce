@@ -407,7 +407,7 @@ export default function HomePageClient({
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-1 mb-4 min-h-[20px]">
+                    <div className="flex items-center gap-1 mb-2 min-h-[20px]">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
@@ -417,7 +417,7 @@ export default function HomePageClient({
                         <span className="text-sm text-gray-600 font-medium ml-1">({product.reviews})</span>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mb-6 flex-grow items-end">
+                    <div className="flex items-center justify-between mb-3 flex-grow items-end">
                       <div className="flex items-center gap-2">
                         <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
@@ -432,13 +432,13 @@ export default function HomePageClient({
                         : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
                           : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
                         }`}
-                      onClick={() => addToCart(product, false)}
-                      disabled={!product.inStock || buttonState !== "idle"}
-                      aria-label={`Add ${product.name} to cart`}
+                      onClick={() => addToCart(product, product.isPreOrder)}
+                      disabled={(!product.inStock && !product.isPreOrder) || buttonState !== "idle"}
+                      aria-label={`${product.isPreOrder ? "Pre-order" : "Add"} ${product.name} to cart`}
                     >
                       {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
                         : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />Added!</>)
-                          : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
+                          : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.isPreOrder ? "Pre-order" : (product.inStock ? "Add to Cart" : "Out of Stock")}</>)}
                     </Button>
                   </div>
                 </Card>
@@ -538,7 +538,7 @@ export default function HomePageClient({
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-2 mb-4 min-h-[20px]">
+                    <div className="flex items-center gap-2 mb-2 min-h-[20px]">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
@@ -549,7 +549,7 @@ export default function HomePageClient({
                       )}
                       <span className="text-sm text-green-600 font-semibold">• {formatSalesCount(product.salesCount ?? 0)}+ sold</span>
                     </div>
-                    <div className="flex items-center justify-between mb-6 flex-grow items-end">
+                    <div className="flex items-center justify-between mb-3 flex-grow items-end">
                       <div className="flex items-center gap-2">
                         <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
@@ -564,13 +564,13 @@ export default function HomePageClient({
                         : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
                           : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
                         }`}
-                      onClick={() => addToCart(product, false)}
-                      disabled={!product.inStock || buttonState !== "idle"}
-                      aria-label={`Add ${product.name} to cart`}
+                      onClick={() => addToCart(product, product.isPreOrder)}
+                      disabled={(!product.inStock && !product.isPreOrder) || buttonState !== "idle"}
+                      aria-label={`${product.isPreOrder ? "Pre-order" : "Add"} ${product.name} to cart`}
                     >
                       {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
                         : buttonState === "success" ? (<><Check className="h-5 w-5 mr-2 animate-bounce" />Added!</>)
-                          : (<><ShoppingCart className="h-5 w-5 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
+                          : (<><ShoppingCart className="h-5 w-5 mr-2" />{product.isPreOrder ? "Pre-order" : (product.inStock ? "Add to Cart" : "Out of Stock")}</>)}
                     </Button>
                   </div>
                 </Card>
