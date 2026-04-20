@@ -134,49 +134,40 @@ export const adminDb = {
 
   async getOrders(page = 1, limit = 10, search?: string, status?: string): Promise<{ orders: Order[]; total: number }> {
     const connection = getSqlConnection()
+    const searchParam = search ? `%${search}%` : null;
+    const statusParam = status || null;
+    const offset = (page - 1) * limit;
 
-    let query = `
+    const countResult = await connection`
+      SELECT COUNT(*) as total 
+      FROM orders o
+      LEFT JOIN users u ON o.customer_id::text = u.user_id::text
+      WHERE (${searchParam}::text IS NULL OR o.order_number ILIKE ${searchParam} OR u.email ILIKE ${searchParam} OR u.first_name ILIKE ${searchParam} OR u.last_name ILIKE ${searchParam})
+        AND (${statusParam}::text IS NULL OR o.status = ${statusParam})
+    `;
+    const total = Number(countResult[0]?.total || 0);
+
+    const orders = await connection`
       SELECT 
         o.*,
-        u.name as customer_name,
+        u.first_name || ' ' || COALESCE(u.last_name, '') as customer_name,
         u.email as customer_email
       FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      WHERE 1=1
-    `
-
-    const params: any[] = []
-    let paramIndex = 1
-
-    if (search) {
-      query += ` AND (o.order_number ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR u.name ILIKE $${paramIndex})`
-      params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    if (status) {
-      query += ` AND o.status = $${paramIndex}`
-      params.push(status)
-      paramIndex++
-    }
-
-    const countQuery = `SELECT COUNT(*) as total FROM (${query}) as filtered_orders`
-    const countResult = await connection.unsafe(countQuery, params)
-    const total = Number(countResult[0]?.total || 0)
-
-    query += ` ORDER BY o.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
-    params.push(limit, (page - 1) * limit)
-
-    const orders = await connection.unsafe(query, params)
+      LEFT JOIN users u ON o.customer_id::text = u.user_id::text
+      WHERE (${searchParam}::text IS NULL OR o.order_number ILIKE ${searchParam} OR u.email ILIKE ${searchParam} OR u.first_name ILIKE ${searchParam} OR u.last_name ILIKE ${searchParam})
+        AND (${statusParam}::text IS NULL OR o.status = ${statusParam})
+      ORDER BY o.created_at DESC 
+      LIMIT ${limit} OFFSET ${offset}
+    `;
 
     return {
-      orders: orders.map((order: { user_id: string; customer_name: string; customer_email: string; total_amount: string }) => ({
+      orders: orders.map((order: any) => ({
         ...order,
         total: Number(order.total_amount),
         customer: {
-          id: order.user_id,
-          name: order.customer_name,
-          email: order.customer_email,
+          id: order.customer_id,
+          name: order.customer_name?.trim() || "Guest",
+          email: order.customer_email || "No Email",
         },
       })),
       total,
@@ -189,11 +180,11 @@ export const adminDb = {
     const result = await connection`
       SELECT 
         o.*,
-        u.name as customer_name,
+        u.first_name || ' ' || COALESCE(u.last_name, '') as customer_name,
         u.email as customer_email,
-        u.id as customer_user_id
+        u.user_id as customer_user_id
       FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
+      LEFT JOIN users u ON o.customer_id::text = u.user_id::text
       WHERE o.id = ${id}
     `
 
@@ -205,8 +196,8 @@ export const adminDb = {
       total: Number(order.total_amount),
       customer: {
         id: order.customer_user_id ?? order.customer_id,
-        name: order.customer_name,
-        email: order.customer_email,
+        name: order.customer_name?.trim() || "Guest",
+        email: order.customer_email || "No Email",
       },
     }
   },
@@ -224,46 +215,38 @@ export const adminDb = {
 
   async getCustomers(page = 1, limit = 10, search?: string): Promise<{ customers: Customer[]; total: number }> {
     const connection = getSqlConnection()
+    const searchParam = search ? `%${search}%` : null;
+    const offset = (page - 1) * limit;
 
-    let query = `
+    const countResult = await connection`
+      SELECT COUNT(*) as total 
+      FROM users u 
+      WHERE (${searchParam}::text IS NULL OR u.first_name ILIKE ${searchParam} OR u.last_name ILIKE ${searchParam} OR u.email ILIKE ${searchParam})
+    `;
+    const total = Number(countResult[0]?.total || 0);
+
+    const customers = await connection`
       SELECT 
-        u.*,
+        u.user_id as id,
+        u.first_name || ' ' || COALESCE(u.last_name, '') as name,
+        u.email,
+        u.created_at,
         COUNT(o.id) as total_orders,
         COALESCE(SUM(o.total_amount), 0) as total_spent
       FROM users u
-      LEFT JOIN orders o ON u.id = o.user_id
-      WHERE 1=1
-    `
-
-    const params: any[] = []
-    let paramIndex = 1
-
-    if (search) {
-      query += ` AND (u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`
-      params.push(`%${search}%`)
-      paramIndex++
-    }
-
-    query += ` GROUP BY u.id`
-
-    // Count query — parameterized to avoid SQL injection
-    let countQuery = `SELECT COUNT(*) as total FROM users u WHERE 1=1`
-    const countParams: any[] = []
-    if (search) {
-      countQuery += ` AND (u.name ILIKE $1 OR u.email ILIKE $1)`
-      countParams.push(`%${search}%`)
-    }
-    const countResult = await connection.unsafe(countQuery, countParams)
-    const total = Number(countResult[0]?.total || 0)
-
-    query += ` ORDER BY u.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
-    params.push(limit, (page - 1) * limit)
-
-    const customers = await connection.unsafe(query, params)
+      LEFT JOIN orders o ON u.user_id::text = o.customer_id::text
+      WHERE (${searchParam}::text IS NULL OR u.first_name ILIKE ${searchParam} OR u.last_name ILIKE ${searchParam} OR u.email ILIKE ${searchParam})
+      GROUP BY u.user_id, u.first_name, u.last_name, u.email, u.created_at
+      ORDER BY u.created_at DESC 
+      LIMIT ${limit} OFFSET ${offset}
+    `;
 
     return {
-      customers: customers.map((customer: { total_orders: string; total_spent: string }) => ({
-        ...customer,
+      customers: customers.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name?.trim() || "Unnamed",
+        email: customer.email,
+        created_at: customer.created_at,
         total_orders: Number(customer.total_orders),
         total_spent: Number(customer.total_spent),
       })),
