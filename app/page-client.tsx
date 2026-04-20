@@ -278,17 +278,18 @@ export default function HomePageClient({
                         <RarityBadge rarity={product.rarity} />
                       </div>
                       <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                        <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-purple-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
+                        <CardTitle className="text-sm sm:text-base mb-1 line-clamp-2 hover:text-purple-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                           {product.name}
                         </CardTitle>
                       </Link>
-                      <p className="text-gray-600 text-xs sm:text-sm mb-3 lg:mb-4 line-clamp-2 leading-relaxed flex-grow">{product.description}</p>
-                      <div className="flex items-center gap-2 mb-3 lg:mb-4">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: "rgb(22, 163, 74)" }} />
-                        <span className="text-xs sm:text-sm font-medium truncate" style={{ color: "rgb(22, 163, 74)" }}>{product.releaseDate}</span>
-                      </div>
-                      <div className="flex items-center justify-between mb-4 lg:mb-6">
-                        <div className="flex items-center gap-2">
+                      <p className="text-gray-600 text-xs sm:text-sm mb-2 line-clamp-2 leading-relaxed">{product.description}</p>
+                      {/* mt-auto pushes release date + price + button to card bottom */}
+                      <div className="mt-auto">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: "rgb(22, 163, 74)" }} />
+                          <span className="text-xs sm:text-sm font-medium truncate" style={{ color: "rgb(22, 163, 74)" }}>{product.releaseDate}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg sm:text-xl font-bold text-purple-600">${product.price.toFixed(2)}</span>
                           {product.originalPrice && (
                             <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
@@ -296,7 +297,7 @@ export default function HomePageClient({
                         </div>
                       </div>
                     </CardContent>
-                    <div className="p-3 sm:p-4 pt-0 mt-auto">
+                    <div className="p-3 sm:p-4 pt-0">
                       <Button
                         className={`w-full h-10 text-white transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-xs sm:text-sm px-2 relative overflow-hidden transform ${buttonState === "loading" ? "bg-gradient-to-r from-purple-400 to-blue-400 cursor-not-allowed scale-95"
                           : buttonState === "success" ? "bg-gradient-to-r from-green-500 to-green-600 scale-105"
@@ -369,6 +370,12 @@ export default function HomePageClient({
                       </Link>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                       <div className="absolute top-3 left-3 flex flex-col gap-2">
+                        {product.isPreOrder && (
+                          <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border-0 px-3 py-1.5 text-xs font-semibold animate-pulse">
+                            <Clock className="w-3 h-3 mr-1" />
+                            PRE-ORDER
+                          </Badge>
+                        )}
                         {product.originalPrice && (
                           <Badge className="bg-red-500 shadow-md px-2 py-1 text-xs font-medium">
                             Save ${(product.originalPrice - product.price).toFixed(2)}
@@ -403,22 +410,23 @@ export default function HomePageClient({
                       <RarityBadge rarity={product.rarity} />
                     </div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                      <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
+                      <CardTitle className="text-sm sm:text-base mb-1 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-1 mb-2 min-h-[20px]">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
-                        ))}
+                    {/* mt-auto pushes rating + price + button to card bottom */}
+                    <div className="mt-auto">
+                      <div className="flex items-center gap-1 mb-1 min-h-[20px]">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
+                          ))}
+                        </div>
+                        {(product.reviews ?? 0) > 0 && (
+                          <span className="text-sm text-gray-600 font-medium ml-1">({product.reviews})</span>
+                        )}
                       </div>
-                      {(product.reviews ?? 0) > 0 && (
-                        <span className="text-sm text-gray-600 font-medium ml-1">({product.reviews})</span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between mb-3 flex-grow items-end">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
                           <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
@@ -426,19 +434,21 @@ export default function HomePageClient({
                       </div>
                     </div>
                   </CardContent>
-                  <div className="p-3 sm:p-4 pt-0 mt-auto">
+                  <div className="p-3 sm:p-4 pt-0">
                     <Button
-                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-xs sm:text-sm px-2 transform ${buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
+                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold text-xs sm:text-sm px-2 transform ${buttonState === "loading" ? (product.isPreOrder ? "bg-gradient-to-r from-purple-400 to-blue-400" : "bg-blue-400") + " cursor-not-allowed scale-95"
                         : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
+                          : product.isPreOrder ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105 active:scale-95"
+                            : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
                         }`}
                       onClick={() => addToCart(product, product.isPreOrder)}
                       disabled={(!product.inStock && !product.isPreOrder) || buttonState !== "idle"}
                       aria-label={`${product.isPreOrder ? "Pre-order" : "Add"} ${product.name} to cart`}
                     >
                       {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
-                        : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />Added!</>)
-                          : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.isPreOrder ? "Pre-order" : (product.inStock ? "Add to Cart" : "Out of Stock")}</>)}
+                        : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />{product.isPreOrder ? "Pre-Ordered!" : "Added!"}</>)
+                          : product.isPreOrder ? (<><Clock className="h-4 w-4 mr-2" />Pre-Order Now</>)
+                            : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
                     </Button>
                   </div>
                 </Card>
@@ -500,6 +510,12 @@ export default function HomePageClient({
                       </Link>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
                       <div className="absolute top-3 left-3 flex flex-col gap-2">
+                        {product.isPreOrder && (
+                          <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg border-0 px-3 py-1.5 text-xs font-semibold animate-pulse">
+                            <Clock className="w-3 h-3 mr-1" />
+                            PRE-ORDER
+                          </Badge>
+                        )}
                         {product.originalPrice && (
                           <Badge className="bg-red-500 px-2 py-1 text-xs font-medium shadow-md">
                             Save ${(product.originalPrice - product.price).toFixed(2)}
@@ -534,23 +550,24 @@ export default function HomePageClient({
                       <RarityBadge rarity={product.rarity} />
                     </div>
                     <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
-                      <CardTitle className="text-sm sm:text-base mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
+                      <CardTitle className="text-sm sm:text-base mb-1 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold min-h-[2.5rem] sm:min-h-[3rem] flex items-start">
                         {product.name}
                       </CardTitle>
                     </Link>
-                    <div className="flex items-center gap-2 mb-2 min-h-[20px]">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
-                        ))}
+                    {/* mt-auto pushes rating + price + button to card bottom */}
+                    <div className="mt-auto">
+                      <div className="flex items-center gap-2 mb-1 min-h-[20px]">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`h-4 w-4 ${i < Math.floor(product.rating ?? 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
+                          ))}
+                        </div>
+                        {(product.reviews ?? 0) > 0 && (
+                          <span className="text-sm text-gray-600 font-medium">({product.reviews})</span>
+                        )}
+                        <span className="text-sm text-green-600 font-semibold">• {formatSalesCount(product.salesCount ?? 0)}+ sold</span>
                       </div>
-                      {(product.reviews ?? 0) > 0 && (
-                        <span className="text-sm text-gray-600 font-medium">({product.reviews})</span>
-                      )}
-                      <span className="text-sm text-green-600 font-semibold">• {formatSalesCount(product.salesCount ?? 0)}+ sold</span>
-                    </div>
-                    <div className="flex items-center justify-between mb-3 flex-grow items-end">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
                         {product.originalPrice && (
                           <span className="text-xs sm:text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
@@ -558,19 +575,21 @@ export default function HomePageClient({
                       </div>
                     </div>
                   </CardContent>
-                  <div className="p-3 sm:p-4 pt-0 mt-auto">
+                  <div className="p-3 sm:p-4 pt-0">
                     <Button
-                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl text-xs sm:text-sm px-2 font-semibold transform ${buttonState === "loading" ? "bg-blue-400 cursor-not-allowed scale-95"
+                      className={`w-full h-10 transition-all duration-300 shadow-lg hover:shadow-xl text-xs sm:text-sm px-2 font-semibold transform ${buttonState === "loading" ? (product.isPreOrder ? "bg-gradient-to-r from-purple-400 to-blue-400" : "bg-blue-400") + " cursor-not-allowed scale-95"
                         : buttonState === "success" ? "bg-green-500 hover:bg-green-600 scale-105"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
+                          : product.isPreOrder ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105 active:scale-95"
+                            : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95"
                         }`}
                       onClick={() => addToCart(product, product.isPreOrder)}
                       disabled={(!product.inStock && !product.isPreOrder) || buttonState !== "idle"}
                       aria-label={`${product.isPreOrder ? "Pre-order" : "Add"} ${product.name} to cart`}
                     >
-                      {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
-                        : buttonState === "success" ? (<><Check className="h-5 w-5 mr-2 animate-bounce" />Added!</>)
-                          : (<><ShoppingCart className="h-5 w-5 mr-2" />{product.isPreOrder ? "Pre-order" : (product.inStock ? "Add to Cart" : "Out of Stock")}</>)}
+                      {buttonState === "loading" ? (<><div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>Adding...</>)
+                        : buttonState === "success" ? (<><Check className="h-4 w-4 mr-2 animate-bounce" />{product.isPreOrder ? "Pre-Ordered!" : "Added!"}</>)
+                          : product.isPreOrder ? (<><Clock className="h-4 w-4 mr-2" />Pre-Order Now</>)
+                            : (<><ShoppingCart className="h-4 w-4 mr-2" />{product.inStock ? "Add to Cart" : "Out of Stock"}</>)}
                     </Button>
                   </div>
                 </Card>
