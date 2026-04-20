@@ -728,7 +728,8 @@ export async function getPreOrderProducts(): Promise<Product[]> {
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND p.is_pre_order = true
-      ORDER BY p.release_date ASC NULLS LAST, p.created_at DESC
+        AND p.product_type = 'sealed'
+      ORDER BY RANDOM()
       LIMIT 12
     ` as DbProductJoined[]
 
@@ -757,7 +758,8 @@ export async function getPreOrderProducts(): Promise<Product[]> {
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND LOWER(p.condition) = 'pre-order'
-      ORDER BY p.created_at DESC
+        AND p.product_type = 'sealed'
+      ORDER BY RANDOM()
       LIMIT 12
     ` as DbProductJoined[]
 
