@@ -156,6 +156,28 @@ const PRODUCT_JOIN_SQL = `
   ) pr ON p.id = pr.product_id
 ` as const
 
+/**
+ * Custom sort prioritizing:
+ * 1. Sealed products > $50 with non-fallback images
+ * 2. Other Sealed products
+ * 3. Cards
+ * 4. Everything else (newest first)
+ */
+const PRODUCT_SORT_SQL = `
+  ORDER BY 
+    CASE 
+      WHEN p.product_type ILIKE '%sealed%' 
+           AND p.image_url IS NOT NULL 
+           AND p.image_url != '' 
+           AND p.image_url NOT ILIKE '%placeholder%' 
+           AND p.price > 50 THEN 1
+      WHEN p.product_type ILIKE '%sealed%' THEN 2
+      WHEN p.product_type ILIKE '%card%' THEN 3
+      ELSE 4
+    END ASC,
+    p.created_at DESC
+` as const
+
 // Badge helpers are re-exported above from lib/product-utils.
 // No duplicate definitions here.
 
@@ -274,7 +296,7 @@ export async function getAllProducts(productType?: string | null): Promise<Produ
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
       ${typeFilter}
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
     return rows.map(mapJoinedRowToProduct)
@@ -385,7 +407,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
         AND (p.category = ${category} OR pc.name = ${category})
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
     return rows.map(mapJoinedRowToProduct)
@@ -475,7 +497,7 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
         AND pc.slug = ${slug}
         AND pc.is_active = true
         ${typeFilter}
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
     if (rows.length > 0) {
@@ -508,7 +530,7 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
       FROM products p
       WHERE p.is_active = true AND p.category = ${matchedCategory.category}
       ${typeFilter}
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
     return fallbackRows.map(mapJoinedRowToProduct)
@@ -578,7 +600,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true AND p.is_featured = true
-        ORDER BY p.created_at DESC
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
         LIMIT 12
       ` as DbProductJoined[]
 
@@ -602,7 +624,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.original_price IS NOT NULL
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
       LIMIT 12
     ` as DbProductJoined[]
 
@@ -622,7 +644,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
-        ORDER BY p.created_at DESC
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
         LIMIT 12
       ` as DbProductJoined[]
       return anyRows.map(mapJoinedRowToProduct)
@@ -661,7 +683,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
         pr.review_count
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true AND p.stock_quantity > 0
-      ORDER BY p.created_at DESC
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
       LIMIT 12
     ` as DbProductJoined[]
 
@@ -681,7 +703,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
         pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
-        ORDER BY p.created_at DESC
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
         LIMIT 12
       ` as DbProductJoined[]
       return anyRows.map(mapJoinedRowToProduct)
