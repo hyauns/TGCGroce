@@ -211,9 +211,9 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                 Filters {hasActiveFilters && `(${Object.keys(filters).length})`}
               </Button>
 
-              <Select value={filters.sortBy || "newest"} onValueChange={(value) => sortBy(value as any)}>
+              <Select value={filters.sortBy || "default"} onValueChange={(value) => sortBy(value === "default" ? undefined : (value as any))}>
                 <SelectTrigger className="w-full sm:w-48" aria-label="Sort trading card products">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder="Recommended" />
                 </SelectTrigger>
                 <SelectContent>
                   {SORT_OPTIONS.map((option) => (
@@ -535,63 +535,65 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                           </div>
                           <Link href={`/products/${product.slug || generateSlug(product.name)}`}>
                             <CardTitle
-                              className={`mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight ${
-                                viewMode === "list" ? "text-xl min-h-[3rem]" : "text-lg min-h-[3.5rem]"
+                              className={`mb-2 line-clamp-2 hover:text-blue-600 transition-colors leading-tight font-bold ${
+                                viewMode === "list" ? "text-xl min-h-[3rem]" : "text-sm sm:text-base min-h-[2.5rem] sm:min-h-[3rem]"
                               } flex items-start`}
                             >
                               {product.name}
                             </CardTitle>
                           </Link>
 
-                          <div className="flex items-center gap-1 mb-3 min-h-[20px]">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < Math.floor(product.rating ?? 0)
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "fill-gray-200 text-gray-200"
-                                  }`}
-                                />
-                              ))}
+                          <div className="mt-auto">
+                            <div className="flex items-center gap-1 mb-1 min-h-[20px]">
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < Math.floor(product.rating ?? 0)
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "fill-gray-200 text-gray-200"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-sm text-gray-600 font-medium">{product.rating ?? "—"}</span>
+                              {(product.reviews ?? 0) > 0 && (
+                                <span className="text-sm text-gray-500">({product.reviews})</span>
+                              )}
                             </div>
-                            <span className="text-sm text-gray-600 font-medium">{product.rating ?? "—"}</span>
-                            {(product.reviews ?? 0) > 0 && (
-                              <span className="text-sm text-gray-500">({product.reviews})</span>
-                            )}
-                          </div>
 
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
-                            {product.originalPrice && (
-                              <span className="text-lg text-gray-500 line-through">
-                                ${product.originalPrice.toFixed(2)}
-                              </span>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                              {product.originalPrice && (
+                                <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                  ${product.originalPrice.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
 
-                          <div className="text-sm mb-4 flex-grow flex items-start">
-                            {product.isPreOrder ? (
-                              <span className="text-purple-600 font-medium flex items-center">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                                Pre-Order Available
-                              </span>
-                            ) : (product.stock ?? 0) > 0 ? (
-                              <span className="text-green-600 font-medium flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                In Stock
-                              </span>
-                            ) : (
-                              <span className="text-red-600 font-medium flex items-center">
-                                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                                Out of Stock
-                              </span>
-                            )}
+                            <div className="text-sm flex items-start">
+                              {product.isPreOrder ? (
+                                <span className="text-purple-600 font-medium flex items-center">
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                                  Pre-Order Available
+                                </span>
+                              ) : (product.stock ?? 0) > 0 ? (
+                                <span className="text-green-600 font-medium flex items-center">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                  In Stock
+                                </span>
+                              ) : (
+                                <span className="text-red-600 font-medium flex items-center">
+                                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                                  Out of Stock
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
 
-                        <CardFooter className={`mt-auto ${viewMode === "list" ? "p-0 pt-4" : "p-4 pt-0"}`}>
+                        <CardFooter className={`p-3 sm:p-4 pt-0`}>
                           <Button
                             className={`w-full h-11 font-medium transition-all duration-300 hover:shadow-md transform ${
                               buttonState === "loading"

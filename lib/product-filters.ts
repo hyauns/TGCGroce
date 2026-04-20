@@ -32,7 +32,7 @@ export interface FilterOptions {
   isPreOrder?: boolean
   productType?: string
   categories?: string[]
-  sortBy?: "price-asc" | "price-desc" | "name-asc" | "name-desc" | "newest"
+  sortBy?: "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc" | "newest"
 }
 
 export interface FilterCounts {
@@ -113,7 +113,7 @@ export function filterProducts(
 }
 
 function sortProducts(products: Product[], sortBy?: string): Product[] {
-  if (!sortBy) return products
+  if (!sortBy || sortBy === "default") return products
 
   // Create copy to avoid mutating original array
   const sorted = [...products]
@@ -211,6 +211,7 @@ export const PRICE_RANGES = [
 ]
 
 export const SORT_OPTIONS = [
+  { value: "default", label: "Recommended" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
   { value: "name-asc", label: "Name: A to Z" },
