@@ -158,8 +158,8 @@ const PRODUCT_JOIN_SQL = `
 
 /**
  * Custom sort prioritizing:
- * 1. Sealed products > $50 with non-fallback images
- * 2. Other Sealed products
+ * 1. Sealed products > $50 with non-fallback images AND is pre-order
+ * 2. Other pre-order products
  * 3. Cards
  * 4. Everything else (newest first)
  */
@@ -170,8 +170,9 @@ const PRODUCT_SORT_SQL = `
            AND p.image_url IS NOT NULL 
            AND p.image_url != '' 
            AND p.image_url NOT ILIKE '%placeholder%' 
-           AND p.price > 50 THEN 1
-      WHEN p.product_type ILIKE '%sealed%' THEN 2
+           AND p.price > 50 
+           AND p.is_pre_order = true THEN 1
+      WHEN p.is_pre_order = true THEN 2
       WHEN p.product_type ILIKE '%card%' THEN 3
       ELSE 4
     END ASC,
