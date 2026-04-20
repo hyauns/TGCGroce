@@ -18,6 +18,7 @@ export async function GET() {
         seo_title: null,
         seo_description: null,
         seo_keywords: null,
+        google_site_verification: null,
       };
     }
 
@@ -32,6 +33,7 @@ export async function GET() {
       seoTitle: settings.seo_title,
       seoDescription: settings.seo_description,
       seoKeywords: settings.seo_keywords,
+      googleSiteVerification: settings.google_site_verification,
     });
   } catch (error: any) {
     console.error('Error fetching settings:', error);
@@ -54,10 +56,10 @@ export async function PUT(request: Request) {
     // Perform Upsert on Neon using raw SQL
     const updatedSettings = await sql`
       INSERT INTO site_settings (
-        id, hero_title, hero_subtitle, hero_image_url, logo_url, favicon_url, seo_title, seo_description, seo_keywords
+        id, hero_title, hero_subtitle, hero_image_url, logo_url, favicon_url, seo_title, seo_description, seo_keywords, google_site_verification
       )
       VALUES (
-        1, ${heroTitle}, ${heroSubtitle}, ${body.heroImageUrl || null}, ${body.logoUrl || null}, ${body.faviconUrl || null}, ${body.seoTitle || null}, ${body.seoDescription || null}, ${body.seoKeywords || null}
+        1, ${heroTitle}, ${heroSubtitle}, ${body.heroImageUrl || null}, ${body.logoUrl || null}, ${body.faviconUrl || null}, ${body.seoTitle || null}, ${body.seoDescription || null}, ${body.seoKeywords || null}, ${body.googleSiteVerification || null}
       )
       ON CONFLICT (id) DO UPDATE SET
         hero_title = EXCLUDED.hero_title,
@@ -68,6 +70,7 @@ export async function PUT(request: Request) {
         seo_title = EXCLUDED.seo_title,
         seo_description = EXCLUDED.seo_description,
         seo_keywords = EXCLUDED.seo_keywords,
+        google_site_verification = EXCLUDED.google_site_verification,
         updated_at = CURRENT_TIMESTAMP
       RETURNING *;
     `;
@@ -84,6 +87,7 @@ export async function PUT(request: Request) {
       seoTitle: settings.seo_title,
       seoDescription: settings.seo_description,
       seoKeywords: settings.seo_keywords,
+      googleSiteVerification: settings.google_site_verification,
     });
   } catch (error: any) {
     console.error('Error updating settings:', error);

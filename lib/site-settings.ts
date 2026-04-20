@@ -9,6 +9,7 @@ export interface SiteSettings {
   seoTitle: string | null
   seoDescription: string | null
   seoKeywords: string | null
+  googleSiteVerification: string | null
 }
 
 const DEFAULTS: SiteSettings = {
@@ -21,6 +22,7 @@ const DEFAULTS: SiteSettings = {
   seoTitle: null,
   seoDescription: null,
   seoKeywords: null,
+  googleSiteVerification: null,
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -40,6 +42,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       seoTitle: row.seo_title || null,
       seoDescription: row.seo_description || null,
       seoKeywords: row.seo_keywords || null,
+      googleSiteVerification: row.google_site_verification || null,
     }
   } catch (error) {
     console.error("Failed to fetch site settings:", error)

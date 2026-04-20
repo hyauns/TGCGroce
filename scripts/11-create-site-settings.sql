@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
     seo_title VARCHAR(255),
     seo_description TEXT,
     seo_keywords TEXT,
+    google_site_verification VARCHAR(255),
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     
     -- Ensure only one row can exist by adding a check constraint (id must be 1)

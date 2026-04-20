@@ -12,6 +12,7 @@ interface SEOSettingsProps {
     seoTitle: string
     seoDescription: string
     seoKeywords: string
+    googleSiteVerification: string
   }
   onChange: (field: string, value: string) => void
 }
@@ -122,6 +123,17 @@ export function SEOSettings({ data, onChange }: SEOSettingsProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="googleSiteVerification" className="text-gray-700">Google Site Verification Code</Label>
+              <Input
+                id="googleSiteVerification"
+                value={data.googleSiteVerification}
+                onChange={(e) => onChange("googleSiteVerification", e.target.value)}
+                placeholder="e.g. dQW3Vp_..."
+              />
+              <p className="text-xs text-gray-500">The content value of the verification meta tag from Google Search Console.</p>
+            </div>
+            
             <div className="space-y-3">
               <Label className="text-gray-700">XML Sitemap</Label>
               <div className="flex items-center gap-2">

@@ -31,6 +31,7 @@ export default function SettingsPage() {
     seoTitle: "",
     seoDescription: "",
     seoKeywords: "",
+    googleSiteVerification: "",
   })
 
   // File objects for "pending" uploads
@@ -62,6 +63,7 @@ export default function SettingsPage() {
           seoTitle: data.seoTitle || "",
           seoDescription: data.seoDescription || "",
           seoKeywords: data.seoKeywords || "",
+          googleSiteVerification: data.googleSiteVerification || "",
         })
       }
     } catch (error) {
@@ -135,6 +137,7 @@ export default function SettingsPage() {
         seoTitle: savedData.seoTitle || "",
         seoDescription: savedData.seoDescription || "",
         seoKeywords: savedData.seoKeywords || "",
+        googleSiteVerification: savedData.googleSiteVerification || "",
       })
 
       // Reset pending files
@@ -224,7 +227,7 @@ export default function SettingsPage() {
 
         <TabsContent value={Tab.SEO} className="pt-2">
           <SEOSettings 
-            data={{ seoTitle: formData.seoTitle, seoDescription: formData.seoDescription, seoKeywords: formData.seoKeywords }}
+            data={{ seoTitle: formData.seoTitle, seoDescription: formData.seoDescription, seoKeywords: formData.seoKeywords, googleSiteVerification: formData.googleSiteVerification }}
             onChange={handleChange}
           />
         </TabsContent>

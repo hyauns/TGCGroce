@@ -6,9 +6,13 @@ import "./globals.css"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { siteUrl } from "@/lib/site-config"
+import { getSiteSettings } from "@/lib/site-settings"
 import { neon } from "@neondatabase/serverless"
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings()
+
+  return {
   title: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
   description:
     "Shop authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Fast shipping, guaranteed authenticity, competitive prices.",
@@ -86,7 +90,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "google-site-verification-code",
+    google: settings.googleSiteVerification || "google-site-verification-code",
     yandex: "yandex-verification-code",
     yahoo: "yahoo-site-verification-code",
     other: {
@@ -103,6 +107,7 @@ export const metadata: Metadata = {
     "msapplication-TileColor": "#2563eb",
     "theme-color": "#2563eb",
   },
+}
 }
 
 export default async function RootLayout({
