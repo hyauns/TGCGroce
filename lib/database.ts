@@ -89,17 +89,31 @@ export const adminDb = {
   async getStats(): Promise<AdminStats> {
     const connection = getSqlConnection()
 
-    const [revenue, ordersToday, newCustomers] = await Promise.all([
+    const [revenue, ordersToday, newCustomers, conversionData] = await Promise.all([
       connection`SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE status != 'CANCELLED'`,
       connection`SELECT COUNT(*) as count FROM orders WHERE DATE(created_at) = CURRENT_DATE`,
       connection`SELECT COUNT(*) as count FROM users WHERE DATE(created_at) >= CURRENT_DATE - INTERVAL '30 days'`,
+      connection`
+        SELECT
+          (SELECT COUNT(*) FROM orders WHERE status != 'CANCELLED' AND COALESCE(order_date, created_at) >= CURRENT_DATE - INTERVAL '30 days') as recent_orders,
+          (SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as recent_users
+      `,
     ])
+
+    // Conversion rate: orders / registered users in the last 30 days.
+    // This is an order-to-registration ratio, NOT a true site-wide conversion
+    // rate (which would require analytics/session tracking).
+    const recentOrders = Number(conversionData[0]?.recent_orders || 0)
+    const recentUsers = Number(conversionData[0]?.recent_users || 0)
+    const conversionRate = recentUsers > 0
+      ? Math.round((recentOrders / recentUsers) * 100 * 10) / 10
+      : 0
 
     return {
       totalRevenue: Number(revenue[0]?.total || 0),
       ordersToday: Number(ordersToday[0]?.count || 0),
       newCustomers: Number(newCustomers[0]?.count || 0),
-      conversionRate: 3.2, // Placeholder — requires analytics integration
+      conversionRate,
     }
   },
 
@@ -124,12 +138,28 @@ export const adminDb = {
   },
 
   async getTopProducts(): Promise<TopProduct[]> {
-    // Mock data since products are in JSON
-    return [
-      { id: "1", name: "Tarkir Dragonstorm Bundle", sales: 45, revenue: 2250 },
-      { id: "2", name: "Edge of Eternities Bundle", sales: 32, revenue: 1600 },
-      { id: "3", name: "Tarkir Play Boosters", sales: 28, revenue: 840 },
-    ]
+    const connection = getSqlConnection()
+
+    const rows = await connection`
+      SELECT
+        oi.product_id AS id,
+        oi.product_name AS name,
+        COALESCE(SUM(oi.quantity), 0) AS sales,
+        COALESCE(SUM(oi.total_price), 0) AS revenue
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.status != 'CANCELLED'
+      GROUP BY oi.product_id, oi.product_name
+      ORDER BY revenue DESC
+      LIMIT 5
+    `
+
+    return rows.map((row: any) => ({
+      id: String(row.id),
+      name: row.name || "Unknown Product",
+      sales: Number(row.sales) || 0,
+      revenue: Number(row.revenue) || 0,
+    }))
   },
 
   async getOrders(page = 1, limit = 10, search?: string, status?: string): Promise<{ orders: Order[]; total: number }> {

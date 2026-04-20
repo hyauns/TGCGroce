@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DollarSign, ShoppingCart, Users, TrendingUp, AlertTriangle } from "lucide-react"
+import { DollarSign, ShoppingCart, Users, TrendingUp, AlertTriangle, Info } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 interface AdminStats {
@@ -11,6 +11,12 @@ interface AdminStats {
   ordersToday: number
   newCustomers: number
   conversionRate: number
+}
+
+interface LowStockProduct {
+  id: number
+  name: string
+  stock_quantity: number
 }
 
 interface RevenueData {
@@ -38,6 +44,7 @@ export default function AdminDashboard() {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([])
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
+  const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -53,13 +60,21 @@ export default function AdminDashboard() {
         const analyticsData = analyticsRes.ok ? await analyticsRes.json() : { revenueData: [], topProducts: [] }
         const ordersData = ordersRes.ok ? await ordersRes.json() : { orders: [] }
 
-        console.log("[v0] Analytics data received:", analyticsData)
-        console.log("[v0] Top products data:", analyticsData.topProducts)
-
         setStats(statsData)
         setRevenueData(analyticsData.revenueData || [])
         setTopProducts(analyticsData.topProducts || [])
         setRecentOrders(ordersData.orders || [])
+
+        // Fetch low stock products
+        try {
+          const lowStockRes = await fetch("/api/admin/low-stock")
+          if (lowStockRes.ok) {
+            const lowStockData = await lowStockRes.json()
+            setLowStockProducts(lowStockData.products || [])
+          }
+        } catch {
+          // Low stock is non-critical — don't block dashboard
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
         setRevenueData([])
@@ -163,7 +178,12 @@ export default function AdminDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Conversion Rate</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Order/User Ratio
+                  <span title="Orders ÷ registered users (last 30 days). Not a true site conversion rate.">
+                    <Info className="inline h-3 w-3 ml-1 text-gray-400" />
+                  </span>
+                </p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.conversionRate || 0}%</p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-600" />
@@ -263,27 +283,23 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Tarkir Play Boosters</p>
-                  <p className="text-xs text-gray-500">Only 5 left in stock</p>
+              {lowStockProducts.length > 0 ? (
+                lowStockProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</p>
+                      <p className="text-xs text-gray-500">Only {product.stock_quantity} left in stock</p>
+                    </div>
+                    <Badge variant={product.stock_quantity <= 5 ? "destructive" : "secondary"}>
+                      {product.stock_quantity <= 5 ? "Critical" : "Low Stock"}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-500">All products sufficiently stocked</p>
                 </div>
-                <Badge variant="destructive">Low Stock</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Edge of Eternities Bundle</p>
-                  <p className="text-xs text-gray-500">Only 3 left in stock</p>
-                </div>
-                <Badge variant="destructive">Low Stock</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Pokemon Booster Box</p>
-                  <p className="text-xs text-gray-500">Only 2 left in stock</p>
-                </div>
-                <Badge variant="destructive">Critical</Badge>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>

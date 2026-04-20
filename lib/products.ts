@@ -100,7 +100,7 @@ function getSqlConnection() {
     return null
   }
 
-  return neon(url, { fetchOptions: { cache: 'no-store' } })
+  return neon(url)
 }
 
 // ============================================================

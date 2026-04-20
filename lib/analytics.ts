@@ -215,33 +215,29 @@ export async function getConversionFunnelData(): Promise<ConversionFunnelData[]>
     const paidOrders = Number(data.paid_orders) || 0
     const deliveredOrders = Number(data.delivered_orders) || 0
 
-    // Estimate a funnel from the data we have
-    // Assume product views ~ 10x orders (industry average ~10% view-to-order)
-    const estimatedViews = Math.max(totalOrders * 12, 100)
-    const estimatedCartAdds = Math.max(totalOrders * 3, ordersWithItems)
-
-    return [
+    // NOTE: We don't have a website_analytics table, so "Product Views"
+    // and "Add to Cart" steps cannot be measured. We only report what we
+    // can verify from the orders DB. Steps that cannot be measured are
+    // excluded rather than fabricated.
+    const funnelSteps: ConversionFunnelData[] = [
       {
-        step: "Product Views",
-        count: estimatedViews,
+        step: "Orders Created",
+        count: totalOrders,
         conversionRate: 100,
       },
       {
-        step: "Add to Cart",
-        count: estimatedCartAdds,
-        conversionRate: estimatedViews > 0 ? (estimatedCartAdds / estimatedViews) * 100 : 0,
-      },
-      {
-        step: "Checkout Started",
-        count: totalOrders,
-        conversionRate: estimatedViews > 0 ? (totalOrders / estimatedViews) * 100 : 0,
-      },
-      {
-        step: "Purchase Completed",
+        step: "Payment Completed",
         count: paidOrders,
-        conversionRate: estimatedViews > 0 ? (paidOrders / estimatedViews) * 100 : 0,
+        conversionRate: totalOrders > 0 ? (paidOrders / totalOrders) * 100 : 0,
+      },
+      {
+        step: "Delivered",
+        count: deliveredOrders,
+        conversionRate: totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0,
       },
     ]
+
+    return funnelSteps
   } catch (error) {
     console.error("[analytics] Error fetching conversion funnel data:", error)
     return []
