@@ -1,18 +1,25 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { ImagePlus, X } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { ImagePlus, X, Facebook, Instagram, Twitter, Youtube } from "lucide-react"
 
 interface BrandingSettingsProps {
   data: {
     logoUrl: string
     faviconUrl: string
+    socialFacebook: string
+    socialInstagram: string
+    socialPinterest: string
+    socialTwitter: string
+    socialYoutube: string
   }
   pendingLogo: File | null
   pendingFavicon: File | null
   onFileChange: (field: "logo" | "favicon", file: File | null) => void
+  onChange: (field: string, value: string) => void
 }
 
-export function BrandingSettings({ data, pendingLogo, pendingFavicon, onFileChange }: BrandingSettingsProps) {
+export function BrandingSettings({ data, pendingLogo, pendingFavicon, onFileChange, onChange }: BrandingSettingsProps) {
   const previewLogoUrl = pendingLogo ? URL.createObjectURL(pendingLogo) : data.logoUrl
   const previewFaviconUrl = pendingFavicon ? URL.createObjectURL(pendingFavicon) : data.faviconUrl
 
@@ -117,6 +124,38 @@ export function BrandingSettings({ data, pendingLogo, pendingFavicon, onFileChan
           </div>
         </CardContent>
       </Card>
+      
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Social Media Profiles</CardTitle>
+          <CardDescription>
+            Add links to your social pages. Icons will automatically appear in the footer.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="socialFacebook" className="flex items-center gap-2"><Facebook className="w-4 h-4 text-blue-600" /> Facebook URL</Label>
+            <Input id="socialFacebook" value={data.socialFacebook} onChange={(e) => onChange("socialFacebook", e.target.value)} placeholder="https://facebook.com/tgclore" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="socialInstagram" className="flex items-center gap-2"><Instagram className="w-4 h-4 text-pink-600" /> Instagram URL</Label>
+            <Input id="socialInstagram" value={data.socialInstagram} onChange={(e) => onChange("socialInstagram", e.target.value)} placeholder="https://instagram.com/tgclore" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="socialTwitter" className="flex items-center gap-2"><Twitter className="w-4 h-4 text-sky-500" /> Twitter URL</Label>
+            <Input id="socialTwitter" value={data.socialTwitter} onChange={(e) => onChange("socialTwitter", e.target.value)} placeholder="https://twitter.com/tgclore" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="socialYoutube" className="flex items-center gap-2"><Youtube className="w-4 h-4 text-red-600" /> YouTube URL</Label>
+            <Input id="socialYoutube" value={data.socialYoutube} onChange={(e) => onChange("socialYoutube", e.target.value)} placeholder="https://youtube.com/@tgclore" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="socialPinterest">Pinterest URL</Label>
+            <Input id="socialPinterest" value={data.socialPinterest} onChange={(e) => onChange("socialPinterest", e.target.value)} placeholder="https://pinterest.com/tgclore" />
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   )
 }

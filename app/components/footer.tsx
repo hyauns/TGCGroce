@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react"
+import { Mail, Phone, MapPin } from "lucide-react"
+import { FooterSocial } from "./footer-social"
 
 export function Footer() {
   return (
@@ -25,24 +26,7 @@ export function Footer() {
               Your trusted destination for authentic trading cards, collectibles, and gaming accessories. We bring you
               the best selection with guaranteed authenticity from Flagler Beach, Florida.
             </p>
-            <div className="flex space-x-4 mt-2">
-              <Link href="https://facebook.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
-                <Facebook className="w-5 h-5" />
-                <span className="sr-only">Facebook</span>
-              </Link>
-              <Link href="https://twitter.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
-                <Twitter className="w-5 h-5" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="https://instagram.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
-                <Instagram className="w-5 h-5" />
-                <span className="sr-only">Instagram</span>
-              </Link>
-              <Link href="https://youtube.com/tgclore" target="_blank" rel="noopener noreferrer" className="text-black hover:text-[rgb(37,99,235)] transition-colors">
-                <Youtube className="w-5 h-5" />
-                <span className="sr-only">Youtube</span>
-              </Link>
-            </div>
+            <FooterSocial />
           </div>
 
           {/* Quick Links */}

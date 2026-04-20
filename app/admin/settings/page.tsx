@@ -32,6 +32,11 @@ export default function SettingsPage() {
     seoDescription: "",
     seoKeywords: "",
     googleSiteVerification: "",
+    socialFacebook: "",
+    socialInstagram: "",
+    socialPinterest: "",
+    socialTwitter: "",
+    socialYoutube: "",
   })
 
   // File objects for "pending" uploads
@@ -64,6 +69,11 @@ export default function SettingsPage() {
           seoDescription: data.seoDescription || "",
           seoKeywords: data.seoKeywords || "",
           googleSiteVerification: data.googleSiteVerification || "",
+          socialFacebook: data.socialFacebook || "",
+          socialInstagram: data.socialInstagram || "",
+          socialPinterest: data.socialPinterest || "",
+          socialTwitter: data.socialTwitter || "",
+          socialYoutube: data.socialYoutube || "",
         })
       }
     } catch (error) {
@@ -138,6 +148,11 @@ export default function SettingsPage() {
         seoDescription: savedData.seoDescription || "",
         seoKeywords: savedData.seoKeywords || "",
         googleSiteVerification: savedData.googleSiteVerification || "",
+        socialFacebook: savedData.socialFacebook || "",
+        socialInstagram: savedData.socialInstagram || "",
+        socialPinterest: savedData.socialPinterest || "",
+        socialTwitter: savedData.socialTwitter || "",
+        socialYoutube: savedData.socialYoutube || "",
       })
 
       // Reset pending files
@@ -218,10 +233,19 @@ export default function SettingsPage() {
 
         <TabsContent value={Tab.BRANDING} className="pt-2">
           <BrandingSettings 
-            data={{ logoUrl: formData.logoUrl, faviconUrl: formData.faviconUrl }}
+            data={{ 
+              logoUrl: formData.logoUrl, 
+              faviconUrl: formData.faviconUrl,
+              socialFacebook: formData.socialFacebook,
+              socialInstagram: formData.socialInstagram,
+              socialPinterest: formData.socialPinterest,
+              socialTwitter: formData.socialTwitter,
+              socialYoutube: formData.socialYoutube
+            }}
             pendingLogo={pendingFiles.logo}
             pendingFavicon={pendingFiles.favicon}
             onFileChange={handleFileChange}
+            onChange={handleChange}
           />
         </TabsContent>
 

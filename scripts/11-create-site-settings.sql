@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS site_settings (
     seo_description TEXT,
     seo_keywords TEXT,
     google_site_verification VARCHAR(255),
+    social_facebook VARCHAR(255),
+    social_instagram VARCHAR(255),
+    social_pinterest VARCHAR(255),
+    social_twitter VARCHAR(255),
+    social_youtube VARCHAR(255),
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     
     -- Ensure only one row can exist by adding a check constraint (id must be 1)

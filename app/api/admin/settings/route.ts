@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { revalidatePath } from 'next/cache';
 
 export async function GET() {
   try {
@@ -19,6 +20,11 @@ export async function GET() {
         seo_description: null,
         seo_keywords: null,
         google_site_verification: null,
+        social_facebook: null,
+        social_instagram: null,
+        social_pinterest: null,
+        social_twitter: null,
+        social_youtube: null,
       };
     }
 
@@ -34,6 +40,11 @@ export async function GET() {
       seoDescription: settings.seo_description,
       seoKeywords: settings.seo_keywords,
       googleSiteVerification: settings.google_site_verification,
+      socialFacebook: settings.social_facebook,
+      socialInstagram: settings.social_instagram,
+      socialPinterest: settings.social_pinterest,
+      socialTwitter: settings.social_twitter,
+      socialYoutube: settings.social_youtube,
     });
   } catch (error: any) {
     console.error('Error fetching settings:', error);
@@ -56,10 +67,10 @@ export async function PUT(request: Request) {
     // Perform Upsert on Neon using raw SQL
     const updatedSettings = await sql`
       INSERT INTO site_settings (
-        id, hero_title, hero_subtitle, hero_image_url, logo_url, favicon_url, seo_title, seo_description, seo_keywords, google_site_verification
+        id, hero_title, hero_subtitle, hero_image_url, logo_url, favicon_url, seo_title, seo_description, seo_keywords, google_site_verification, social_facebook, social_instagram, social_pinterest, social_twitter, social_youtube
       )
       VALUES (
-        1, ${heroTitle}, ${heroSubtitle}, ${body.heroImageUrl || null}, ${body.logoUrl || null}, ${body.faviconUrl || null}, ${body.seoTitle || null}, ${body.seoDescription || null}, ${body.seoKeywords || null}, ${body.googleSiteVerification || null}
+        1, ${heroTitle}, ${heroSubtitle}, ${body.heroImageUrl || null}, ${body.logoUrl || null}, ${body.faviconUrl || null}, ${body.seoTitle || null}, ${body.seoDescription || null}, ${body.seoKeywords || null}, ${body.googleSiteVerification || null}, ${body.socialFacebook || null}, ${body.socialInstagram || null}, ${body.socialPinterest || null}, ${body.socialTwitter || null}, ${body.socialYoutube || null}
       )
       ON CONFLICT (id) DO UPDATE SET
         hero_title = EXCLUDED.hero_title,
@@ -71,11 +82,20 @@ export async function PUT(request: Request) {
         seo_description = EXCLUDED.seo_description,
         seo_keywords = EXCLUDED.seo_keywords,
         google_site_verification = EXCLUDED.google_site_verification,
+        social_facebook = EXCLUDED.social_facebook,
+        social_instagram = EXCLUDED.social_instagram,
+        social_pinterest = EXCLUDED.social_pinterest,
+        social_twitter = EXCLUDED.social_twitter,
+        social_youtube = EXCLUDED.social_youtube,
         updated_at = CURRENT_TIMESTAMP
       RETURNING *;
     `;
 
     const settings = updatedSettings[0];
+
+    // Force Next.js to purge the routing cache for the global layout
+    // This allows the generateMetadata() and Header/Footer updates to reflect instantly
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({
       id: settings.id,
@@ -88,6 +108,11 @@ export async function PUT(request: Request) {
       seoDescription: settings.seo_description,
       seoKeywords: settings.seo_keywords,
       googleSiteVerification: settings.google_site_verification,
+      socialFacebook: settings.social_facebook,
+      socialInstagram: settings.social_instagram,
+      socialPinterest: settings.social_pinterest,
+      socialTwitter: settings.social_twitter,
+      socialYoutube: settings.social_youtube,
     });
   } catch (error: any) {
     console.error('Error updating settings:', error);

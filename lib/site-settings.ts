@@ -10,6 +10,11 @@ export interface SiteSettings {
   seoDescription: string | null
   seoKeywords: string | null
   googleSiteVerification: string | null
+  socialFacebook: string | null
+  socialInstagram: string | null
+  socialPinterest: string | null
+  socialTwitter: string | null
+  socialYoutube: string | null
 }
 
 const DEFAULTS: SiteSettings = {
@@ -23,6 +28,11 @@ const DEFAULTS: SiteSettings = {
   seoDescription: null,
   seoKeywords: null,
   googleSiteVerification: null,
+  socialFacebook: null,
+  socialInstagram: null,
+  socialPinterest: null,
+  socialTwitter: null,
+  socialYoutube: null,
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -43,6 +53,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       seoDescription: row.seo_description || null,
       seoKeywords: row.seo_keywords || null,
       googleSiteVerification: row.google_site_verification || null,
+      socialFacebook: row.social_facebook || null,
+      socialInstagram: row.social_instagram || null,
+      socialPinterest: row.social_pinterest || null,
+      socialTwitter: row.social_twitter || null,
+      socialYoutube: row.social_youtube || null,
     }
   } catch (error) {
     console.error("Failed to fetch site settings:", error)
