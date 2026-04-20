@@ -683,8 +683,8 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
                     <Fingerprint className="h-8 w-8 text-white" />
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-green-800">Biometric</div>
-                    <div className="text-sm text-green-600">Identity verification</div>
+                    <div className="text-lg font-bold text-green-800">Fraud Detection</div>
+                    <div className="text-sm text-green-600">Real-time monitoring</div>
                   </div>
                 </div>
                 <div className="flex flex-col items-center space-y-3 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -692,8 +692,8 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
                     <Award className="h-8 w-8 text-white" />
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-purple-800">PCI DSS</div>
-                    <div className="text-sm text-purple-600">Level 1 compliant</div>
+                    <div className="text-lg font-bold text-purple-800">Secure Checkout</div>
+                    <div className="text-sm text-purple-600">Industry-standard protection</div>
                   </div>
                 </div>
               </div>

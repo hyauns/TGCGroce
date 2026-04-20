@@ -12,14 +12,23 @@ const IV_LENGTH = 16 // 128 bits
 const TAG_LENGTH = 16 // 128 bits
 
 // PAYMENT_ENCRYPTION_KEY is validated at startup by lib/env.ts.
-// Hard-fail here too so that runtime encryption is always keyed properly.
-if (!process.env.PAYMENT_ENCRYPTION_KEY) {
-  throw new Error(
-    "[payment-security] FATAL: PAYMENT_ENCRYPTION_KEY is not set. " +
-      "Run `openssl rand -hex 32` and set it in your environment."
-  )
+// Lazy resolution: fail at first use, not at module import, so that
+// server startup isn't blocked for routes that don't need encryption.
+let _masterKey: string | null = null
+
+function getMasterKey(): string {
+  if (!_masterKey) {
+    const key = process.env.PAYMENT_ENCRYPTION_KEY
+    if (!key) {
+      throw new Error(
+        "[payment-security] FATAL: PAYMENT_ENCRYPTION_KEY is not set. " +
+          "Run `openssl rand -hex 32` and set it in your environment."
+      )
+    }
+    _masterKey = key
+  }
+  return _masterKey
 }
-const MASTER_KEY: string = process.env.PAYMENT_ENCRYPTION_KEY
 
 // Derive encryption key using PBKDF2
 function deriveKey(masterKey: string, salt: string): Buffer {
@@ -100,7 +109,7 @@ export interface PaymentAuditLog {
 export function encryptData(plaintext: string): EncryptedData {
   try {
     const salt = generateSalt()
-    const key = deriveKey(MASTER_KEY, salt)
+    const key = deriveKey(getMasterKey(), salt)
     const iv = crypto.randomBytes(IV_LENGTH)
 
     const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, key, iv)
@@ -128,7 +137,7 @@ export function encryptData(plaintext: string): EncryptedData {
  */
 export function decryptData(encryptedData: EncryptedData): string {
   try {
-    const key = deriveKey(MASTER_KEY, encryptedData.salt)
+    const key = deriveKey(getMasterKey(), encryptedData.salt)
     const iv = Buffer.from(encryptedData.iv, "hex")
     const decipher = crypto.createDecipheriv(ENCRYPTION_ALGORITHM, key, iv)
 
