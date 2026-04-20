@@ -16,6 +16,12 @@ export async function POST(request: NextRequest) {
 
     // Check rate limiting with Upstash Redis
     const rateLimitResult = await checkPasswordResetRateLimit(clientIP)
+    if (!rateLimitResult.backendAvailable) {
+      return NextResponse.json(
+        { error: "Password reset is temporarily unavailable. Please try again later." },
+        { status: 503 },
+      )
+    }
     if (rateLimitResult.limited) {
       const remainingSeconds = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
       const minutes = Math.ceil(remainingSeconds / 60)
@@ -74,10 +80,10 @@ export async function POST(request: NextRequest) {
           )
 
           if (!emailResult.success) {
-            console.error("Failed to send password reset email:", emailResult.error)
+            console.error("Failed to send password reset email")
           }
         } catch (emailError) {
-          console.error("Failed to send password reset email:", emailError)
+          console.error("Failed to send password reset email")
         }
       }
     }
@@ -88,7 +94,7 @@ export async function POST(request: NextRequest) {
       message: "If an account with that email exists, we've sent password reset instructions.",
     })
   } catch (error) {
-    console.error("Forgot password error:", error)
+    console.error("Forgot password error")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

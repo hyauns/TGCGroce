@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
 
     // Check rate limiting with Upstash Redis
     const rateLimitResult = await checkRegisterRateLimit(clientIP)
+    if (!rateLimitResult.backendAvailable) {
+      return NextResponse.json({ error: "Registration is temporarily unavailable. Please try again later." }, { status: 503 })
+    }
     if (rateLimitResult.limited) {
       const remainingSeconds = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
       const minutes = Math.ceil(remainingSeconds / 60)
@@ -42,10 +45,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate password strength
-    const passwordValidation = validatePassword(password)
+      const passwordValidation = validatePassword(password)
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: "Password validation failed", details: passwordValidation.errors },
+        { error: "Password validation failed", issues: passwordValidation.errors },
         { status: 400 },
       )
     }
@@ -87,11 +90,11 @@ export async function POST(request: NextRequest) {
       )
 
       if (!emailResult.success) {
-        console.error("Failed to send verification email:", emailResult.error)
+        console.error("Failed to send verification email")
         // Don't fail registration if email fails - user can request resend
       }
     } catch (emailError) {
-      console.error("Failed to send verification email:", emailError)
+      console.error("Failed to send verification email")
       // Don't fail registration if email fails - user can request resend
     }
 
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     )
   } catch (error) {
-    console.error("Registration error:", error)
+    console.error("Registration error")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 import { type NextRequest, NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/auth-guard"
 
 /**
  * GET /api/auth/test-endpoints
@@ -11,11 +12,13 @@ import { type NextRequest, NextResponse } from "next/server"
  * SECURITY: Disabled in production. This catalogue aids developers
  * during integration testing and must not be exposed publicly.
  */
-export async function GET(request: NextRequest) {
-  // Hard-block in production — even without auth this cannot be left open.
+export async function GET(_request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
 
   const endpoints = [
     {

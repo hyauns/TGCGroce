@@ -78,7 +78,7 @@ export default function ShippingPage() {
                   <Timer className="w-6 h-6 text-blue-600" />
                 </div>
                 <h3 className="font-bold text-lg mb-2">Same-Day Processing</h3>
-                <p className="text-sm text-gray-600">Orders placed before 1 PM PST ship same day</p>
+                <p className="text-sm text-gray-600">Orders placed before 1 PM EST ship same day</p>
               </CardContent>
             </Card>
 
@@ -267,7 +267,7 @@ export default function ShippingPage() {
                   <h4 className="font-bold text-lg mb-4 text-green-900">Our Processing Commitment</h4>
                   <p className="text-green-800 mb-4">
                     We are committed to processing and shipping your orders within{" "}
-                    <strong>one business day or less</strong>. Most orders placed before 1 PM PST are processed and
+                    <strong>one business day or less</strong>. Most orders placed before 1 PM EST are processed and
                     shipped the same day.
                   </p>
                 </div>
@@ -279,10 +279,10 @@ export default function ShippingPage() {
                       Same-Day Processing
                     </h4>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h5 className="font-semibold mb-2 text-blue-900">Orders placed before 1 PM PST:</h5>
+                      <h5 className="font-semibold mb-2 text-blue-900">Orders placed before 1 PM EST:</h5>
                       <ul className="text-sm text-blue-800 space-y-1">
                         <li>• Monday - Friday: Same-day processing</li>
-                        <li>• Shipped within 2-4 hours of order</li>
+                        <li>• Shipped within the same business day</li>
                         <li>• Tracking information sent immediately</li>
                         <li>• Priority handling for Express/Overnight</li>
                       </ul>
@@ -295,7 +295,7 @@ export default function ShippingPage() {
                       Next-Day Processing
                     </h4>
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <h5 className="font-semibold mb-2 text-orange-900">Orders placed after 1 PM PST:</h5>
+                      <h5 className="font-semibold mb-2 text-orange-900">Orders placed after 1 PM EST:</h5>
                       <ul className="text-sm text-orange-800 space-y-1">
                         <li>• Monday - Thursday: Next business day</li>
                         <li>• Friday after 1 PM: Ships Monday</li>
@@ -847,7 +847,7 @@ export default function ShippingPage() {
                       <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-blue-600" />
                         <div>
-                          <div className="font-semibold">(786) 464-0160</div>
+                          <div className="font-semibold">+1 (303) 668-3245</div>
                           <div className="text-sm text-gray-600">Mon-Fri 9AM-6PM EST</div>
                         </div>
                       </div>
@@ -895,10 +895,10 @@ export default function ShippingPage() {
                       Email Shipping Team
                     </Button>
                   </Link>
-                  <Link href="tel:+17864640160" className="flex-1">
+                  <Link href="tel:+13036683245" className="flex-1">
                     <Button variant="outline" className="w-full bg-transparent">
                       <Phone className="w-4 h-4 mr-2" />
-                      Call (786) 464-0160
+                      Call +1 (303) 668-3245
                     </Button>
                   </Link>
                 </div>

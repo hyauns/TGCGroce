@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
-      console.error("Error storing payment method:", error)
+      console.error("Error storing payment method")
     }
 
     // Create error audit log

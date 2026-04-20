@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,6 +31,23 @@ import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import { useToast } from "@/hooks/use-toast"
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: {
+        sitekey: string
+        callback: (token: string) => void
+        "expired-callback"?: () => void
+        "error-callback"?: () => void
+        theme?: "light" | "dark" | "auto"
+      }) => string
+      reset: (widgetId?: string) => void
+    }
+  }
+}
+
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -39,8 +57,24 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [recaptchaVerified, setRecaptchaVerified] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState("")
+  const widgetRef = useRef<HTMLDivElement | null>(null)
+  const widgetIdRef = useRef<string | null>(null)
   const { toast } = useToast()
+
+  const turnstileEnabled = Boolean(turnstileSiteKey)
+
+  useEffect(() => {
+    if (!turnstileEnabled || !widgetRef.current || !window.turnstile || widgetIdRef.current) return
+
+    widgetIdRef.current = window.turnstile.render(widgetRef.current, {
+      sitekey: turnstileSiteKey,
+      callback: (token: string) => setCaptchaToken(token),
+      "expired-callback": () => setCaptchaToken(""),
+      "error-callback": () => setCaptchaToken(""),
+      theme: "light",
+    })
+  }, [turnstileEnabled])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -53,8 +87,12 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!recaptchaVerified) {
-      toast({ title: "Verification Required", description: "Please complete the security verification.", variant: "destructive" })
+    if (turnstileEnabled && !captchaToken) {
+      toast({
+        title: "Verification Required",
+        description: "Please complete the security verification.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -64,7 +102,10 @@ export default function ContactPage() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          captchaToken,
+        }),
       })
 
       if (!res.ok) {
@@ -74,7 +115,7 @@ export default function ContactPage() {
 
       setSubmitSuccess(true)
     } catch (error: any) {
-      console.error("Contact form error:", error)
+      console.error("Contact form error")
       toast({
         title: "Unable to Send Message",
         description: error.message || "Something went wrong. Please try again or email us directly at cs@tcglore.com.",
@@ -85,7 +126,7 @@ export default function ContactPage() {
     }
   }
 
-  const isFormValid = formData.name && formData.email && formData.subject && formData.message && recaptchaVerified
+  const isFormValid = Boolean(formData.name && formData.email && formData.subject && formData.message && (!turnstileEnabled || captchaToken))
 
   const faqs = [
     {
@@ -94,11 +135,11 @@ export default function ContactPage() {
       questions: [
         {
           q: "How can I track my order?",
-          a: "You can track your order by visiting our Order Tracking page and entering your order number and email address. you&apos;ll also receive tracking information via email once your order ships.",
+          a: "You can track your order by visiting our Order Tracking page and entering your order number and email address. you'll also receive tracking information via email once your order ships.",
         },
         {
           q: "When will my order ship?",
-          a: "Most orders placed before 1 PM PST are processed the same day. Standard shipping takes 5-7 business days, Express takes 2-3 business days, and Overnight takes 1 business day.",
+          a: "Most orders placed before 1 PM EST are processed the same day. Standard shipping takes 5-7 business days, Express takes 2-3 business days, and Overnight takes 1 business day.",
         },
         {
           q: "My tracking shows 'Label Created' - what does this mean?",
@@ -116,7 +157,7 @@ export default function ContactPage() {
         },
         {
           q: "How do I initiate a return?",
-          a: "Visit our Returns page to start the return process. you&apos;ll receive a prepaid return label and instructions on how to package your items.",
+          a: "Visit our Returns page or email cs@tcglore.com to start the return process. We'll provide an RMA number and instructions on how to package your items.",
         },
         {
           q: "Can I exchange an item for a different product?",
@@ -130,7 +171,7 @@ export default function ContactPage() {
       questions: [
         {
           q: "When will out-of-stock items be restocked?",
-          a: "Restock dates vary by product. You can sign up for restock notifications on product pages, and we&apos;ll email you when items become available.",
+          a: "Restock dates vary by product. You can sign up for restock notifications on product pages, and we'll email you when items become available.",
         },
         {
           q: "Do you offer pre-orders for upcoming releases?",
@@ -164,9 +205,12 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {turnstileEnabled ? (
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" />
+      ) : null}
+
       <Header />
 
-      {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="container mx-auto px-4">
           <div className="text-center">
@@ -181,7 +225,6 @@ export default function ContactPage() {
 
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Contact Form */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -210,7 +253,10 @@ export default function ContactPage() {
                       onClick={() => {
                         setSubmitSuccess(false)
                         setFormData({ name: "", email: "", subject: "", message: "" })
-                        setRecaptchaVerified(false)
+                        setCaptchaToken("")
+                        if (widgetIdRef.current && window.turnstile) {
+                          window.turnstile.reset(widgetIdRef.current)
+                        }
                       }}
                     >
                       <Send className="mr-2 h-4 w-4" />
@@ -218,103 +264,95 @@ export default function ContactPage() {
                     </Button>
                   </div>
                 ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="Enter your email address"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject *</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      type="text"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="What is your inquiry about?"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Please provide details about your inquiry..."
-                      rows={6}
-                    />
-                  </div>
-
-                  {/* reCAPTCHA Simulation */}
-                  <div className="space-y-2">
-                    <Label>Security Verification *</Label>
-                    <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="recaptcha"
-                          checked={recaptchaVerified}
-                          onChange={(e) => setRecaptchaVerified(e.target.checked)}
-                          className="w-4 h-4"
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          type="text"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="Enter your full name"
                         />
-                        <label htmlFor="recaptcha" className="text-sm">
-                          I&apos;m not a robot
-                        </label>
-                        <Shield className="h-4 w-4 text-gray-500" />
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
-                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address *</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="Enter your email address"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <Button type="submit" className="w-full" disabled={!isFormValid || isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Sending Message...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">Subject *</Label>
+                      <Input
+                        id="subject"
+                        name="subject"
+                        type="text"
+                        value={formData.subject}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="What is your inquiry about?"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message *</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Please provide details about your inquiry..."
+                        rows={6}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Security Verification *</Label>
+                      {turnstileEnabled ? (
+                        <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                          <div ref={widgetRef} />
+                          <p className="text-xs text-gray-500 mt-2">
+                            This site is protected by Cloudflare Turnstile.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="border border-amber-200 rounded-lg p-4 bg-amber-50 text-sm text-amber-900">
+                          Security verification is unavailable in this environment. Contact form protection must be configured before production launch.
+                        </div>
+                      )}
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={!isFormValid || isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Sending Message...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Send Message
+                        </>
+                      )}
+                    </Button>
+                  </form>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Contact Information */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -360,9 +398,7 @@ export default function ContactPage() {
                   <div>
                     <h4 className="font-semibold">Business Hours</h4>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Monday - Friday: 8:00 AM - 8:00 PM PST</p>
-                      <p>Saturday: 9:00 AM - 6:00 PM PST</p>
-                      <p>Sunday: 10:00 AM - 4:00 PM PST</p>
+                      <p>Monday - Friday: 9:00 AM - 6:00 PM EST</p>
                     </div>
                     <Badge variant="secondary" className="mt-2">
                       Extended holiday hours during peak seasons
@@ -394,7 +430,6 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* FAQ Section */}
         <div className="mt-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
@@ -435,7 +470,6 @@ export default function ContactPage() {
           </Tabs>
         </div>
 
-        {/* Additional Help Section */}
         <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-8 text-center">
           <h3 className="text-2xl font-bold mb-4">Still Need Help?</h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
@@ -459,4 +493,3 @@ export default function ContactPage() {
     </div>
   )
 }
-

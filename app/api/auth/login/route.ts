@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
 
     // Check rate limiting with Upstash Redis
     const rateLimitResult = await checkLoginRateLimit(clientIP)
+    if (!rateLimitResult.backendAvailable) {
+      return NextResponse.json({ error: "Login is temporarily unavailable. Please try again later." }, { status: 503 })
+    }
     if (rateLimitResult.limited) {
       const remainingSeconds = Math.ceil((rateLimitResult.reset - Date.now()) / 1000)
       const minutes = Math.ceil(remainingSeconds / 60)
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Login error:", error)
+    console.error("Login error")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

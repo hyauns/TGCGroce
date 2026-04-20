@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
+import { requireAdmin } from "@/lib/auth-guard"
 
 /**
  * DEBUG ENDPOINT — Queries raw DB state for an order to diagnose the webhook disconnect.
@@ -10,6 +11,13 @@ import { neon } from "@neondatabase/serverless"
  * This should be REMOVED after debugging is complete.
  */
 export async function GET(request: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   const { searchParams } = new URL(request.url)
   const orderNumber = searchParams.get("orderNumber")
 
@@ -85,7 +93,7 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'no-store' }
     })
   } catch (error) {
-    console.error("[debug/order-status] Error:", error)
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    console.error("[debug/order-status] Error")
+    return NextResponse.json({ error: "Failed to inspect order status" }, { status: 500 })
   }
 }

@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     try {
       // We can't easily get the user from the reset token, so we'll skip the email for now
       // In a production system, you'd want to modify resetPassword to return user data
-      console.log("Password reset successful - confirmation email would be sent here")
+      console.log("Password reset successful")
     } catch (emailError) {
-      console.error("Failed to send password changed email:", emailError)
+      console.error("Failed to send password changed email")
       // Don't fail the password reset if email fails
     }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       message: "Password has been reset successfully. You can now log in with your new password.",
     })
   } catch (error) {
-    console.error("Reset password error:", error)
+    console.error("Reset password error")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

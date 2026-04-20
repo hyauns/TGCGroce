@@ -65,7 +65,7 @@ const faqData: FAQCategory[] = [
       {
         question: "How do I return an item?",
         answer:
-          "Log into your account, go to 'My Orders,' and select 'Return Item' next to the product you wish to return. Print the prepaid return label and drop off at any authorized shipping location. Refunds are processed within 5-7 business days after we receive your return.",
+          "Contact our customer service team at cs@tcglore.com or call +1 (303) 668-3245 to initiate a return. We'll provide an RMA number and packaging instructions. Ship the item back to our returns address and refunds are processed within 5-7 business days after we receive and inspect your return.",
       },
       {
         question: "Do you offer exchanges?",
@@ -168,12 +168,12 @@ const faqData: FAQCategory[] = [
       {
         question: "Can I use multiple payment methods?",
         answer:
-          "Currently, each order must be paid with a single payment method. However, you can use gift cards or store credit in combination with another payment method to complete your purchase.",
+          "Currently, each order must be paid with a single payment method. Contact customer service if you need assistance with payment options.",
       },
       {
         question: "Do you offer payment plans?",
         answer:
-          "For orders over $200, we partner with Klarna and Afterpay to offer buy-now-pay-later options. These services allow you to split your purchase into smaller, interest-free payments over time.",
+          "We do not currently offer payment plans. All orders are charged in full at the time of purchase.",
       },
     ],
   },
@@ -204,7 +204,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Do you ship internationally?",
         answer:
-          "Yes, we ship to most countries worldwide! International shipping costs and delivery times vary by destination. Please note that customers are responsible for any customs duties, taxes, or fees imposed by their country.",
+          "Currently, we ship within the United States only, including all 50 states, Washington D.C., Puerto Rico, US territories, and APO/FPO military addresses.",
       },
     ],
   },

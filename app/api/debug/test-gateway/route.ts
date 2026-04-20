@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
+import { requireAdmin } from "@/lib/auth-guard"
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return admin
+
   const config = await getGatewayProviderSettings()
   const endpoint = config.baseUrl.endsWith('/') ? `${config.baseUrl}api/gateway/mock-charge` : `${config.baseUrl}/api/gateway/mock-charge`
   
@@ -36,7 +44,6 @@ export async function GET() {
   })
 
   return NextResponse.json({
-    sent: payloadBody,
     status: gatewayRes.status,
     response: await gatewayRes.json().catch(() => null)
   })

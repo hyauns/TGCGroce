@@ -175,8 +175,8 @@ export default function RegisterPage() {
 
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Create Account</CardTitle>
-              <p className="text-gray-600">Join CardMaster today</p>
+              <CardTitle className="text-2xl">Create an Account</CardTitle>
+              <p className="text-gray-600">Join TCGLore today</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">

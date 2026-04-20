@@ -72,12 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   },
   verification: {
-    google: settings.googleSiteVerification || "google-site-verification-code",
-    yandex: "yandex-verification-code",
-    yahoo: "yahoo-site-verification-code",
-    other: {
-      bing: "bing-verification-code",
-    },
+    ...(settings.googleSiteVerification ? { google: settings.googleSiteVerification } : {}),
   },
   icons: {
     icon: settings.faviconUrl || "/favicon.ico",

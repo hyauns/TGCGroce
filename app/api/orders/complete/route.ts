@@ -232,9 +232,6 @@ export async function GET(request: NextRequest) {
     const accessError = await assertOrderAccess(order)
     if (accessError) return accessError
 
-    // Log the raw DB values for debugging
-    console.log(`[orders/complete GET] orderNumber=${orderNumber}, status=${order.status}, payment_status=${order.payment_status}`)
-
     if (!isSuccessfulOrderStatus(order.status)) {
       return NextResponse.json({ error: "Order is not complete" }, { status: 400 })
     }
@@ -282,7 +279,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Error retrieving order status:", error)
+    console.error("Error retrieving order status")
     return NextResponse.json({ error: "Failed to retrieve order status" }, { status: 500 })
   }
 }

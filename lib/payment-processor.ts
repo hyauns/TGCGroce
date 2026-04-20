@@ -1,6 +1,6 @@
 /**
- * Mock Payment Processor for Testing
- * This simulates payment processing without external gateway calls
+ * Development-only payment processor harness.
+ * This must never be reachable in production.
  */
 
 export interface PaymentProcessorRequest {
@@ -47,62 +47,28 @@ export interface PaymentProcessorResponse {
   errorMessage?: string
 }
 
-class MockPaymentProcessor {
-  /**
-   * Mock payment processing for testing
-   * Simulates various payment scenarios without external API calls
-   */
+function isPaymentTestModeEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.PAYMENT_TEST_MODE === "true"
+}
+
+function assertPaymentTestMode(): void {
+  if (!isPaymentTestModeEnabled()) {
+    throw new Error("Test payment processor is disabled")
+  }
+}
+
+class TestPaymentProcessor {
   async processPayment(request: PaymentProcessorRequest): Promise<PaymentProcessorResponse> {
+    assertPaymentTestMode()
+
     const startTime = Date.now()
 
-    // ── TEST MODE BYPASS ──────────────────────────────────────────────────────
-    // In non-production, ALL payment attempts are forced to succeed regardless
-    // of card number, expiry, or CVV. This allows end-to-end checkout testing
-    // without a real payment gateway.
-    //
-    // The full payment record (transaction ID, auth code, card brand, amount,
-    // etc.) is still generated and saved to the database as a successful charge.
-    //
-    // TODO: Remove this block (or gate it behind a PAYMENT_TEST_MODE env flag)
-    //       before going live in production.
-    if (process.env.NODE_ENV !== "production") {
-      const cleanCardNumber = request.cardNumber.replace(/\D/g, "")
-      const last4 = cleanCardNumber.slice(-4) || "0000"
-      const brand = this.detectCardBrand(cleanCardNumber)
-      const transactionId = `txn_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const authorizationCode = Math.random().toString(36).substr(2, 8).toUpperCase()
-
-      console.log(
-        `[TEST MODE] Payment auto-approved — txn: ${transactionId}, brand: ${brand}, last4: ${last4}`
-      )
-
-      return {
-        success: true,
-        transactionId,
-        authorizationCode,
-        last4,
-        brand,
-        expiryMonth: request.expiryMonth,
-        expiryYear: request.expiryYear,
-        billingDetails: request.billingDetails,
-        processingTime: Date.now() - startTime,
-        riskScore: 1, // lowest risk score in test mode
-      }
-    }
-    // ── END TEST MODE BYPASS ──────────────────────────────────────────────────
-
     try {
-      // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000 + 500))
 
-      // Extract card details
       const cleanCardNumber = request.cardNumber.replace(/\D/g, "")
       const last4 = cleanCardNumber.slice(-4)
-
-      // Detect card brand
       const brand = this.detectCardBrand(cleanCardNumber)
-
-      // Simulate different test scenarios based on card number
       const testScenario = this.getTestScenario(cleanCardNumber)
 
       if (!testScenario.success) {
@@ -121,9 +87,8 @@ class MockPaymentProcessor {
         }
       }
 
-      // Generate mock transaction data
-      const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      const authorizationCode = Math.random().toString(36).substr(2, 8).toUpperCase()
+      const transactionId = `txn_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+      const authorizationCode = Math.random().toString(36).slice(2, 10).toUpperCase()
 
       return {
         success: true,
@@ -138,7 +103,7 @@ class MockPaymentProcessor {
         riskScore: testScenario.riskScore,
       }
     } catch (error) {
-      console.error("Mock payment processing error:", error)
+      console.error("Test payment processing error:", error)
 
       return {
         success: false,
@@ -156,68 +121,49 @@ class MockPaymentProcessor {
     }
   }
 
-  /**
-   * Create payment method token (mock)
-   */
   async createPaymentMethod(request: PaymentProcessorRequest): Promise<PaymentProcessorResponse> {
-    // For testing, we'll use the same mock processing
+    assertPaymentTestMode()
     return this.processPayment(request)
   }
 
-  /**
-   * Detect card brand from card number
-   */
   private detectCardBrand(cardNumber: string): string {
     const digits = cardNumber.replace(/\D/g, "")
 
     if (/^4/.test(digits)) return "visa"
     if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits)) return "mastercard"
     if (/^3[47]/.test(digits)) return "amex"
-    if (/^6011/.test(digits) || /^622[1-9]/.test(digits) || /^64[4-9]/.test(digits) || /^65/.test(digits))
+    if (/^6011/.test(digits) || /^622[1-9]/.test(digits) || /^64[4-9]/.test(digits) || /^65/.test(digits)) {
       return "discover"
+    }
 
     return "unknown"
   }
 
-  /**
-   * Get test scenario based on card number for testing different outcomes
-   */
   private getTestScenario(cardNumber: string): { success: boolean; riskScore: number; errorMessage?: string } {
     const last4 = cardNumber.slice(-4)
 
-    // Test card numbers for different scenarios
     switch (last4) {
-      case "0001": // Declined card
+      case "0001":
         return { success: false, riskScore: 8, errorMessage: "Card declined by issuer" }
-      case "0002": // Insufficient funds
+      case "0002":
         return { success: false, riskScore: 3, errorMessage: "Insufficient funds" }
-      case "0003": // Expired card
+      case "0003":
         return { success: false, riskScore: 2, errorMessage: "Card expired" }
-      case "0004": // Invalid CVV
+      case "0004":
         return { success: false, riskScore: 5, errorMessage: "Invalid CVV" }
-      case "0005": // High risk transaction
+      case "0005":
         return { success: true, riskScore: 9 }
-      case "0006": // Medium risk transaction
+      case "0006":
         return { success: true, riskScore: 5 }
-      default: // Normal successful transaction
+      default:
         return { success: true, riskScore: Math.floor(Math.random() * 3) + 1 }
     }
   }
 
-  /**
-   * Validate payment method (mock validation)
-   */
   async validatePaymentMethod(request: PaymentProcessorRequest): Promise<{ valid: boolean; errors: string[] }> {
-    // TEST MODE: Skip all validation — accept any card data during testing.
-    // TODO: Remove this block before going live.
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[TEST MODE] Payment validation bypassed — all cards accepted")
-      return { valid: true, errors: [] }
-    }
+    assertPaymentTestMode()
 
     const errors: string[] = []
-
-    // Basic validation
     const cleanCardNumber = request.cardNumber.replace(/\D/g, "")
 
     if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
@@ -244,4 +190,4 @@ class MockPaymentProcessor {
   }
 }
 
-export const paymentProcessor = new MockPaymentProcessor()
+export const paymentProcessor = new TestPaymentProcessor()

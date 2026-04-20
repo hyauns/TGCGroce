@@ -48,7 +48,17 @@ function devLog(...args: unknown[]) {
   }
 }
 
-// Mock database implementation for testing
+function isInMemoryPaymentStoreEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.PAYMENT_TEST_MODE === "true"
+}
+
+function assertInMemoryPaymentStoreEnabled(): void {
+  if (!isInMemoryPaymentStoreEnabled()) {
+    throw new Error("In-memory payment store is disabled")
+  }
+}
+
+// Development-only in-memory payment store.
 class SecurePaymentDatabase {
   private paymentMethods: Map<string, EncryptedPaymentMethod> = new Map()
   private billingAddresses: Map<string, SecureBillingAddress> = new Map()
@@ -60,6 +70,7 @@ class SecurePaymentDatabase {
    */
   async storePaymentMethod(paymentMethod: EncryptedPaymentMethod, request: any): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       // Validate payment method data
       if (!paymentMethod.encryptedCardNumber || !paymentMethod.customerId || !paymentMethod.encryptedCvv) {
         throw new Error("Invalid payment method data")
@@ -119,6 +130,7 @@ class SecurePaymentDatabase {
    */
   async storeBillingAddress(address: SecureBillingAddress, request: any): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       // Validate address data
       if (!address.customerId || !address.firstName || !address.lastName) {
         throw new Error("Invalid billing address data")
@@ -161,6 +173,7 @@ class SecurePaymentDatabase {
    */
   async storeTransaction(transaction: PaymentTransaction, request: any): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       this.transactions.set(transaction.id, transaction)
 
       devLog("Transaction stored successfully")
@@ -179,6 +192,7 @@ class SecurePaymentDatabase {
    */
   async getCustomerPaymentMethods(customerId: string, request: any): Promise<EncryptedPaymentMethod[]> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       const methods = Array.from(this.paymentMethods.values())
         .filter((method) => method.customerId === customerId)
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -217,6 +231,7 @@ class SecurePaymentDatabase {
    */
   async getPaymentMethod(paymentMethodId: string, request: any): Promise<EncryptedPaymentMethod | null> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       const method = this.paymentMethods.get(paymentMethodId)
 
       if (!method) {
@@ -257,6 +272,7 @@ class SecurePaymentDatabase {
    */
   async getBillingAddress(addressId: string, request: any): Promise<SecureBillingAddress | null> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       const address = this.billingAddresses.get(addressId)
 
       if (!address) {
@@ -301,6 +317,7 @@ class SecurePaymentDatabase {
     request: any,
   ): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       const existingMethod = this.paymentMethods.get(paymentMethodId)
       if (!existingMethod) {
         return false
@@ -359,6 +376,7 @@ class SecurePaymentDatabase {
    */
   async deletePaymentMethod(paymentMethodId: string, request: any, adminUserId?: string): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       // Get payment method for audit log
       const paymentMethod = this.paymentMethods.get(paymentMethodId)
       if (!paymentMethod) {
@@ -422,6 +440,7 @@ class SecurePaymentDatabase {
    */
   async storeAuditLog(log: PaymentAuditLog): Promise<boolean> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       this.auditLogs.push(log)
 
       // Keep only last 10000 logs in memory for testing
@@ -443,6 +462,7 @@ class SecurePaymentDatabase {
    */
   async getCustomerAuditLogs(customerId: string, limit = 100): Promise<PaymentAuditLog[]> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       return this.auditLogs
         .filter((log) => log.customerId === customerId)
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
@@ -460,6 +480,7 @@ class SecurePaymentDatabase {
    */
   async getHighRiskAuditLogs(riskThreshold = 7, limit = 50): Promise<PaymentAuditLog[]> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       return this.auditLogs
         .filter((log) => (log.riskScore || 0) >= riskThreshold)
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
@@ -477,6 +498,7 @@ class SecurePaymentDatabase {
    */
   async getRecentAuditLogs(limit = 100): Promise<PaymentAuditLog[]> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       return this.auditLogs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit)
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
@@ -491,6 +513,7 @@ class SecurePaymentDatabase {
    */
   async getSecurityStatistics(startDate?: string, endDate?: string): Promise<SecurityStatistics> {
     try {
+      assertInMemoryPaymentStoreEnabled()
       const now = new Date()
       const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000)
       const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -569,6 +592,7 @@ class SecurePaymentDatabase {
     auditLogs: number
     transactions: number
   }> {
+    assertInMemoryPaymentStoreEnabled()
     return {
       paymentMethods: this.paymentMethods.size,
       billingAddresses: this.billingAddresses.size,
@@ -581,6 +605,7 @@ class SecurePaymentDatabase {
    * Clear all data (for testing only)
    */
   async clearAllData(): Promise<void> {
+    assertInMemoryPaymentStoreEnabled()
     this.paymentMethods.clear()
     this.billingAddresses.clear()
     this.auditLogs.length = 0

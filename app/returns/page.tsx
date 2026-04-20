@@ -332,7 +332,7 @@ export default function ReturnsPage() {
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <Phone className="w-4 h-4 text-blue-600" />
-                            <span>(786) 464-0160</span>
+                            <span>+1 (303) 668-3245</span>
                           </div>
                         </div>
                       </div>
@@ -579,8 +579,8 @@ export default function ReturnsPage() {
                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <CheckCircle className="w-5 h-5 text-purple-600" />
                           <div className="flex-1">
-                            <div className="font-medium text-sm">Digital Wallets</div>
-                            <div className="text-xs text-gray-600">1-3 business days</div>
+                            <div className="font-medium text-sm">Other Methods</div>
+                            <div className="text-xs text-gray-600">Varies by payment type</div>
                           </div>
                         </div>
                       </div>
@@ -593,7 +593,7 @@ export default function ReturnsPage() {
                           <Star className="w-5 h-5 text-blue-600" />
                           <div className="flex-1">
                             <div className="font-medium text-sm">Store Credit</div>
-                            <div className="text-xs text-blue-600">Instant + 5% bonus</div>
+                            <div className="text-xs text-blue-600">Instant</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
@@ -606,7 +606,7 @@ export default function ReturnsPage() {
                       </div>
                       <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <p className="text-xs text-yellow-800">
-                          <strong>Note:</strong> Store credit includes a 5% bonus and never expires
+                          <strong>Note:</strong> Store credit never expires
                         </p>
                       </div>
                     </div>
@@ -700,7 +700,7 @@ export default function ReturnsPage() {
                       <ul className="text-sm text-purple-800 space-y-1">
                         <li>• Free return shipping both ways</li>
                         <li>• Priority replacement shipping</li>
-                        <li>• 10% discount on next order</li>
+                        <li>• Discount on next order at our discretion</li>
                         <li>• Same-day processing when possible</li>
                       </ul>
                     </div>
@@ -762,7 +762,7 @@ export default function ReturnsPage() {
                       <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-blue-600" />
                         <div>
-                          <div className="font-semibold">(786) 464-0160</div>
+                          <div className="font-semibold">+1 (303) 668-3245</div>
                           <div className="text-sm text-gray-600">Mon-Fri 9AM-6PM EST</div>
                         </div>
                       </div>
@@ -822,10 +822,10 @@ export default function ReturnsPage() {
                       Email Returns Team
                     </Button>
                   </Link>
-                  <Link href="tel:+17864640160" className="flex-1">
+                  <Link href="tel:+13036683245" className="flex-1">
                     <Button variant="outline" className="w-full bg-transparent">
                       <Phone className="w-4 h-4 mr-2" />
-                      Call (786) 464-0160
+                      Call +1 (303) 668-3245
                     </Button>
                   </Link>
                 </div>
