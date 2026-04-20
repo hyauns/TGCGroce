@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const config = await getGatewayProviderSettings()
   const endpoint = config.baseUrl.endsWith('/') ? `${config.baseUrl}api/gateway/mock-charge` : `${config.baseUrl}/api/gateway/mock-charge`
