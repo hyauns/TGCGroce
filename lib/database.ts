@@ -163,9 +163,10 @@ export const adminDb = {
     return {
       orders: orders.map((order: any) => ({
         ...order,
+        id: String(order.id),
         total: Number(order.total_amount),
         customer: {
-          id: order.customer_id,
+          id: String(order.customer_id),
           name: order.customer_name?.trim() || "Guest",
           email: order.customer_email || "No Email",
         },
@@ -193,9 +194,10 @@ export const adminDb = {
     const order = result[0]
     return {
       ...order,
+      id: String(order.id),
       total: Number(order.total_amount),
       customer: {
-        id: order.customer_user_id ?? order.customer_id,
+        id: String(order.customer_user_id ?? order.customer_id),
         name: order.customer_name?.trim() || "Guest",
         email: order.customer_email || "No Email",
       },

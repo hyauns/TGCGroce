@@ -12,6 +12,7 @@ import { Search, Eye, Download } from "lucide-react"
 
 interface Order {
   id: string
+  order_number?: string
   customer?: { name: string; email: string }
   total: number
   status: string
@@ -205,7 +206,7 @@ export default function OrdersPage() {
                     {orders && orders.length > 0 ? (
                       orders.map((order) => (
                         <TableRow key={order.id}>
-                          <TableCell className="font-mono">#{order.id.slice(-8)}</TableCell>
+                          <TableCell className="font-mono">#{order.order_number || String(order.id).slice(-8)}</TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">{order.customer?.name || "Guest"}</p>
@@ -268,7 +269,7 @@ export default function OrdersPage() {
       <Dialog open={showOrderDetail} onOpenChange={setShowOrderDetail}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Details - #{selectedOrder?.id.slice(-8)}</DialogTitle>
+            <DialogTitle>Order Details - #{selectedOrder?.order_number || String(selectedOrder?.id || '').slice(-8)}</DialogTitle>
           </DialogHeader>
 
           {selectedOrder && (
