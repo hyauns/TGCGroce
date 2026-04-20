@@ -1,6 +1,11 @@
 import * as Sentry from "@sentry/nextjs"
 
 export async function register() {
+  if (!process.env.SENTRY_DSN) {
+    // Sentry is not configured — skip initialization silently.
+    return
+  }
+
   const isProduction = process.env.NODE_ENV === "production"
   const sampleRate = isProduction ? 0.1 : 1.0
 
@@ -12,7 +17,7 @@ export async function register() {
 
       tracePropagationTargets: [
         "localhost",
-        /^https:\/\/tcgstore\.com/,
+        /^https:\/\/tcglore\.com/,
         /^https:\/\/.*\.vercel\.app/,
       ],
 
@@ -37,7 +42,7 @@ export async function register() {
 
       tracePropagationTargets: [
         "localhost",
-        /^https:\/\/tcgstore\.com/,
+        /^https:\/\/tcglore\.com/,
         /^https:\/\/.*\.vercel\.app/,
       ],
     })

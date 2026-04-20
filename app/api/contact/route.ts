@@ -15,6 +15,47 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;")
 }
 
+/**
+ * Validate that the request Origin matches our own site.
+ * In production, rejects cross-origin POST requests.
+ * In development, allows requests without an Origin header (e.g. curl, Postman).
+ */
+function validateOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get("origin")
+  const referer = request.headers.get("referer")
+
+  // In development, allow requests without origin (curl, Postman, etc.)
+  if (process.env.NODE_ENV !== "production") {
+    return true
+  }
+
+  // Production: require Origin or Referer header
+  if (!origin && !referer) {
+    return false
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || ""
+  if (!siteUrl) {
+    // If no site URL is configured, fall back to checking that origin is present
+    // (browsers always send Origin on cross-origin POST, so a missing origin is suspicious)
+    return !!origin
+  }
+
+  try {
+    const siteHost = new URL(siteUrl).host
+    if (origin) {
+      return new URL(origin).host === siteHost
+    }
+    if (referer) {
+      return new URL(referer).host === siteHost
+    }
+  } catch {
+    return false
+  }
+
+  return false
+}
+
 async function verifyTurnstileToken(token: string, ip: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY
   if (!secret) {
@@ -41,6 +82,11 @@ async function verifyTurnstileToken(token: string, ip: string): Promise<boolean>
 
 export async function POST(request: NextRequest) {
   try {
+    // Origin validation — reject cross-origin form submissions
+    if (!validateOrigin(request)) {
+      return NextResponse.json({ error: "Invalid request origin." }, { status: 403 })
+    }
+
     const clientIP = getClientIP(request)
     const rateLimitResult = await checkContactRateLimit(clientIP)
 
@@ -85,7 +131,7 @@ export async function POST(request: NextRequest) {
     const safeMessage = escapeHtml(String(message).trim())
 
     const timestamp = new Date().toLocaleString("en-US", {
-      timeZone: "America/Los_Angeles",
+      timeZone: "America/New_York",
       dateStyle: "full",
       timeStyle: "short",
     })
@@ -118,7 +164,7 @@ export async function POST(request: NextRequest) {
 ${safeMessage}
           </div>
           <p style="font-size: 12px; color: #9ca3af; margin-top: 16px;">
-            Received on ${timestamp} (PST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form
+            Received on ${timestamp} (EST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form
           </p>
         </div>
       </div>
@@ -134,7 +180,7 @@ ${safeMessage}
       "Message:",
       String(message).trim(),
       "",
-      `Received on ${timestamp} (PST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form`,
+      `Received on ${timestamp} (EST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form`,
     ].join("\n")
 
     const result = await sendEmailWithRetry({
@@ -159,3 +205,4 @@ ${safeMessage}
     return NextResponse.json({ error: "An unexpected error occurred. Please try again." }, { status: 500 })
   }
 }
+

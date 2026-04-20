@@ -32,6 +32,10 @@ const nextConfig = {
   },
 }
 
+/**
+ * Only wrap with Sentry source-map upload when SENTRY_AUTH_TOKEN is available.
+ * Prevents build failures when Sentry is not configured (local dev, CI without secrets).
+ */
 const SentryWebpackPluginOptions = {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -41,6 +45,9 @@ const SentryWebpackPluginOptions = {
   treeshake: {
     removeDebugLogging: true,
   },
+  silent: !process.env.SENTRY_AUTH_TOKEN,
 }
 
-export default withSentryConfig(nextConfig, SentryWebpackPluginOptions)
+export default process.env.SENTRY_AUTH_TOKEN
+  ? withSentryConfig(nextConfig, SentryWebpackPluginOptions)
+  : nextConfig

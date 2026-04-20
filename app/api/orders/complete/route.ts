@@ -5,8 +5,6 @@ import { cookies } from "next/headers"
 import { verify, sign } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
 import { sendOrderConfirmation, sendAdminOrderNotification, type OrderEmailData } from "@/lib/email/send-email"
-import { createAuditLog } from "@/lib/payment-security"
-import { securePaymentDatabase } from "@/lib/payment-database"
 
 if (!process.env.JWT_SECRET) {
   throw new Error("[orders/complete] FATAL: JWT_SECRET is not set. Set it in your environment.")
