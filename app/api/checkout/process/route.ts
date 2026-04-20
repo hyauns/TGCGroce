@@ -53,17 +53,47 @@ export async function POST(req: Request) {
        return NextResponse.json({ error: "Gateway rejected payment" }, { status: 400 })
     }
 
-    // Success response: Webhooks will asynchronously handle saving the success status.
+    // Success response from gateway
     const gatewayData = await gatewayRes.json()
+    const sql = neon(process.env.DATABASE_URL!)
     
+    // 1. Sync the gateway's transaction_id into our local record
     if (gatewayData.transaction_id) {
-       const sql = neon(process.env.DATABASE_URL!)
        await sql`
          UPDATE payment_transactions
          SET transaction_id = ${gatewayData.transaction_id}
          WHERE transaction_id = ${transactionId}
        `
        console.log(`[checkout-process] Synced local transaction ${transactionId} -> ${gatewayData.transaction_id}`)
+    }
+
+    // 2. PRIMARY CONFIRMATION: If gateway says COMPLETED, update the order directly.
+    //    This is the MAIN path — we do NOT rely on the webhook for status updates.
+    //    The webhook serves as a BACKUP/idempotent confirmation only.
+    const gatewayStatus = String(gatewayData.status || "").toUpperCase()
+    if (gatewayStatus === "COMPLETED" || gatewayStatus === "SUCCEEDED") {
+      // Update payment_transactions status
+      await sql`
+        UPDATE payment_transactions
+        SET status = 'succeeded'
+        WHERE transaction_id = ${gatewayData.transaction_id || transactionId}
+      `
+
+      // Update parent orders table — this is what the polling page reads
+      if (orderId) {
+        const updateResult = await sql`
+          UPDATE orders
+          SET payment_status = 'COMPLETED',
+              status = 'PROCESSING'
+          WHERE id = ${Number(orderId)}
+          RETURNING id, order_number, payment_status, status
+        `
+        if (updateResult.length > 0) {
+          console.log(`[checkout-process] ✅ Order ${updateResult[0].order_number} confirmed directly: payment_status=${updateResult[0].payment_status}, status=${updateResult[0].status}`)
+        } else {
+          console.error(`[checkout-process] ⚠️ Order update matched 0 rows for orderId=${orderId}`)
+        }
+      }
     }
 
     return NextResponse.json({ success: true, message: "Payment accepted by gateway" })
