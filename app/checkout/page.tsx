@@ -320,8 +320,8 @@ const validateZipCode = (zip: string) => {
 
   const trimmedZip = zip.trim()
 
-  // Check for 5-digit or 9-digit (with hyphen) format
-  const zipPattern = /^\d{5}(-\d{4})?$/
+  // Check for exact 5-digit format
+  const zipPattern = /^\d{5}$/
   return zipPattern.test(trimmedZip)
 }
 
@@ -776,6 +776,9 @@ export default function CheckoutPage() {
     } else if (field === "state" || field === "billingState") {
       // Convert state to uppercase for validation
       formattedValue = value.toUpperCase()
+    } else if (field === "zipCode" || field === "billingZipCode") {
+      // Extract only numbers and slice to 5 digits maximum
+      formattedValue = value.replace(/\D/g, "").slice(0, 5)
     }
 
     setFormData((prev) => ({ ...prev, [field]: formattedValue }))
@@ -1757,19 +1760,24 @@ export default function CheckoutPage() {
                 <Label htmlFor="state" className="text-sm sm:text-base font-semibold text-gray-900">
                   State *
                 </Label>
-                <Input
-                  id="state"
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  placeholder="NY"
-                  maxLength={2}
-                  className={`h-12 sm:h-12 text-sm sm:text-base transition-all duration-200 ${
-                    errors.state
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                  }`}
-                  autoComplete="address-level1"
-                />
+                <div className="relative">
+                  <select
+                    id="state"
+                    value={formData.state}
+                    onChange={(e) => handleInputChange("state", e.target.value)}
+                    className={`appearance-none flex h-12 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm sm:text-base placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
+                      errors.state ? "border-red-300" : "border-gray-300"
+                    }`}
+                  >
+                    <option value="" disabled>Select state</option>
+                    {US_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
                 {errors.state && (
                   <p className="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -1787,6 +1795,7 @@ export default function CheckoutPage() {
                   value={formData.zipCode}
                   onChange={(e) => handleInputChange("zipCode", e.target.value)}
                   placeholder="12345"
+                  maxLength={5}
                   className={`h-12 sm:h-12 text-sm sm:text-base transition-all duration-200 ${
                     errors.zipCode
                       ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -2299,19 +2308,24 @@ export default function CheckoutPage() {
                           <Label htmlFor="billingState" className="text-sm sm:text-base font-semibold text-gray-900">
                             State *
                           </Label>
-                          <Input
-                            id="billingState"
-                            value={formData.billingState}
-                            onChange={(e) => handleInputChange("billingState", e.target.value)}
-                            placeholder="NY"
-                            maxLength={2}
-                            className={`h-12 sm:h-12 text-sm sm:text-base transition-all duration-200 ${
-                              errors.billingState
-                                ? "border-red-300 focus:border-red-500 focus:ring-red-200"
-                                : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                            }`}
-                            autoComplete="billing address-level1"
-                          />
+                          <div className="relative">
+                            <select
+                              id="billingState"
+                              value={formData.billingState}
+                              onChange={(e) => handleInputChange("billingState", e.target.value)}
+                              className={`appearance-none flex h-12 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm sm:text-base placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
+                                errors.billingState ? "border-red-300" : "border-gray-300"
+                              }`}
+                            >
+                              <option value="" disabled>Select state</option>
+                              {US_STATES.map((st) => (
+                                <option key={st} value={st}>
+                                  {st}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                          </div>
                           {errors.billingState && (
                             <p className="text-red-600 text-xs sm:text-sm mt-2 flex items-start gap-2">
                               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -2329,6 +2343,7 @@ export default function CheckoutPage() {
                             value={formData.billingZipCode}
                             onChange={(e) => handleInputChange("billingZipCode", e.target.value)}
                             placeholder="12345"
+                            maxLength={5}
                             className={`h-12 sm:h-12 text-sm sm:text-base transition-all duration-200 ${
                               errors.billingZipCode
                                 ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -2360,10 +2375,16 @@ export default function CheckoutPage() {
               />
               <div className="flex-1">
                 <Label htmlFor="saveInfo" className="text-sm sm:text-base font-medium text-gray-900 cursor-pointer">
-                  Save payment information for faster checkout
+                  Save my payment details securely
                 </Label>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  Your payment details will be securely stored for future purchases
+                  By opting in, you agree to our {" "}
+                  <a href="https://www.tcglore.com/payment-orders" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-blue-600" />
+                    Payment Policy 
+                    <ArrowRight className="w-3 h-3" />
+                  </a>
+                  {" "} to streamline your future purchases.
                 </p>
               </div>
             </div>

@@ -160,7 +160,7 @@ export default function LoginPage() {
               <Separator />
 
               <div className="text-center text-sm">
-                {"don&apos;t have an account? "}
+                Don't have an account?{" "}
                 <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
                   Sign up
                 </Link>
