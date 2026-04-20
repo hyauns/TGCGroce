@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { getFeaturedProducts, getBestSellingProducts, getPreOrderProducts } from "@/lib/products"
 import { getAllReviews } from "@/lib/reviews"
+import { getSiteSettings } from "@/lib/site-settings"
 import HomePageClient from "./page-client"
 import { siteUrl } from "@/lib/site-config"
 
@@ -41,13 +42,14 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function HomePage() {
-  // All 4 fetches run in parallel on the server
-  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews] =
+  // All 5 fetches run in parallel on the server
+  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews, siteSettings] =
     await Promise.all([
       getFeaturedProducts(),
       getBestSellingProducts(),
       getPreOrderProducts(),
       getAllReviews(),
+      getSiteSettings(),
     ])
 
   return (
@@ -56,6 +58,7 @@ export default async function HomePage() {
       bestSellingProducts={bestSellingProducts}
       preOrderProducts={preOrderProducts}
       initialReviews={initialReviews}
+      heroSettings={siteSettings}
     />
   )
 }

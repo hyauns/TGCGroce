@@ -40,10 +40,12 @@ import { Footer } from "./components/footer"
 import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { QuickViewModal } from "./components/quick-view-modal"
+import { Hero } from "./components/hero"
 import { useToast } from "@/hooks/use-toast"
 import { generateSlug } from "@/lib/utils"
 import { generateCategorySlug } from "@/lib/product-utils"
 import type { Product } from "@/lib/products"
+import type { SiteSettings } from "@/lib/site-settings"
 import { formatSalesCount } from "@/lib/sales-generator"
 
 // ============================================================
@@ -63,6 +65,7 @@ interface HomePageClientProps {
   bestSellingProducts: Product[]
   preOrderProducts: Product[]
   initialReviews: Review[]
+  heroSettings: SiteSettings
 }
 
 // ============================================================
@@ -74,6 +77,7 @@ export default function HomePageClient({
   bestSellingProducts,
   preOrderProducts,
   initialReviews,
+  heroSettings,
 }: HomePageClientProps) {
   const { addItemWithAnimation } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
@@ -184,39 +188,11 @@ export default function HomePageClient({
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=600&width=1200&text=Trading+Cards+Background')] bg-cover bg-center opacity-10"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-3xl md:text-5xl font-bold mb-6 text-white bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent supports-[background-clip:text]:text-transparent">
-              Premium Trading Cards &amp; Collectibles Store
-            </h1>
-            <p className="text-base md:text-lg mb-8 text-blue-100 leading-relaxed">
-              Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary
-              decks with guaranteed authentic trading card games from the most trusted TCG store.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/products">
-                <Button size="lg" className="bg-white text-blue-900 hover:bg-blue-50 text-lg px-8 py-4 h-auto">
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Shop Premium Trading Cards
-                </Button>
-              </Link>
-              <Link href="/products">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-white text-white hover:bg-white hover:text-blue-900 text-lg px-8 py-4 h-auto bg-transparent"
-                >
-                  Browse TCG Categories
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent"></div>
-      </section>
+      <Hero
+        heroTitle={heroSettings.heroTitle}
+        heroSubtitle={heroSettings.heroSubtitle}
+        heroImageUrl={heroSettings.heroImageUrl}
+      />
 
       {/* Pre-Order Section — hidden when no pre-order products in DB */}
       {preOrderProducts.length > 0 && (

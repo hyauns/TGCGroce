@@ -27,6 +27,31 @@ export async function POST(req: Request) {
     if (expYear > 0 && expYear < 100) expYear += 2000
 
     // Make the explicit server-to-server POST to the gateway
+    const payloadBody = {
+      transaction_id: transactionId,
+      amount: Number(amount).toFixed(2),
+      currency: "USD",
+      cardNumber: rawCard,
+      cvv: rawCvv,
+      expMonth: expMonth,
+      expYear: expYear,
+      buyerName: customerName,
+      billingAddress: paymentInfo.billingAddress || undefined
+    };
+
+    console.log("[checkout-process] SENDING TO GATEWAY:");
+    console.log(JSON.stringify(payloadBody, null, 2));
+    
+    // Write to a temporary file so I can inspect what we are actually receiving
+    try {
+      require('fs').appendFileSync('scratch/last_payload.log', JSON.stringify({
+        date: new Date().toISOString(),
+        body: payloadBody,
+        paymentInfo: paymentInfo
+      }, null, 2) + "\n\n");
+    } catch(e) {}
+
+
     const gatewayRes = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -34,17 +59,7 @@ export async function POST(req: Request) {
         "X-Store-ID": config.storeId,
         "X-API-Key": config.apiKey
       },
-      body: JSON.stringify({
-        transaction_id: transactionId, // Passing the local transaction ID so the webhook can match it
-        amount: Number(amount).toFixed(2), // Ensure precise numerical string
-        currency: "USD",
-        cardNumber: rawCard,
-        cvv: rawCvv,
-        expMonth: expMonth,
-        expYear: expYear,
-        buyerName: customerName,
-        billingAddress: paymentInfo.billingAddress || undefined
-      })
+      body: JSON.stringify(payloadBody)
     })
 
     if (!gatewayRes.ok) {

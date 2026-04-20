@@ -31,6 +31,7 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Site Settings", href: "/admin/settings", icon: Settings },
   { name: "Payments", href: "/admin/settings/payments", icon: Settings },
 ]
 
