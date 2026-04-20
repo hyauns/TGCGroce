@@ -40,7 +40,11 @@ export function BrandingSettings({ data, pendingLogo, pendingFavicon, onFileChan
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewLogoUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain drop-shadow-md" />
                 <button
-                  onClick={() => onFileChange("logo", null)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onFileChange("logo", null);
+                    onChange("logoUrl", "");
+                  }}
                   className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                   aria-label="Remove logo"
                 >
@@ -90,7 +94,11 @@ export function BrandingSettings({ data, pendingLogo, pendingFavicon, onFileChan
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewFaviconUrl} alt="Favicon Preview" className="max-w-full max-h-full object-contain" />
                 <button
-                  onClick={() => onFileChange("favicon", null)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onFileChange("favicon", null);
+                    onChange("faviconUrl", "");
+                  }}
                   className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                   aria-label="Remove favicon"
                 >

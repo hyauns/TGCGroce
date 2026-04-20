@@ -70,7 +70,11 @@ export function HeroSettings({ data, pendingImage, onChange, onFileChange }: Her
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={previewUrl} alt="Hero Preview" className="w-full h-full object-contain" />
                     <button
-                      onClick={() => onFileChange(null)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onFileChange(null);
+                        onChange("heroImageUrl", "");
+                      }}
                       className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                       aria-label="Remove image"
                     >
