@@ -69,7 +69,7 @@ function CheckoutSuccessContent() {
     let isMounted = true
     let pollTimer: NodeJS.Timeout | null = null
     let pollAttempts = 0
-    const MAX_ATTEMPTS = 10 // 30 seconds
+    const MAX_ATTEMPTS = 30 // 90 seconds
 
     async function loadOrder(isManualRefresh = false) {
       if (isManualRefresh) pollAttempts = 0
