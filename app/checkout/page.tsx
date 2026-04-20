@@ -1164,7 +1164,22 @@ export default function CheckoutPage() {
             cardNumber: formData.cardNumber,
             expiryDate: formData.expiryDate,
             cvv: formData.cvv,
-            cardName: formData.nameOnCard
+            cardName: formData.nameOnCard,
+            billingAddress: formData.billingAddress === "same"
+              ? {
+                  line1: formData.address.trim(),
+                  city: formData.city.trim(),
+                  state: formData.state.trim(),
+                  postal_code: formData.zipCode.trim(),
+                  country: "US"
+                }
+              : {
+                  line1: formData.billingAddressLine.trim(),
+                  city: formData.billingCity.trim(),
+                  state: formData.billingState.trim(),
+                  postal_code: formData.billingZipCode.trim(),
+                  country: "US"
+                }
           } : null
         })
       })

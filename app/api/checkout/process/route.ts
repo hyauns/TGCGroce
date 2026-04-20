@@ -42,7 +42,8 @@ export async function POST(req: Request) {
         cvv: rawCvv,
         expMonth: expMonth,
         expYear: expYear,
-        buyerName: customerName
+        buyerName: customerName,
+        billingAddress: paymentInfo.billingAddress || undefined
       })
     })
 
