@@ -32,10 +32,11 @@ import { useCart } from "@/lib/cart-context"
 import { QuickViewModal, type ProductDetails } from "../components/quick-view-modal"
 import { useWishlist } from "@/lib/wishlist-context"
 import { useProductFilters } from "@/hooks/useProductFilters"
-import { getUniqueCategories, PRICE_RANGES, SORT_OPTIONS } from "@/lib/product-filters"
+import { PRICE_RANGES, SORT_OPTIONS } from "@/lib/product-filters"
 import { generateSlug } from "@/lib/utils"
-import { generateCategorySlug, getCategoryContent } from "@/lib/product-utils"
+import { getCategoryContent } from "@/lib/product-utils"
 import type { Product } from "@/lib/product-filters"
+import type { FilterAggregations } from "@/lib/product-filters"
 import { formatSalesCount } from "@/lib/sales-generator"
 
 interface ProductsPageClientProps {
@@ -46,9 +47,11 @@ interface ProductsPageClientProps {
   activeCategorySlug: string | null
   /** Decoded search query from the URL ?search= param. Null = no search active. */
   activeSearch: string | null
+  /** Server-side SQL aggregation counts for filter labels */
+  aggregations: FilterAggregations
 }
 
-export default function ProductsPageClient({ initialProducts, activeCategory, activeCategorySlug, activeSearch }: ProductsPageClientProps) {
+export default function ProductsPageClient({ initialProducts, activeCategory, activeCategorySlug, activeSearch, aggregations }: ProductsPageClientProps) {
   const { dispatch, addItemWithAnimation, isAddingToCart, recentlyAddedItem } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const searchParams = useSearchParams()
@@ -66,7 +69,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
     totalPages,
     setPage,
     hasActiveFilters,
-  } = useProductFilters(initialProducts, activeCategory ?? undefined)
+  } = useProductFilters(initialProducts, activeCategory ?? undefined, aggregations)
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [quickViewProduct, setQuickViewProduct] = useState<ProductDetails | null>(null)
@@ -74,7 +77,8 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
   const [buttonStates, setButtonStates] = useState<{ [key: number]: "idle" | "loading" | "success" }>({})
   const [showFilters, setShowFilters] = useState(false)
 
-  const categories = ["All Categories", ...getUniqueCategories(initialProducts)]
+  // Use server-side aggregation counts for filter labels
+  const { serverAggregations } = { serverAggregations: aggregations }
 
   const addToCart = async (product: any) => {
     const productId = product.id
@@ -303,7 +307,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         onCheckedChange={(checked) => setFilter("inStock", checked || undefined)}
                       />
                       <label htmlFor="in-stock" className="text-sm">
-                        In Stock ({availableCounts.inStock})
+                        In Stock ({serverAggregations.availability.inStock})
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -313,7 +317,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         onCheckedChange={(checked) => setFilter("outOfStock", checked || undefined)}
                       />
                       <label htmlFor="out-of-stock" className="text-sm">
-                        Out of Stock ({availableCounts.outOfStock})
+                        Out of Stock ({serverAggregations.availability.outOfStock})
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -323,7 +327,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         onCheckedChange={(checked) => setFilter("isPreOrder", checked || undefined)}
                       />
                       <label htmlFor="pre-order" className="text-sm">
-                        Pre-Order ({availableCounts.preOrder})
+                        Pre-Order ({serverAggregations.availability.preOrder})
                       </label>
                     </div>
                   </div>
@@ -339,7 +343,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         checked={filters.productType === "sealed"}
                         onCheckedChange={(checked) => setFilter("productType", checked ? "sealed" : undefined)}
                       />
-                      <label htmlFor="type-sealed" className="text-sm">Sealed Products</label>
+                      <label htmlFor="type-sealed" className="text-sm">Sealed Products ({serverAggregations.productType.sealed})</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -347,52 +351,31 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
                         checked={filters.productType === "single"}
                         onCheckedChange={(checked) => setFilter("productType", checked ? "single" : undefined)}
                       />
-                      <label htmlFor="type-single" className="text-sm">Cards / Singles</label>
+                      <label htmlFor="type-single" className="text-sm">Cards / Singles ({serverAggregations.productType.singles})</label>
                     </div>
                   </div>
                 </div>
 
-                {/* Categories Filter — each item is a full-page navigation link so
-                    the URL always uses the clean slug, never a raw/encoded name */}
+                {/* Rarity Filter — context-aware, only shows rarities present in the current category */}
                 <div className="md:col-span-3 lg:col-span-2">
-                  <h4 className="font-medium mb-3">Categories</h4>
+                  <h4 className="font-medium mb-3">Rarity</h4>
                   <div className="grid grid-cols-2 gap-2">
-                    {/* "All" reset option */}
-                    <div className="flex items-center space-x-2">
-                      <a
-                        href="/products"
-                        className={`text-sm px-2 py-1 rounded transition-colors ${
-                          !activeCategorySlug
-                            ? "font-semibold text-blue-700"
-                            : "text-gray-700 hover:text-blue-600"
-                        }`}
-                        aria-current={!activeCategorySlug ? "page" : undefined}
-                      >
-                        All Categories
-                      </a>
-                    </div>
-
-                    {getUniqueCategories(initialProducts).map((categoryName) => {
-                      const slug = categoryName && (initialProducts.find(p => p.category === categoryName) as any)?.categorySlug
-                        || generateCategorySlug(categoryName)
-                      const isActive = activeCategorySlug === slug
-                      return (
-                        <div key={slug} className="flex items-center space-x-2">
-                          <a
-                            href={`/products?category=${slug}`}
-                            className={`text-sm px-2 py-1 rounded transition-colors ${
-                              isActive
-                                ? "font-semibold text-blue-700"
-                                : "text-gray-700 hover:text-blue-600"
-                            }`}
-                            aria-current={isActive ? "page" : undefined}
-                            aria-label={`Filter by ${categoryName}`}
-                          >
-                            {categoryName}
-                          </a>
+                    {serverAggregations.rarity.length > 0 ? (
+                      serverAggregations.rarity.map((r) => (
+                        <div key={r.label} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`rarity-${r.label}`}
+                            checked={filters.rarity === r.label}
+                            onCheckedChange={(checked) => setFilter("rarity", checked ? r.label : undefined)}
+                          />
+                          <label htmlFor={`rarity-${r.label}`} className="text-sm">
+                            {r.label} ({r.count})
+                          </label>
                         </div>
-                      )
-                    })}
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 col-span-2">No rarity data available</p>
+                    )}
                   </div>
                 </div>
               </div>

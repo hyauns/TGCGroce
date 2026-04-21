@@ -31,6 +31,7 @@ export interface FilterOptions {
   outOfStock?: boolean
   isPreOrder?: boolean
   productType?: string
+  rarity?: string
   categories?: string[]
   sortBy?: "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc" | "newest"
 }
@@ -40,6 +41,25 @@ export interface FilterCounts {
   outOfStock: number
   preOrder: number
   total: number
+}
+
+/**
+ * Client-accessible mirror of the server-side FilterAggregations shape.
+ * Defined here (not in lib/repositories/filters.ts) because that module
+ * is 'server-only' and cannot be imported by client components.
+ */
+export interface FilterAggregations {
+  productType: { sealed: number; singles: number }
+  rarity: { label: string; count: number }[]
+  availability: { inStock: number; outOfStock: number; preOrder: number }
+}
+
+export function defaultAggregations(): FilterAggregations {
+  return {
+    productType: { sealed: 0, singles: 0 },
+    rarity: [],
+    availability: { inStock: 0, outOfStock: 0, preOrder: 0 },
+  }
 }
 
 // Cache for expensive operations

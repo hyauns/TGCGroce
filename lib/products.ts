@@ -31,6 +31,7 @@ export interface Product {
   stock?: number
   condition?: string
   rarity?: string
+  productType?: string
   brands?: string
 }
 
@@ -73,6 +74,7 @@ interface DbProductJoined extends DbProductRaw {
   // New columns added in migration
   is_pre_order: boolean | null   // NULL when column doesn't exist yet (caught via try/catch)
   release_date: Date | string | null
+  product_type?: string | null
   avg_rating?: string | null
   review_count?: string | null
 }
@@ -262,6 +264,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
     description: row.description || undefined,
     stock: stockQuantity,
     rarity: row.rarity || undefined,
+    productType: row.product_type || undefined,
     brands: row.brands || undefined,
     features: [
       `${stockQuantity} units available`,
@@ -278,19 +281,26 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
 /**
  * Fetch all active products, enriched with category metadata via JOIN.
  */
-export async function getAllProducts(productType?: string | null): Promise<Product[]> {
+export async function getAllProducts(productType?: string | null, rarity?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
 
-    const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
+    const typeFilter = productType === 'sealed'
+      ? sql`AND p.product_type ILIKE '%sealed%'`
+      : productType === 'single'
+        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+        : productType
+          ? sql`AND p.product_type = ${productType}`
+          : sql``
+    const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
     const rows = await sql`
       SELECT
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
+        p.rarity, p.brands, p.product_type,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -300,6 +310,7 @@ export async function getAllProducts(productType?: string | null): Promise<Produ
       ${sql.unsafe(PRODUCT_JOIN_SQL)}
       WHERE p.is_active = true
       ${typeFilter}
+      ${rarityFilter}
       ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
@@ -472,13 +483,20 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryMeta | nu
  *   3. Slug-derived match against raw products.category string
  *      (last resort — no product_categories data at all)
  */
-export async function getProductsByCategorySlug(slug: string, productType?: string | null): Promise<Product[]> {
-  if (!slug || slug === "all") return getAllProducts(productType)
+export async function getProductsByCategorySlug(slug: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
+  if (!slug || slug === "all") return getAllProducts(productType, rarity)
 
   const sql = getSqlConnection()
   if (!sql) return []
 
-  const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
+  const typeFilter = productType === 'sealed'
+    ? sql`AND p.product_type ILIKE '%sealed%'`
+    : productType === 'single'
+      ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+      : productType
+        ? sql`AND p.product_type = ${productType}`
+        : sql``
+  const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
   try {
     // ── Strategy 1 & 2 combined in one query via LEFT JOIN ──────────────────
@@ -489,7 +507,7 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
+        p.rarity, p.brands, p.product_type,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -501,6 +519,7 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
         AND pc.slug = ${slug}
         AND pc.is_active = true
         ${typeFilter}
+        ${rarityFilter}
       ${sql.unsafe(PRODUCT_SORT_SQL)}
     ` as DbProductJoined[]
 
@@ -888,13 +907,20 @@ export async function getRelatedProductsBySlug(slug: string): Promise<Product[]>
 /**
  * Full-text search across product name and category.
  */
-export async function searchProducts(query: string, productType?: string | null): Promise<Product[]> {
+export async function searchProducts(query: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
 
     const searchPattern = `%${query}%`
-    const typeFilter = productType ? sql`AND p.product_type = ${productType}` : sql``
+    const typeFilter = productType === 'sealed'
+      ? sql`AND p.product_type ILIKE '%sealed%'`
+      : productType === 'single'
+        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+        : productType
+          ? sql`AND p.product_type = ${productType}`
+          : sql``
+    const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
     // pg_trgm constraint: ensure query length is at least 3 for meaningful similarity,
     // otherwise fallback to safe ILIKE wildcard search.
@@ -907,7 +933,7 @@ export async function searchProducts(query: string, productType?: string | null)
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
+        p.rarity, p.brands, p.product_type,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -924,6 +950,7 @@ export async function searchProducts(query: string, productType?: string | null)
           OR similarity(p.name, ${query}) > ${trgmThreshold}
         )
         ${typeFilter}
+        ${rarityFilter}
       ORDER BY 
         CASE WHEN p.name ILIKE ${searchPattern} THEN 1 ELSE 0 END DESC,
         name_sim DESC,

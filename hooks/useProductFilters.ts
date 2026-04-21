@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { filterProducts, getAvailableCounts, type FilterOptions } from "@/lib/product-filters"
+import { filterProducts, getAvailableCounts, type FilterOptions, type FilterAggregations, defaultAggregations } from "@/lib/product-filters"
 import type { Product } from "@/lib/product-filters"
 
 const ITEMS_PER_PAGE = 20
 
-export function useProductFilters(products?: Product[], initialCategory?: string) {
+export function useProductFilters(products?: Product[], initialCategory?: string, serverAggregations?: FilterAggregations) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const previousUrlRef = useRef<string>("")
@@ -30,6 +30,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
       outOfStock: params.get("outOfStock") === "true" ? true : undefined,
       isPreOrder: params.get("isPreOrder") === "true" ? true : undefined,
       productType: params.get("productType") || undefined,
+      rarity: params.get("rarity") || undefined,
       categories: seededCategories,
       sortBy: (params.get("sortBy") as FilterOptions["sortBy"]) || undefined,
     }
@@ -83,6 +84,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     if (filters.outOfStock) params.set("outOfStock", "true")
     if (filters.isPreOrder) params.set("isPreOrder", "true")
     if (filters.productType) params.set("productType", filters.productType)
+    if (filters.rarity) params.set("rarity", filters.rarity)
     // NOTE: 'categories' (plural, client-side filter state) is intentionally NOT
     // pushed to the URL. Category navigation is handled by full-page <a> links
     // using the server-owned 'category' slug param (preserved above at line 74-76).
@@ -167,6 +169,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     products: paginatedData.products,
     totalCount: paginatedData.totalCount,
     availableCounts,
+    serverAggregations: serverAggregations || defaultAggregations(),
 
     // Filter state
     filters,

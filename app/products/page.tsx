@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { getAllProducts, getProductsByCategorySlug, getCategoryBySlug, searchProducts } from "@/lib/products"
 import { generateCategorySlug, normalizeCategoryParam } from "@/lib/products"
 import type { Product as ProductFilter } from "@/lib/product-filters"
+import type { FilterAggregations } from "@/lib/product-filters"
+import { getFilterAggregations } from "@/lib/repositories/filters"
 import ProductsPageClient from "./page-client"
 import { siteUrl } from "@/lib/site-config"
 
@@ -145,7 +147,7 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
 // ============================================================
 
 interface ProductsPageProps {
-  searchParams: Promise<{ category?: string; search?: string; page?: string; q?: string; productType?: string }>
+  searchParams: Promise<{ category?: string; search?: string; page?: string; q?: string; productType?: string; rarity?: string }>
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
@@ -170,6 +172,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   }
 
   const rawProductType = typeof params?.productType === 'string' ? params.productType : null;
+  const rawRarity = typeof params?.rarity === 'string' ? params.rarity : null;
 
   const BASE_URL = siteUrl
 
@@ -177,17 +180,32 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   // Priority: search > category > all products
   let products
   let categoryMeta = null
+  let aggregations: FilterAggregations
 
   if (searchQuery) {
     // Full-text DB search — ILIKE across name / category / joined category name
-    products = await searchProducts(searchQuery, rawProductType)
-  } else if (categorySlug && categorySlug !== "all") {
-    ;[products, categoryMeta] = await Promise.all([
-      getProductsByCategorySlug(categorySlug, rawProductType),
-      getCategoryBySlug(categorySlug),
+    const [searchResults, agg] = await Promise.all([
+      searchProducts(searchQuery, rawProductType, rawRarity),
+      getFilterAggregations(null, searchQuery),
     ])
+    products = searchResults
+    aggregations = agg
+  } else if (categorySlug && categorySlug !== "all") {
+    const [categoryProducts, catMeta, agg] = await Promise.all([
+      getProductsByCategorySlug(categorySlug, rawProductType, rawRarity),
+      getCategoryBySlug(categorySlug),
+      getFilterAggregations(categorySlug, null),
+    ])
+    products = categoryProducts
+    categoryMeta = catMeta
+    aggregations = agg
   } else {
-    products = await getAllProducts(rawProductType)
+    const [allProducts, agg] = await Promise.all([
+      getAllProducts(rawProductType, rawRarity),
+      getFilterAggregations(null, null),
+    ])
+    products = allProducts
+    aggregations = agg
   }
 
   const activeCategoryName = categoryMeta?.name ?? null
@@ -221,6 +239,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         activeCategory={activeCategoryName}
         activeCategorySlug={categorySlug}
         activeSearch={searchQuery || null}
+        aggregations={aggregations}
       />
     </>
   )
