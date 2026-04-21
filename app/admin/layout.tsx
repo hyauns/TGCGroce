@@ -18,6 +18,7 @@ import {
   Sun,
   LogOut,
   Star,
+  Rss,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -31,6 +32,7 @@ const navigation = [
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Reviews", href: "/admin/reviews", icon: Star },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "GMC Feeds", href: "/admin/feeds", icon: Rss },
   { name: "Site Settings", href: "/admin/settings", icon: Settings },
   { name: "Payments", href: "/admin/settings/payments", icon: Settings },
 ]
