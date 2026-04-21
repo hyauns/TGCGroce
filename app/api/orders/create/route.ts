@@ -51,7 +51,11 @@ async function resolveGuestCustomerId(
 ): Promise<string | null> {
   if (!email) return null
 
-  const existingRes = await client.query(`SELECT id FROM customers WHERE email = $1 AND user_id IS NULL LIMIT 1`, [
+  // Look up ANY existing customer row with this email — registered or guest.
+  // The `customers.email` column has a UNIQUE constraint, so there can be at most one.
+  // Previously this only checked `user_id IS NULL`, which missed registered users
+  // and caused a duplicate-key violation on the subsequent INSERT.
+  const existingRes = await client.query(`SELECT id FROM customers WHERE email = $1 LIMIT 1`, [
     email,
   ])
   if (existingRes.rows.length > 0) return String(existingRes.rows[0].id)
@@ -59,6 +63,7 @@ async function resolveGuestCustomerId(
   const createRes = await client.query(
     `INSERT INTO customers (email, first_name, last_name, total_orders, total_spent)
      VALUES ($1, $2, $3, 0, 0)
+     ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
      RETURNING id`,
     [email, firstName, lastName],
   )

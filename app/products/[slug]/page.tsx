@@ -79,7 +79,7 @@ export default async function ProductPage({ params }: PageProps) {
     "mpn": product.id.toString(),
     "brand": {
       "@type": "Brand",
-      "name": "Official"
+      "name": product.category || "TCG"
     },
     "identifier_exists": false,
     "offers": {
