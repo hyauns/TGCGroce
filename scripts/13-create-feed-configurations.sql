@@ -31,17 +31,19 @@ CREATE INDEX IF NOT EXISTS idx_feed_configurations_active
     ON feed_configurations(is_active, created_at DESC);
 
 -- Auto-update updated_at on row modification
--- (Reuses the update_updated_at_column() function created in earlier migrations)
-DO $$
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger WHERE tgname = 'update_feed_configurations_updated_at'
-    ) THEN
-        CREATE TRIGGER update_feed_configurations_updated_at
-            BEFORE UPDATE ON feed_configurations
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column();
-    END IF;
-END $$;
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+DROP TRIGGER IF EXISTS update_feed_configurations_updated_at ON feed_configurations;
+
+CREATE TRIGGER update_feed_configurations_updated_at
+    BEFORE UPDATE ON feed_configurations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
 SELECT 'feed_configurations table created successfully!' AS result;
