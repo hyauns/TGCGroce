@@ -41,6 +41,7 @@ export function AdminProductEditSheet({ product, isOpen, onOpenChange }: Product
     is_featured: false,
     is_pre_order: false,
     release_date: "",
+    brands: "",
   })
 
   // Populate form correctly on edit trigger
@@ -55,6 +56,7 @@ export function AdminProductEditSheet({ product, isOpen, onOpenChange }: Product
         stock_quantity: product.stock_quantity || "0",
         description: product.description || "",
         category: product.category || "",
+        brands: product.brands || "",
         is_active: product.is_active ?? true,
         is_featured: product.is_featured ?? false,
         is_pre_order: product.is_pre_order ?? false,
@@ -139,14 +141,25 @@ export function AdminProductEditSheet({ product, isOpen, onOpenChange }: Product
                 onChange={(e) => handleChange("upc", e.target.value)} 
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Input 
-                id="category" 
-                required
-                value={formData.category} 
-                onChange={(e) => handleChange("category", e.target.value)} 
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Input 
+                  id="category" 
+                  required
+                  value={formData.category} 
+                  onChange={(e) => handleChange("category", e.target.value)} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="brands">Brand Info (SEO)</Label>
+                <Input 
+                  id="brands" 
+                  value={formData.brands} 
+                  onChange={(e) => handleChange("brands", e.target.value)} 
+                  placeholder="e.g. Wizards of the Coast"
+                />
+              </div>
             </div>
           </div>
 

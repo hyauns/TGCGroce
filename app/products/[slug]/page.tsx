@@ -77,10 +77,13 @@ export default async function ProductPage({ params }: PageProps) {
     "description": product.description,
     "sku": product.id.toString(),
     "mpn": product.id.toString(),
-    "brand": {
-      "@type": "Brand",
-      "name": product.category || "TCG"
-    },
+    // Conditionally include brand if it exists
+    ...(product.brands ? {
+      "brand": {
+        "@type": "Brand",
+        "name": product.brands
+      }
+    } : {}),
     "identifier_exists": false,
     "offers": {
       "@type": "Offer",

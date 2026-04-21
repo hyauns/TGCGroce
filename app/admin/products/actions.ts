@@ -21,6 +21,7 @@ export async function updateAdminProductAction(data: any) {
       is_featured,
       is_pre_order,
       release_date, // Can be null, undefined, or string
+      brands,
     } = data
 
     if (!id) {
@@ -51,6 +52,7 @@ export async function updateAdminProductAction(data: any) {
         is_featured = ${is_featured},
         is_pre_order = ${is_pre_order},
         release_date = ${releaseDateStr ? sql`${releaseDateStr}::DATE` : null},
+        brands = ${brands || null},
         updated_at = NOW()
       WHERE id = ${id}
     `

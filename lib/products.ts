@@ -31,6 +31,7 @@ export interface Product {
   stock?: number
   condition?: string
   rarity?: string
+  brands?: string
 }
 
 export interface CategoryMeta {
@@ -60,6 +61,7 @@ interface DbProductRaw {
   created_at: Date
   updated_at?: Date
   rarity: string | null
+  brands: string | null
 }
 
 /** Row after JOIN with product_categories — category name & slug resolved authoritatively */
@@ -260,6 +262,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
     description: row.description || undefined,
     stock: stockQuantity,
     rarity: row.rarity || undefined,
+    brands: row.brands || undefined,
     features: [
       `${stockQuantity} units available`,
       "Authentic product",
@@ -287,7 +290,7 @@ export async function getAllProducts(productType?: string | null): Promise<Produ
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -322,7 +325,7 @@ export async function getProductById(id: number): Promise<Product | undefined> {
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -359,7 +362,7 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -398,7 +401,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -486,7 +489,7 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -616,7 +619,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -675,7 +678,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -741,7 +744,7 @@ export async function getPreOrderProducts(): Promise<Product[]> {
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -847,7 +850,7 @@ export async function getRelatedProducts(productId: number): Promise<Product[]> 
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
@@ -904,7 +907,7 @@ export async function searchProducts(query: string, productType?: string | null)
         p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
-        p.rarity,
+        p.rarity, p.brands,
         pc.id   AS pc_id,
         pc.name AS pc_name,
         pc.slug AS pc_slug,
