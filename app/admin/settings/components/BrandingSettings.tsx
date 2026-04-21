@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { ImagePlus, X, Facebook, Instagram, Twitter, Youtube } from "lucide-react"
+import { ImagePlus, X } from "lucide-react"
+import { Facebook, Instagram, Twitter, Youtube } from "@/app/components/social-icons"
 
 interface BrandingSettingsProps {
   data: {

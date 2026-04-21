@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Facebook, Twitter, Instagram, Youtube } from "lucide-react"
+import { Facebook, Twitter, Instagram, Youtube } from "@/app/components/social-icons"
 
 // Create a simple Pinterest icon since Lucide doesn't have it natively or it might not be exported
 function PinterestIcon(props: React.SVGProps<SVGSVGElement>) {
