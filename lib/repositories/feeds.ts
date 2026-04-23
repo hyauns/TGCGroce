@@ -262,14 +262,16 @@ export async function streamFeedProducts(
         ? sql`AND p.is_pre_order = true`
         : sql`` // 'all' — no filter
 
-    console.log(`[feeds] streamFeedProducts — preorder_status: "${preorderStatus}", stock_status: "${config.stock_status}", offset: ${offset}`)
+    console.log(`[feeds] streamFeedProducts — feed_id: "${config.id}", min_price: ${config.min_price}, max_price: ${config.max_price}, preorder_status: "${preorderStatus}", stock_status: "${config.stock_status}", offset: ${offset}`)
 
+    // ── CRITICAL FIX: Cast p.price (VARCHAR) to NUMERIC to prevent string comparison bugs ──────
+    // Otherwise '400' <= '2000' evaluates to FALSE because '4' > '2'.
     const minPriceFilter = config.min_price != null
-      ? sql`AND p.price >= ${config.min_price}`
+      ? sql`AND CAST(NULLIF(p.price, '') AS numeric) >= ${config.min_price}`
       : sql``
 
     const maxPriceFilter = config.max_price != null
-      ? sql`AND p.price <= ${config.max_price}`
+      ? sql`AND CAST(NULLIF(p.price, '') AS numeric) <= ${config.max_price}`
       : sql``
 
     const rows = await sql`
@@ -303,6 +305,8 @@ export async function streamFeedProducts(
       OFFSET ${offset}
       LIMIT ${limit}
     ` as FeedProductRow[]
+
+    console.log(`[feeds] streamFeedProducts — fetched ${rows.length} rows for offset ${offset}`)
 
     return rows
   } catch (error) {
