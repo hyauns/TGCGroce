@@ -150,6 +150,31 @@ function mapAvailability(stockQuantity: number, isPreOrder: boolean | null): str
 }
 
 /**
+ * Build the GMC-required <g:availability_date> for pre-order items.
+ * Format: ISO 8601 — YYYY-MM-DDT00:00:00Z
+ *
+ * If the product has a release_date in the DB, use it.
+ * Otherwise, fallback to NOW + 30 days as a safe default
+ * to prevent GMC feed rejection.
+ */
+function buildAvailabilityDate(releaseDate: string | null): string {
+  let date: Date
+  if (releaseDate) {
+    date = new Date(releaseDate)
+    // Guard against invalid dates in the DB
+    if (isNaN(date.getTime())) {
+      date = new Date()
+      date.setDate(date.getDate() + 30)
+    }
+  } else {
+    // No release_date set — fallback +30 days
+    date = new Date()
+    date.setDate(date.getDate() + 30)
+  }
+  return date.toISOString().replace(/\.\d{3}Z$/, "Z")
+}
+
+/**
  * Map product_type to GMC condition.
  * Sealed products → new. Singles/Cards → new (TCG singles are "new" product condition).
  */
@@ -160,6 +185,11 @@ function mapCondition(): string {
 /**
  * Build a single <item> block for one product.
  * Strict GMC specification compliance.
+ *
+ * Pre-order compliance (CRITICAL):
+ *   If is_pre_order = true, GMC requires BOTH:
+ *     <g:availability>preorder</g:availability>
+ *     <g:availability_date>YYYY-MM-DDThh:mm:ssZ</g:availability_date>
  */
 function buildItemXml(product: FeedProductRow): string {
   const slug = buildSlug(product.name)
@@ -175,6 +205,11 @@ function buildItemXml(product: FeedProductRow): string {
     ? "Sealed"
     : "Singles"
 
+  // Build availability_date line ONLY for pre-order items (GMC strict requirement)
+  const availabilityDateLine = product.is_pre_order
+    ? `  <g:availability_date>${buildAvailabilityDate(product.release_date)}</g:availability_date>\n`
+    : ``
+
   return (
     `<item>\n` +
     `  <g:id>${product.id}</g:id>\n` +
@@ -184,6 +219,7 @@ function buildItemXml(product: FeedProductRow): string {
     `  <g:image_link>${escapeXml(imageUrl)}</g:image_link>\n` +
     `  <g:price>${price} USD</g:price>\n` +
     `  <g:availability>${availability}</g:availability>\n` +
+    availabilityDateLine +
     `  <g:condition>${condition}</g:condition>\n` +
     `  <g:brand>${escapeXml(brand)}</g:brand>\n` +
     `  <g:google_product_category>2363</g:google_product_category>\n` +
@@ -194,3 +230,4 @@ function buildItemXml(product: FeedProductRow): string {
     `</item>\n`
   )
 }
+

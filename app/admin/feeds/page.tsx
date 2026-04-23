@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -30,6 +29,8 @@ import {
   Check,
   Loader2,
   ExternalLink,
+  Pencil,
+  X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -44,6 +45,7 @@ interface FeedConfiguration {
   product_type: string | null
   stock_status: string
   exclude_preorders: boolean
+  preorder_status: string // 'all' | 'exclude' | 'only'
   min_price: number | null
   max_price: number | null
   is_active: boolean
@@ -58,15 +60,18 @@ export default function FeedsPage() {
   const { toast } = useToast()
   const [feeds, setFeeds] = useState<FeedConfiguration[]>([])
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // Edit mode: null = creating new, string = editing feed with that ID
+  const [editingFeedId, setEditingFeedId] = useState<string | null>(null)
 
   // Form state
   const [formName, setFormName] = useState("")
   const [formCategory, setFormCategory] = useState<string>("")
   const [formProductType, setFormProductType] = useState<string>("")
   const [formStockStatus, setFormStockStatus] = useState<string>("in_stock")
-  const [formExcludePreorders, setFormExcludePreorders] = useState(false)
+  const [formPreorderStatus, setFormPreorderStatus] = useState<string>("all")
   const [formMinPrice, setFormMinPrice] = useState("")
   const [formMaxPrice, setFormMaxPrice] = useState("")
 
@@ -90,51 +95,91 @@ export default function FeedsPage() {
     fetchFeeds()
   }, [fetchFeeds])
 
-  // ── Create Feed ───────────────────────────────────────────────
-  const handleCreate = async () => {
+  // ── Reset Form ────────────────────────────────────────────────
+  const resetForm = () => {
+    setEditingFeedId(null)
+    setFormName("")
+    setFormCategory("")
+    setFormProductType("")
+    setFormStockStatus("in_stock")
+    setFormPreorderStatus("all")
+    setFormMinPrice("")
+    setFormMaxPrice("")
+  }
+
+  // ── Pre-fill form for Edit ────────────────────────────────────
+  const startEditing = (feed: FeedConfiguration) => {
+    setEditingFeedId(feed.id)
+    setFormName(feed.name)
+    setFormCategory(feed.category_slug || "")
+    setFormProductType(feed.product_type || "")
+    setFormStockStatus(feed.stock_status || "in_stock")
+    // Derive preorder_status: prefer the new field, fallback to old boolean
+    setFormPreorderStatus(
+      feed.preorder_status || (feed.exclude_preorders ? "exclude" : "all")
+    )
+    setFormMinPrice(feed.min_price != null ? String(feed.min_price) : "")
+    setFormMaxPrice(feed.max_price != null ? String(feed.max_price) : "")
+
+    // Scroll to the form
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  // ── Create or Update Feed ─────────────────────────────────────
+  const handleSubmit = async () => {
     if (!formName.trim()) {
       toast({ title: "Validation Error", description: "Feed name is required", variant: "destructive" })
       return
     }
 
-    setCreating(true)
+    setSubmitting(true)
     try {
-      const res = await fetch("/api/admin/feeds", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formName.trim(),
-          category_slug: formCategory || null,
-          product_type: formProductType || null,
-          stock_status: formStockStatus,
-          exclude_preorders: formExcludePreorders,
-          min_price: formMinPrice ? Number(formMinPrice) : null,
-          max_price: formMaxPrice ? Number(formMaxPrice) : null,
-        }),
-      })
+      const payload = {
+        name: formName.trim(),
+        category_slug: formCategory || null,
+        product_type: formProductType || null,
+        stock_status: formStockStatus,
+        preorder_status: formPreorderStatus,
+        min_price: formMinPrice ? Number(formMinPrice) : null,
+        max_price: formMaxPrice ? Number(formMaxPrice) : null,
+      }
+
+      let res: Response
+
+      if (editingFeedId) {
+        // ── PATCH: Update existing feed ──
+        res = await fetch(`/api/admin/feeds/${editingFeedId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+      } else {
+        // ── POST: Create new feed ──
+        res = await fetch("/api/admin/feeds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+      }
 
       if (!res.ok) {
         const error = await res.json()
-        throw new Error(error.error || "Failed to create feed")
+        throw new Error(error.error || `Failed to ${editingFeedId ? "update" : "create"} feed`)
       }
 
-      toast({ title: "Feed Created", description: `"${formName}" feed has been created successfully.` })
+      toast({
+        title: editingFeedId ? "Feed Updated" : "Feed Created",
+        description: editingFeedId
+          ? `"${formName}" has been updated. The feed URL remains unchanged.`
+          : `"${formName}" feed has been created successfully.`,
+      })
 
-      // Reset form
-      setFormName("")
-      setFormCategory("")
-      setFormProductType("")
-      setFormStockStatus("in_stock")
-      setFormExcludePreorders(false)
-      setFormMinPrice("")
-      setFormMaxPrice("")
-
-      // Refresh list
+      resetForm()
       await fetchFeeds()
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
     } finally {
-      setCreating(false)
+      setSubmitting(false)
     }
   }
 
@@ -148,6 +193,8 @@ export default function FeedsPage() {
         throw new Error("Failed to delete feed")
       }
       toast({ title: "Feed Deleted", description: `"${name}" has been removed.` })
+      // If we were editing this feed, exit edit mode
+      if (editingFeedId === id) resetForm()
       await fetchFeeds()
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" })
@@ -192,9 +239,16 @@ export default function FeedsPage() {
         variant: "outline",
       })
     }
-    if (feed.exclude_preorders) {
+
+    // 3-state pre-order badge
+    const preorderStatus = feed.preorder_status || (feed.exclude_preorders ? "exclude" : "all")
+    if (preorderStatus === "exclude") {
       badges.push({ label: "No Pre-Orders", variant: "outline" })
+    } else if (preorderStatus === "only") {
+      badges.push({ label: "Pre-Orders Only", variant: "secondary" })
     }
+    // 'all' — no badge needed
+
     if (feed.min_price != null) {
       badges.push({ label: `Min: $${feed.min_price}`, variant: "outline" })
     }
@@ -239,16 +293,31 @@ export default function FeedsPage() {
         </p>
       </div>
 
-      {/* Create Feed Form */}
-      <Card>
+      {/* Create / Edit Feed Form */}
+      <Card className={editingFeedId ? "ring-2 ring-blue-500" : ""}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Create New Feed
-          </CardTitle>
-          <CardDescription>
-            Define filter rules to generate a targeted XML feed for Google Shopping campaigns.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {editingFeedId ? (
+                  <><Pencil className="h-5 w-5" /> Edit Feed</>
+                ) : (
+                  <><Plus className="h-5 w-5" /> Create New Feed</>
+                )}
+              </CardTitle>
+              <CardDescription>
+                {editingFeedId
+                  ? "Update the filter rules below. The feed URL will remain unchanged."
+                  : "Define filter rules to generate a targeted XML feed for Google Shopping campaigns."
+                }
+              </CardDescription>
+            </div>
+            {editingFeedId && (
+              <Button variant="ghost" size="sm" onClick={resetForm}>
+                <X className="h-4 w-4 mr-1" /> Cancel
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -315,6 +384,21 @@ export default function FeedsPage() {
               </Select>
             </div>
 
+            {/* Pre-Order Status (3-state Select — replaces old Checkbox) */}
+            <div className="space-y-2">
+              <Label htmlFor="feed-preorder-status">Pre-Order Filter</Label>
+              <Select value={formPreorderStatus} onValueChange={setFormPreorderStatus}>
+                <SelectTrigger id="feed-preorder-status">
+                  <SelectValue placeholder="Include All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Include Pre-Orders (All)</SelectItem>
+                  <SelectItem value="exclude">Exclude Pre-Orders</SelectItem>
+                  <SelectItem value="only">Only Pre-Orders</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Min Price */}
             <div className="space-y-2">
               <Label htmlFor="feed-min-price">Minimum Price ($)</Label>
@@ -342,28 +426,23 @@ export default function FeedsPage() {
                 onChange={(e) => setFormMaxPrice(e.target.value)}
               />
             </div>
-
-            {/* Exclude Pre-Orders */}
-            <div className="flex items-center gap-3 pt-6">
-              <Checkbox
-                id="feed-exclude-preorders"
-                checked={formExcludePreorders}
-                onCheckedChange={(checked) => setFormExcludePreorders(checked === true)}
-              />
-              <Label htmlFor="feed-exclude-preorders" className="cursor-pointer">
-                Exclude Pre-Orders
-              </Label>
-            </div>
           </div>
 
-          <div className="mt-6 flex justify-end">
+          <div className="mt-6 flex justify-end gap-3">
+            {editingFeedId && (
+              <Button variant="outline" onClick={resetForm}>
+                Cancel
+              </Button>
+            )}
             <Button
-              onClick={handleCreate}
-              disabled={creating || !formName.trim()}
-              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubmit}
+              disabled={submitting || !formName.trim()}
+              className={editingFeedId ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700"}
             >
-              {creating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating...</>
+              {submitting ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {editingFeedId ? "Updating..." : "Creating..."}</>
+              ) : editingFeedId ? (
+                <><Pencil className="mr-2 h-4 w-4" /> Update Feed</>
               ) : (
                 <><Plus className="mr-2 h-4 w-4" /> Create Feed</>
               )}
@@ -403,7 +482,7 @@ export default function FeedsPage() {
                 </TableHeader>
                 <TableBody>
                   {feeds.map((feed) => (
-                    <TableRow key={feed.id}>
+                    <TableRow key={feed.id} className={editingFeedId === feed.id ? "bg-blue-50 dark:bg-blue-950" : ""}>
                       <TableCell className="font-medium">{feed.name}</TableCell>
                       <TableCell>{renderFilterBadges(feed)}</TableCell>
                       <TableCell>
@@ -416,6 +495,7 @@ export default function FeedsPage() {
                             size="sm"
                             onClick={() => copyFeedUrl(feed.id)}
                             className="shrink-0"
+                            aria-label="Copy feed URL"
                           >
                             {copiedId === feed.id ? (
                               <Check className="h-4 w-4 text-green-500" />
@@ -429,7 +509,7 @@ export default function FeedsPage() {
                             rel="noopener noreferrer"
                             className="shrink-0"
                           >
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" aria-label="Open feed in new tab">
                               <ExternalLink className="h-4 w-4" />
                             </Button>
                           </a>
@@ -443,14 +523,26 @@ export default function FeedsPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(feed.id, feed.name)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(feed)}
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                            aria-label={`Edit feed: ${feed.name}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(feed.id, feed.name)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            aria-label={`Delete feed: ${feed.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

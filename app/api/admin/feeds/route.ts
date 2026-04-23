@@ -51,6 +51,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid stock status" }, { status: 400 })
     }
 
+    // Validate preorder_status enum
+    const validPreorderStatuses = ["all", "exclude", "only"]
+    if (body.preorder_status && !validPreorderStatuses.includes(body.preorder_status)) {
+      return NextResponse.json({ error: "Invalid preorder status" }, { status: 400 })
+    }
+
     // Validate price ranges
     if (body.min_price != null && (isNaN(Number(body.min_price)) || Number(body.min_price) < 0)) {
       return NextResponse.json({ error: "Invalid minimum price" }, { status: 400 })
@@ -64,7 +70,7 @@ export async function POST(request: Request) {
       category_slug: body.category_slug || null,
       product_type: body.product_type || null,
       stock_status: body.stock_status || "in_stock",
-      exclude_preorders: body.exclude_preorders === true,
+      preorder_status: body.preorder_status || "all",
       min_price: body.min_price != null ? Number(body.min_price) : null,
       max_price: body.max_price != null ? Number(body.max_price) : null,
     }

@@ -31,9 +31,6 @@ export async function generateMetadata(): Promise<Metadata> {
     telephone: false,
   },
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: settings.seoTitle || "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards & Collectibles | Authentic Products",
     description: settings.seoDescription || "Shop authentic trading cards from Magic: The Gathering, Pokemon, Yu-Gi-Oh! & more. Premium booster packs, rare collectibles, fast shipping & guaranteed authenticity.",

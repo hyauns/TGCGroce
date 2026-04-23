@@ -12,6 +12,7 @@ export interface FeedConfiguration {
   product_type: string | null
   stock_status: string
   exclude_preorders: boolean
+  preorder_status: string // 'all' | 'exclude' | 'only'
   min_price: number | null
   max_price: number | null
   is_active: boolean
@@ -30,6 +31,7 @@ export interface FeedProductRow {
   stock_quantity: number
   product_type: string | null
   is_pre_order: boolean | null
+  release_date: string | null
   brands: string | null
   rarity: string | null
   category_name: string | null
@@ -41,6 +43,17 @@ export interface CreateFeedInput {
   product_type?: string | null
   stock_status?: string
   exclude_preorders?: boolean
+  preorder_status?: string // 'all' | 'exclude' | 'only'
+  min_price?: number | null
+  max_price?: number | null
+}
+
+export interface UpdateFeedInput {
+  name?: string
+  category_slug?: string | null
+  product_type?: string | null
+  stock_status?: string
+  preorder_status?: string // 'all' | 'exclude' | 'only'
   min_price?: number | null
   max_price?: number | null
 }
@@ -71,15 +84,20 @@ export async function createFeedConfiguration(input: CreateFeedInput): Promise<F
   const sql = getSqlConnection()
   if (!sql) return null
 
+  // Derive preorder_status: prefer the new field, fallback to old boolean
+  const preorderStatus = input.preorder_status
+    || (input.exclude_preorders ? 'exclude' : 'all')
+
   try {
     const rows = await sql`
-      INSERT INTO feed_configurations (name, category_slug, product_type, stock_status, exclude_preorders, min_price, max_price)
+      INSERT INTO feed_configurations (name, category_slug, product_type, stock_status, exclude_preorders, preorder_status, min_price, max_price)
       VALUES (
         ${input.name},
         ${input.category_slug || null},
         ${input.product_type || null},
         ${input.stock_status || 'in_stock'},
-        ${input.exclude_preorders || false},
+        ${preorderStatus === 'exclude'},
+        ${preorderStatus},
         ${input.min_price ?? null},
         ${input.max_price ?? null}
       )
@@ -89,6 +107,38 @@ export async function createFeedConfiguration(input: CreateFeedInput): Promise<F
     return rows[0] || null
   } catch (error) {
     console.error("[feeds] Error creating feed configuration:", error)
+    return null
+  }
+}
+
+/**
+ * Update an existing feed configuration by UUID.
+ * The UUID (primary key / public URL) remains unchanged.
+ */
+export async function updateFeedConfiguration(id: string, input: UpdateFeedInput): Promise<FeedConfiguration | null> {
+  const sql = getSqlConnection()
+  if (!sql) return null
+
+  try {
+    const rows = await sql`
+      UPDATE feed_configurations
+      SET
+        name             = COALESCE(${input.name ?? null}, name),
+        category_slug    = ${input.category_slug ?? null},
+        product_type     = ${input.product_type ?? null},
+        stock_status     = COALESCE(${input.stock_status ?? null}, stock_status),
+        preorder_status  = COALESCE(${input.preorder_status ?? null}, preorder_status),
+        exclude_preorders = ${(input.preorder_status ?? 'all') === 'exclude'},
+        min_price        = ${input.min_price ?? null},
+        max_price        = ${input.max_price ?? null},
+        updated_at       = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+      RETURNING *
+    ` as FeedConfiguration[]
+
+    return rows[0] || null
+  } catch (error) {
+    console.error("[feeds] Error updating feed configuration:", error)
     return null
   }
 }
@@ -190,9 +240,13 @@ export async function streamFeedProducts(
         ? sql`AND p.stock_quantity <= 0`
         : sql`` // 'all' — no filter
 
-    const preorderFilter = config.exclude_preorders
+    // 3-state preorder filter (replaces old boolean logic)
+    const preorderStatus = config.preorder_status || (config.exclude_preorders ? 'exclude' : 'all')
+    const preorderFilter = preorderStatus === 'exclude'
       ? sql`AND (p.is_pre_order IS NULL OR p.is_pre_order = false)`
-      : sql``
+      : preorderStatus === 'only'
+        ? sql`AND p.is_pre_order = true`
+        : sql`` // 'all' — no filter
 
     const minPriceFilter = config.min_price != null
       ? sql`AND p.price >= ${config.min_price}`
@@ -214,6 +268,7 @@ export async function streamFeedProducts(
         p.stock_quantity,
         p.product_type,
         p.is_pre_order,
+        p.release_date,
         p.brands,
         p.rarity,
         pc.name AS category_name
