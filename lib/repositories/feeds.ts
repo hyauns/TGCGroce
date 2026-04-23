@@ -234,19 +234,35 @@ export async function streamFeedProducts(
         ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
         : sql``
 
-    const stockFilter = config.stock_status === "in_stock"
-      ? sql`AND p.stock_quantity > 0`
-      : config.stock_status === "out_of_stock"
-        ? sql`AND p.stock_quantity <= 0`
-        : sql`` // 'all' — no filter
-
     // 3-state preorder filter (replaces old boolean logic)
     const preorderStatus = config.preorder_status || (config.exclude_preorders ? 'exclude' : 'all')
+
+    // ── CRITICAL: Stock filter must NOT kill pre-order items ──────
+    // Pre-order products typically have stock_quantity = 0.
+    // When preorder_status is 'all' or 'only', we must exempt
+    // pre-order items from the stock_quantity > 0 requirement.
+    let stockFilter
+    if (config.stock_status === "in_stock") {
+      if (preorderStatus === 'exclude') {
+        // Simple case: no pre-orders in the feed, just filter by stock
+        stockFilter = sql`AND p.stock_quantity > 0`
+      } else {
+        // 'all' or 'only': allow pre-order items even if stock = 0
+        stockFilter = sql`AND (p.stock_quantity > 0 OR p.is_pre_order = true)`
+      }
+    } else if (config.stock_status === "out_of_stock") {
+      stockFilter = sql`AND p.stock_quantity <= 0`
+    } else {
+      stockFilter = sql`` // 'all' — no stock filter
+    }
+
     const preorderFilter = preorderStatus === 'exclude'
       ? sql`AND (p.is_pre_order IS NULL OR p.is_pre_order = false)`
       : preorderStatus === 'only'
         ? sql`AND p.is_pre_order = true`
         : sql`` // 'all' — no filter
+
+    console.log(`[feeds] streamFeedProducts — preorder_status: "${preorderStatus}", stock_status: "${config.stock_status}", offset: ${offset}`)
 
     const minPriceFilter = config.min_price != null
       ? sql`AND p.price >= ${config.min_price}`

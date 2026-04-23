@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 // Extend timeout for large feeds (Vercel Pro: 60s, Hobby: 10s)
 export const maxDuration = 60
 
