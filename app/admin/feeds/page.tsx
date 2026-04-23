@@ -342,14 +342,14 @@ export default function FeedsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="pokemon-tcg">Pokemon TCG</SelectItem>
+                  <SelectItem value="pokemon">Pokemon</SelectItem>
                   <SelectItem value="magic-the-gathering">Magic: The Gathering</SelectItem>
                   <SelectItem value="yu-gi-oh">Yu-Gi-Oh!</SelectItem>
                   <SelectItem value="disney-lorcana">Disney Lorcana</SelectItem>
-                  <SelectItem value="one-piece-card-game">One Piece Card Game</SelectItem>
-                  <SelectItem value="dragon-ball-super">Dragon Ball Super</SelectItem>
-                  <SelectItem value="union-arena">Union Arena</SelectItem>
+                  <SelectItem value="one-piece">One Piece</SelectItem>
+                  <SelectItem value="digimon-card-game">Digimon Card Game</SelectItem>
                   <SelectItem value="star-wars-unlimited">Star Wars: Unlimited</SelectItem>
+                  <SelectItem value="flesh-and-blood">Flesh and Blood</SelectItem>
                 </SelectContent>
               </Select>
             </div>
