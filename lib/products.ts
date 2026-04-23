@@ -1022,3 +1022,43 @@ export async function preloadProductCache(ids?: number[]): Promise<void> {
   const validProducts = products.filter((p): p is Product => p !== undefined)
   _productCache = new Map(validProducts.map((p) => [p.id, p]))
 }
+
+// ============================================================
+// Cron: Auto-transition expired pre-orders to in-stock
+// ============================================================
+
+/**
+ * Flip `is_pre_order = false` for every product whose `release_date`
+ * has passed (i.e. release_date <= today).
+ *
+ * CRITICAL: This function ONLY changes `is_pre_order`.
+ * It does NOT alter price, stock_quantity, or any other column.
+ *
+ * @returns The number of products transitioned, or -1 on error.
+ */
+export async function syncExpiredPreorders(): Promise<number> {
+  const sql = getSqlConnection()
+  if (!sql) {
+    console.error("[cron/sync-preorders] No database connection available")
+    return -1
+  }
+
+  try {
+    const result = await sql`
+      UPDATE products
+      SET is_pre_order = false,
+          updated_at   = CURRENT_TIMESTAMP
+      WHERE is_pre_order = true
+        AND release_date IS NOT NULL
+        AND release_date <= CURRENT_DATE
+      RETURNING id
+    `
+
+    const count = result.length
+    console.log(`[cron/sync-preorders] Transitioned ${count} product(s) from pre-order to in-stock`)
+    return count
+  } catch (error) {
+    console.error("[cron/sync-preorders] Error syncing expired pre-orders:", error)
+    return -1
+  }
+}
