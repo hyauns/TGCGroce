@@ -471,26 +471,17 @@ export default function CheckoutPage() {
   }, [keyboardHeight, isMobile])
 
   // Google Places API integration
-  const getAutocompleteService = () => {
-    if (!window.google?.maps?.places) return null
-    if (!autocompleteServiceRef.current) {
-      autocompleteServiceRef.current = new window.google.maps.places.AutocompleteService()
+  // Mapbox session token to group autocomplete queries into a single billing session
+  const mapboxSessionTokenRef = useRef<string | null>(null)
+  
+  useEffect(() => {
+    // Generate a simple unique ID for Mapbox session
+    if (!mapboxSessionTokenRef.current) {
+      mapboxSessionTokenRef.current = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     }
-    return autocompleteServiceRef.current
-  }
+  }, [])
 
-  const getPlacesService = () => {
-    if (!window.google?.maps?.places) return null
-    if (!placesServiceRef.current) {
-      if (!placesServiceDivRef.current) {
-        placesServiceDivRef.current = document.createElement("div")
-      }
-      placesServiceRef.current = new window.google.maps.places.PlacesService(placesServiceDivRef.current)
-    }
-    return placesServiceRef.current
-  }
-
-  const searchAddresses = (input: string, isBilling = false) => {
+  const searchAddresses = async (input: string, isBilling = false) => {
     // Clear any pending debounce
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current)
@@ -516,10 +507,10 @@ export default function CheckoutPage() {
     }
 
     // Debounce the API call by 300ms to avoid excessive requests
-    searchDebounceRef.current = setTimeout(() => {
-      const service = getAutocompleteService()
-      if (!service) {
-        const errorMessage = "Address suggestions are currently unavailable. Please enter your address manually."
+    searchDebounceRef.current = setTimeout(async () => {
+      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+      if (!mapboxToken) {
+        const errorMessage = "Address suggestions are currently unavailable (missing API token). Please enter your address manually."
         if (isBilling) {
           setBillingAddressApiError(errorMessage)
           setIsLoadingBillingAddressSuggestions(false)
@@ -530,69 +521,62 @@ export default function CheckoutPage() {
         return
       }
 
-      service.getPlacePredictions(
-        {
-          input,
-          componentRestrictions: { country: "us" },
-          types: ["address"],
-        },
-        (predictions, status) => {
-          if (
-            status === window.google.maps.places.PlacesServiceStatus.OK &&
-            predictions &&
-            predictions.length > 0
-          ) {
-            const mapped: PlacePrediction[] = predictions.map((p) => ({
-              place_id: p.place_id || "",
-              description: p.description || "",
-              structured_formatting: {
-                main_text: p.structured_formatting?.main_text || "",
-                secondary_text: p.structured_formatting?.secondary_text || "",
-              },
-            }))
-
-            if (isBilling) {
-              setBillingAddressSuggestions(mapped)
-              setShowBillingAddressSuggestions(true)
-            } else {
-              setAddressSuggestions(mapped)
-              setShowAddressSuggestions(true)
-            }
-          } else if (status === window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-            if (isBilling) {
-              setBillingAddressSuggestions([])
-              setShowBillingAddressSuggestions(false)
-            } else {
-              setAddressSuggestions([])
-              setShowAddressSuggestions(false)
-            }
-          } else {
-            console.error("AutocompleteService error, status:", status)
-            const errorMessage = "Unable to load address suggestions. Please enter your address manually."
-            if (isBilling) {
-              setBillingAddressApiError(errorMessage)
-              setBillingAddressSuggestions([])
-              setShowBillingAddressSuggestions(false)
-            } else {
-              setAddressApiError(errorMessage)
-              setAddressSuggestions([])
-              setShowAddressSuggestions(false)
-            }
-          }
+      try {
+        const sessionToken = mapboxSessionTokenRef.current || 'default-session'
+        const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(input)}&access_token=${mapboxToken}&language=en&country=us&session_token=${sessionToken}`)
+        const data = await response.json()
+        
+        if (data.suggestions && data.suggestions.length > 0) {
+          const mapped: PlacePrediction[] = data.suggestions.map((p: any) => ({
+            place_id: p.mapbox_id || "",
+            description: p.full_address || `${p.name}, ${p.place_formatted}`,
+            structured_formatting: {
+              main_text: p.name || "",
+              secondary_text: p.place_formatted || "",
+            },
+          }))
 
           if (isBilling) {
-            setIsLoadingBillingAddressSuggestions(false)
+            setBillingAddressSuggestions(mapped)
+            setShowBillingAddressSuggestions(true)
           } else {
-            setIsLoadingAddressSuggestions(false)
+            setAddressSuggestions(mapped)
+            setShowAddressSuggestions(true)
           }
-        },
-      )
+        } else {
+          if (isBilling) {
+            setBillingAddressSuggestions([])
+            setShowBillingAddressSuggestions(false)
+          } else {
+            setAddressSuggestions([])
+            setShowAddressSuggestions(false)
+          }
+        }
+      } catch (error) {
+        console.error("Mapbox Suggest API error:", error)
+        const errorMessage = "Unable to load address suggestions. Please enter your address manually."
+        if (isBilling) {
+          setBillingAddressApiError(errorMessage)
+          setBillingAddressSuggestions([])
+          setShowBillingAddressSuggestions(false)
+        } else {
+          setAddressApiError(errorMessage)
+          setAddressSuggestions([])
+          setShowAddressSuggestions(false)
+        }
+      } finally {
+        if (isBilling) {
+          setIsLoadingBillingAddressSuggestions(false)
+        } else {
+          setIsLoadingAddressSuggestions(false)
+        }
+      }
     }, 300)
   }
 
-  const getPlaceDetails = (placeId: string, isBilling = false) => {
-    const service = getPlacesService()
-    if (!service) {
+  const getPlaceDetails = async (placeId: string, isBilling = false) => {
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    if (!mapboxToken) {
       const errorMessage = "Unable to load address details. Please enter your address manually."
       if (isBilling) {
         setBillingAddressApiError(errorMessage)
@@ -602,85 +586,78 @@ export default function CheckoutPage() {
       return
     }
 
-    service.getDetails(
-      {
-        placeId,
-        fields: ["address_components", "formatted_address"],
-      },
-      (place, status) => {
-        if (
-          status === window.google.maps.places.PlacesServiceStatus.OK &&
-          place?.address_components
-        ) {
-          const components: AddressComponents = {}
+    try {
+      const sessionToken = mapboxSessionTokenRef.current || 'default-session'
+      const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${placeId}?session_token=${sessionToken}&access_token=${mapboxToken}`)
+      const data = await response.json()
 
-          for (const component of place.address_components) {
-            const type = component.types[0]
-            if (type === "street_number") {
-              components.street_number = component.long_name
-            } else if (type === "route") {
-              components.route = component.long_name
-            } else if (type === "locality") {
-              components.locality = component.long_name
-            } else if (type === "administrative_area_level_1") {
-              // Use short_name for 2-letter state code (e.g. "NY" not "New York")
-              components.administrative_area_level_1 = component.short_name
-            } else if (type === "postal_code") {
-              components.postal_code = component.long_name
-            } else if (type === "country") {
-              components.country = component.long_name
-            }
-          }
+      if (data.features && data.features.length > 0) {
+        const properties = data.features[0].properties
+        const context = properties.context || {}
+        
+        const street_number = properties.address_number || ""
+        const route = properties.street || properties.name || "" // fallback to name if street is empty
+        const streetAddress = `${street_number} ${route}`.trim()
+        
+        const city = context.place?.name || ""
+        const state = context.region?.region_code || ""
+        const zipCode = context.postcode?.name || ""
+        const country = context.country?.name || "United States"
 
-          const streetAddress = `${components.street_number || ""} ${components.route || ""}`.trim()
-
-          if (isBilling) {
-            setFormData((prev) => ({
-              ...prev,
-              billingAddressLine: streetAddress,
-              billingCity: components.locality || "",
-              billingState: components.administrative_area_level_1 || "",
-              billingZipCode: components.postal_code || "",
-              billingCountry: components.country || "United States",
-            }))
-            setShowBillingAddressSuggestions(false)
-          } else {
-            setFormData((prev) => ({
-              ...prev,
-              address: streetAddress,
-              city: components.locality || "",
-              state: components.administrative_area_level_1 || "",
-              zipCode: components.postal_code || "",
-              country: components.country || "United States",
-            }))
-            setShowAddressSuggestions(false)
-          }
-
-          // Clear any related errors
-          const newErrors = { ...errors }
-          if (isBilling) {
-            delete newErrors.billingAddressLine
-            delete newErrors.billingCity
-            delete newErrors.billingState
-            delete newErrors.billingZipCode
-          } else {
-            delete newErrors.address
-            delete newErrors.city
-            delete newErrors.state
-            delete newErrors.zipCode
-          }
-          setErrors(newErrors)
+        if (isBilling) {
+          setFormData((prev) => ({
+            ...prev,
+            billingAddressLine: streetAddress,
+            billingCity: city,
+            billingState: state,
+            billingZipCode: zipCode,
+            billingCountry: country,
+          }))
+          setShowBillingAddressSuggestions(false)
         } else {
-          console.error("PlacesService getDetails error, status:", status)
-          const errorMessage = "Unable to load address details. Please enter your address manually."
-          if (isBilling) {
-            setBillingAddressApiError(errorMessage)
-          } else {
-            setAddressApiError(errorMessage)
-          }
+          setFormData((prev) => ({
+            ...prev,
+            address: streetAddress,
+            city: city,
+            state: state,
+            zipCode: zipCode,
+            country: country,
+          }))
+          setShowAddressSuggestions(false)
         }
-      },
-    )
+
+        // Clear any related errors
+        const newErrors = { ...errors }
+        if (isBilling) {
+          delete newErrors.billingAddressLine
+          delete newErrors.billingCity
+          delete newErrors.billingState
+          delete newErrors.billingZipCode
+        } else {
+          delete newErrors.address
+          delete newErrors.city
+          delete newErrors.state
+          delete newErrors.zipCode
+        }
+        setErrors(newErrors)
+      } else {
+        console.error("Mapbox Retrieve API error: No features returned")
+        const errorMessage = "Unable to load address details. Please enter your address manually."
+        if (isBilling) {
+          setBillingAddressApiError(errorMessage)
+        } else {
+          setAddressApiError(errorMessage)
+        }
+      }
+    } catch (error) {
+      console.error("Mapbox Retrieve API error:", error)
+      const errorMessage = "Unable to load address details. Please enter your address manually."
+      if (isBilling) {
+        setBillingAddressApiError(errorMessage)
+      } else {
+        setAddressApiError(errorMessage)
+      }
+    }
   }
 
   // Handle clicks outside of suggestions
