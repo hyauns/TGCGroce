@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { neon } from "@neondatabase/serverless"
+import { requireAdmin } from "@/lib/auth-guard"
+import { NextResponse } from "next/server"
 
 function getSqlConnection() {
   const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
@@ -28,6 +30,9 @@ export async function getPaymentGatewayStatus() {
  * Toggles the gateway switch in the database.
  */
 export async function togglePaymentGateway(enabled: boolean) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return { success: false, message: "Unauthorized" }
+
   const sql = getSqlConnection()
   const val = enabled.toString()
   const desc = "Controls whether the Payment Gateway method is visible on Checkout."
@@ -68,6 +73,9 @@ export async function getGatewayProviderSettings() {
 }
 
 export async function saveGatewayProviderSettings(baseUrl: string, storeId: string, apiKey: string, webhookSecret: string) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return { success: false, message: "Unauthorized" }
+
   const sql = getSqlConnection()
   
   // Neon doesn't have an explicit .begin() via default neon() http client without driver. 
@@ -100,6 +108,9 @@ export async function saveGatewayProviderSettings(baseUrl: string, storeId: stri
 }
 
 export async function testGatewayConnection(baseUrl: string, storeId: string, apiKey: string) {
+  const admin = await requireAdmin()
+  if (admin instanceof NextResponse) return { success: false, message: "Unauthorized" }
+
   try {
     if (!baseUrl || !storeId || !apiKey) return { success: false, message: "Missing Gateway URL, Store ID, or API Key." }
     

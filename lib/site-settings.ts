@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 
 export interface SiteSettings {
@@ -35,7 +36,7 @@ const DEFAULTS: SiteSettings = {
   socialYoutube: null,
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+export const getSiteSettings = cache(async function getSiteSettings(): Promise<SiteSettings> {
   try {
     const sql = neon(process.env.DATABASE_URL!)
     const rows = await sql`SELECT * FROM site_settings WHERE id = 1`
@@ -63,4 +64,4 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     console.error("Failed to fetch site settings:", error)
     return DEFAULTS
   }
-}
+})

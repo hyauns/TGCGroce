@@ -36,11 +36,14 @@ export async function POST(request: NextRequest) {
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
-  const session = await requireSession()
+  const sessionPromise = requireSession()
+  const bodyPromise = request.json()
+
+  const session = await sessionPromise
   if (session instanceof NextResponse) return session
   const userId = session.userId
 
-  const { productId, notes } = await request.json()
+  const { productId, notes } = await bodyPromise
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 })
 
   await sql`
@@ -56,11 +59,14 @@ export async function DELETE(request: NextRequest) {
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
-  const session = await requireSession()
+  const sessionPromise = requireSession()
+  const bodyPromise = request.json()
+
+  const session = await sessionPromise
   if (session instanceof NextResponse) return session
   const userId = session.userId
 
-  const { productId } = await request.json()
+  const { productId } = await bodyPromise
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 })
 
   await sql`DELETE FROM wishlists WHERE user_id = ${userId} AND product_id = ${productId}`

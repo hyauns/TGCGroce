@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyPassword } from "@/lib/password-utils"
-import { findUserByEmail, updateLastLogin, logLoginAttempt } from "@/lib/auth-database"
+import { findUserByEmail, updateLastLogin, logLoginAttempt, isUserLocked } from "@/lib/auth-database"
 import { checkLoginRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { sign } from "jsonwebtoken"
 import { cookies } from "next/headers"
@@ -15,6 +15,7 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET: string = process.env.JWT_SECRET
 
 export async function POST(request: NextRequest) {
+  const t0 = performance.now()
   try {
     const body = await request.json()
     const { email, password, rememberMe = false } = body
@@ -51,6 +52,14 @@ export async function POST(request: NextRequest) {
     if (!user) {
       await logLoginAttempt(email, false, clientIP)
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
+    }
+
+    const isLocked = await isUserLocked(user.email)
+    if (isLocked) {
+      return NextResponse.json(
+        { error: "Account is temporarily locked due to multiple failed login attempts. Please try again later." },
+        { status: 403 }
+      )
     }
 
     if (user.status !== "active") {
@@ -115,5 +124,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Login error")
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  } finally {
+    const t1 = performance.now()
+    console.log("[Perf] Auth Login:", t1 - t0, "ms")
   }
 }

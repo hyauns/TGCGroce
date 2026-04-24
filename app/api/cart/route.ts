@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
+import { checkCartRateLimit, getClientIP } from "@/lib/rate-limiter"
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -12,9 +13,11 @@ const sql = neon(process.env.DATABASE_URL!)
  * The check_customer_or_session constraint requires customer_id OR session_id to be non-null.
  */
 async function getCustomerId(userId: string): Promise<number | null> {
+  console.time("[DB] GET Customer ID")
   const [row] = await sql`
     SELECT id FROM customers WHERE user_id = ${userId}::uuid LIMIT 1
   `
+  console.timeEnd("[DB] GET Customer ID")
   return row ? Number(row.id) : null
 }
 
@@ -24,6 +27,7 @@ export async function GET() {
   if (session instanceof NextResponse) return session
   const userId = session.userId
 
+  console.time("[DB] GET Cart")
   const rows = await sql`
     SELECT
       sc.product_id AS id,
@@ -39,6 +43,7 @@ export async function GET() {
     WHERE sc.user_id = ${userId}::uuid
     ORDER BY sc.added_at ASC
   `
+  console.timeEnd("[DB] GET Cart")
   return NextResponse.json({ items: rows })
 }
 
@@ -46,6 +51,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
+
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await checkCartRateLimit(clientIP)
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
 
   const session = await requireSession()
   if (session instanceof NextResponse) return session
@@ -58,18 +69,23 @@ export async function POST(request: NextRequest) {
 
   // shopping_carts has no unique constraint on (user_id, product_id),
   // so we cannot use ON CONFLICT — check-then-update/insert instead.
+  console.time("[DB] POST Check Cart")
   const [existing] = await sql`
     SELECT id, quantity FROM shopping_carts
     WHERE user_id = ${userId}::uuid AND product_id = ${Number(productId)}
     LIMIT 1
   `
+  console.timeEnd("[DB] POST Check Cart")
   if (existing) {
+    console.time("[DB] POST Update Cart")
     await sql`
       UPDATE shopping_carts
       SET quantity = quantity + ${Number(quantity)}, updated_at = NOW()
       WHERE id = ${existing.id}
     `
+    console.timeEnd("[DB] POST Update Cart")
   } else {
+    console.time("[DB] POST Insert Cart")
     await sql`
       INSERT INTO shopping_carts (user_id, customer_id, session_id, product_id, quantity, added_at, updated_at)
       VALUES (
@@ -81,6 +97,7 @@ export async function POST(request: NextRequest) {
         NOW(), NOW()
       )
     `
+    console.timeEnd("[DB] POST Insert Cart")
   }
   return NextResponse.json({ success: true })
 }
@@ -89,6 +106,12 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
+
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await checkCartRateLimit(clientIP)
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
 
   const session = await requireSession()
   if (session instanceof NextResponse) return session
@@ -100,16 +123,23 @@ export async function PATCH(request: NextRequest) {
   const customerId = await getCustomerId(userId)
 
   if (quantity <= 0) {
+    console.time("[DB] PATCH Delete Item")
     await sql`DELETE FROM shopping_carts WHERE user_id = ${userId}::uuid AND product_id = ${Number(productId)}`
+    console.timeEnd("[DB] PATCH Delete Item")
   } else {
+    console.time("[DB] PATCH Check Cart")
     const [existing] = await sql`
       SELECT id FROM shopping_carts
       WHERE user_id = ${userId}::uuid AND product_id = ${Number(productId)}
       LIMIT 1
     `
+    console.timeEnd("[DB] PATCH Check Cart")
     if (existing) {
+      console.time("[DB] PATCH Update Cart")
       await sql`UPDATE shopping_carts SET quantity = ${Number(quantity)}, updated_at = NOW() WHERE id = ${existing.id}`
+      console.timeEnd("[DB] PATCH Update Cart")
     } else {
+      console.time("[DB] PATCH Insert Cart")
       await sql`
         INSERT INTO shopping_carts (user_id, customer_id, session_id, product_id, quantity, added_at, updated_at)
         VALUES (
@@ -121,6 +151,7 @@ export async function PATCH(request: NextRequest) {
           NOW(), NOW()
         )
       `
+      console.timeEnd("[DB] PATCH Insert Cart")
     }
   }
   return NextResponse.json({ success: true })
@@ -131,6 +162,12 @@ export async function DELETE(request: NextRequest) {
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await checkCartRateLimit(clientIP)
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
   const userId = session.userId
@@ -138,9 +175,13 @@ export async function DELETE(request: NextRequest) {
   const { productId, clearAll } = await request.json()
 
   if (clearAll) {
-    await sql`DELETE FROM shopping_carts WHERE user_id = ${userId}`
+    console.time("[DB] DELETE Clear All Cart")
+    await sql`DELETE FROM shopping_carts WHERE user_id = ${userId}::uuid`
+    console.timeEnd("[DB] DELETE Clear All Cart")
   } else if (productId) {
-    await sql`DELETE FROM shopping_carts WHERE user_id = ${userId} AND product_id = ${productId}`
+    console.time("[DB] DELETE Item Cart")
+    await sql`DELETE FROM shopping_carts WHERE user_id = ${userId}::uuid AND product_id = ${productId}`
+    console.timeEnd("[DB] DELETE Item Cart")
   } else {
     return NextResponse.json({ error: "productId or clearAll required" }, { status: 400 })
   }

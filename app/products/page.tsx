@@ -108,7 +108,6 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
       ? `Authentic ${categoryName} trading cards, booster packs, and collectibles at TGC Lore.`
       : "Complete catalog of authentic trading cards and collectibles at TGC Lore.",
     url: canonicalUrl,
-    numberOfItems: productCount,
     provider: {
       "@type": "Organization",
       name: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
@@ -176,54 +175,56 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   const BASE_URL = siteUrl
 
-  // Server-side DB fetch:
-  // Priority: search > category > all products
-  let products
-  let categoryMeta = null
-  let aggregations: FilterAggregations
+  // Server-side DB fetch: Create a promise instead of awaiting
+  const dataPromise = (async () => {
+    let products
+    let categoryMeta = null
+    let aggregations: FilterAggregations
 
-  if (searchQuery) {
-    // Full-text DB search — ILIKE across name / category / joined category name
-    const [searchResults, agg] = await Promise.all([
-      searchProducts(searchQuery, rawProductType, rawRarity),
-      getFilterAggregations(null, searchQuery),
-    ])
-    products = searchResults
-    aggregations = agg
-  } else if (categorySlug && categorySlug !== "all") {
-    const [categoryProducts, catMeta, agg] = await Promise.all([
-      getProductsByCategorySlug(categorySlug, rawProductType, rawRarity),
-      getCategoryBySlug(categorySlug),
-      getFilterAggregations(categorySlug, null),
-    ])
-    products = categoryProducts
-    categoryMeta = catMeta
-    aggregations = agg
-  } else {
-    const [allProducts, agg] = await Promise.all([
-      getAllProducts(rawProductType, rawRarity),
-      getFilterAggregations(null, null),
-    ])
-    products = allProducts
-    aggregations = agg
-  }
+    if (searchQuery) {
+      const [searchResults, agg] = await Promise.all([
+        searchProducts(searchQuery, rawProductType, rawRarity),
+        getFilterAggregations(null, searchQuery),
+      ])
+      products = searchResults
+      aggregations = agg
+    } else if (categorySlug && categorySlug !== "all") {
+      const [categoryProducts, catMeta, agg] = await Promise.all([
+        getProductsByCategorySlug(categorySlug, rawProductType, rawRarity),
+        getCategoryBySlug(categorySlug),
+        getFilterAggregations(categorySlug, null),
+      ])
+      products = categoryProducts
+      categoryMeta = catMeta
+      aggregations = agg
+    } else {
+      const [allProducts, agg] = await Promise.all([
+        getAllProducts(rawProductType, rawRarity),
+        getFilterAggregations(null, null),
+      ])
+      products = allProducts
+      aggregations = agg
+    }
 
-  const activeCategoryName = categoryMeta?.name ?? null
+    const productsForClient = products.map((p) => ({
+      ...p,
+      slug: p.slug || p.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+      stock: p.stock ?? (p.inStock ? 10 : 0),
+      inStock: p.inStock,
+    })) as ProductFilter[]
+
+    return { products: productsForClient, aggregations, categoryMeta }
+  })()
+
+  // Generate canonical URL for JSON-LD without awaiting DB
   const canonicalUrl = searchQuery
     ? `${BASE_URL}/products?search=${encodeURIComponent(searchQuery)}`
     : categorySlug
       ? `${BASE_URL}/products?category=${categorySlug}`
       : `${BASE_URL}/products`
 
-  // Cast to client component product type
-  const productsForClient = products.map((p) => ({
-    ...p,
-    slug: p.slug || p.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
-    stock: p.stock ?? (p.inStock ? 10 : 0),
-    inStock: p.inStock,
-  })) as ProductFilter[]
-
-  const jsonLd = buildJsonLd(activeCategoryName, productsForClient.length, canonicalUrl)
+  // Build JSON-LD with slug as name fallback (actual name is fetched async)
+  const jsonLd = buildJsonLd(categorySlug ? slugToTitle(categorySlug) : null, 0, canonicalUrl)
 
   return (
     <>
@@ -235,11 +236,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
       <ProductsPageClient
         key={`${categorySlug || 'all'}-${searchQuery || 'none'}`}
-        initialProducts={productsForClient}
-        activeCategory={activeCategoryName}
+        dataPromise={dataPromise}
         activeCategorySlug={categorySlug}
         activeSearch={searchQuery || null}
-        aggregations={aggregations}
       />
     </>
   )

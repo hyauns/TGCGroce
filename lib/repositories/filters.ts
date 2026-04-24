@@ -1,4 +1,5 @@
 import "server-only"
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 
 export interface FilterAggregations {
@@ -37,7 +38,7 @@ export function defaultAggregations(): FilterAggregations {
  *   1. Combined availability + product type counts (single row)
  *   2. Context-aware rarity distribution (one row per rarity value)
  */
-export async function getFilterAggregations(
+export const getFilterAggregations = cache(async function getFilterAggregations(
   categorySlug?: string | null,
   searchQuery?: string | null,
 ): Promise<FilterAggregations> {
@@ -111,4 +112,4 @@ export async function getFilterAggregations(
     }
     return defaultAggregations()
   }
-}
+})

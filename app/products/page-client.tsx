@@ -1,9 +1,10 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import type React from "react"
-import { useState } from "react"
+import React, { useState, Suspense, use } from "react"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ProductGridSkeleton } from "@/components/ui/product-skeleton"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -40,18 +41,21 @@ import type { FilterAggregations } from "@/lib/product-filters"
 import { formatSalesCount } from "@/lib/sales-generator"
 
 interface ProductsPageClientProps {
-  initialProducts: Product[]
-  /** Category name resolved by the server (e.g. "Pokemon TCG"). Null = all categories. */
-  activeCategory: string | null
+  dataPromise: Promise<{
+    products: Product[]
+    aggregations: FilterAggregations
+    categoryMeta: any
+  }>
   /** Category slug from the URL (e.g. "pokemon-tcg"). Null = all categories. */
   activeCategorySlug: string | null
   /** Decoded search query from the URL ?search= param. Null = no search active. */
   activeSearch: string | null
-  /** Server-side SQL aggregation counts for filter labels */
-  aggregations: FilterAggregations
 }
 
-export default function ProductsPageClient({ initialProducts, activeCategory, activeCategorySlug, activeSearch, aggregations }: ProductsPageClientProps) {
+function ProductsContent({ dataPromise, activeCategorySlug, activeSearch }: ProductsPageClientProps) {
+  const { products: initialProducts, aggregations, categoryMeta } = use(dataPromise)
+  const activeCategory = categoryMeta?.name ?? null
+
   const { dispatch, addItemWithAnimation, isAddingToCart, recentlyAddedItem } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const searchParams = useSearchParams()
@@ -142,9 +146,7 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
+    <>
       <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl">
@@ -664,8 +666,6 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
         </div>
       </section>
 
-      <Footer />
-
       <QuickViewModal
         product={quickViewProduct}
         isOpen={isQuickViewOpen}
@@ -674,6 +674,54 @@ export default function ProductsPageClient({ initialProducts, activeCategory, ac
         onWishlistToggle={(product) => handleWishlistToggle(product, { preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent)}
         isInWishlist={quickViewProduct ? isInWishlist(quickViewProduct.id) : false}
       />
+    </>
+  )
+}
+
+function ProductsFallback({ activeCategorySlug, activeSearch }: { activeCategorySlug: string | null, activeSearch: string | null }) {
+  const content = getCategoryContent(activeCategorySlug, activeSearch ?? undefined)
+  return (
+    <>
+      <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl">
+            <h1 className="text-2xl md:text-4xl font-bold mb-4 leading-tight">{content.title}</h1>
+            <Skeleton className="h-6 w-3/4 bg-white/20" />
+            <div className="flex flex-wrap gap-2 mt-6">
+              <Skeleton className="h-6 w-24 rounded-full bg-white/20" />
+              <Skeleton className="h-6 w-32 rounded-full bg-white/20" />
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="py-8 bg-gray-50 border-b">
+        <div className="container mx-auto px-4">
+           <div className="flex flex-col lg:flex-row gap-4 items-center lg:items-start lg:justify-between">
+             <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full max-w-md mx-auto lg:max-w-none lg:mx-0 items-center sm:items-stretch">
+               <Skeleton className="h-10 w-full max-w-md" />
+               <Skeleton className="h-10 w-32" />
+               <Skeleton className="h-10 w-48" />
+             </div>
+           </div>
+        </div>
+      </section>
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <ProductGridSkeleton count={12} />
+        </div>
+      </section>
+    </>
+  )
+}
+
+export default function ProductsPageClient(props: ProductsPageClientProps) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Suspense fallback={<ProductsFallback activeCategorySlug={props.activeCategorySlug} activeSearch={props.activeSearch} />}>
+        <ProductsContent {...props} />
+      </Suspense>
+      <Footer />
     </div>
   )
 }

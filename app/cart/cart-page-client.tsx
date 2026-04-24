@@ -28,7 +28,8 @@ import { Header } from "../components/header"
 import { Footer } from "../components/footer"
 import { EnhancedDeliveryCalculator } from "../components/enhanced-delivery-calculator"
 import { useCart } from "@/lib/cart-context"
-import type { Product } from "@/lib/products"
+import { Skeleton } from "@/components/ui/skeleton"
+import { getCartProductDetails, type CartProductDetail } from "./actions"
 
 // ── Rarity system (deterministic, seeded by product id) ─────────────────────
 
@@ -163,19 +164,98 @@ const CustomerReviewsSection = () => {
   )
 }
 
+// ── Skeleton UI ───────────────────────────────────────────────────────────────
+
+function CartSkeleton() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            {[1, 2].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-4 sm:p-6 flex gap-4">
+                  <Skeleton className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/4" />
+                    <div className="pt-4 flex justify-between">
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            <Card>
+              <CardContent className="p-6">
+                <Skeleton className="h-12 w-full mb-4" />
+                <Skeleton className="h-24 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <Card>
+              <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
+              <CardContent><Skeleton className="h-10 w-full" /></CardContent>
+            </Card>
+            <Card>
+              <CardHeader><Skeleton className="h-6 w-32" /></CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Separator />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-12 w-full mt-4" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  )
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
-interface CartPageClientProps {
-  productDetails: Record<number, Product>
-}
+interface CartPageClientProps {}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function CartPageClient({ productDetails }: CartPageClientProps) {
+export default function CartPageClient() {
   const { state, dispatch, getTotalAmount, getCartCount } = useCart()
-  const [promoCode, setPromoCode]         = useState("")
-  const [appliedPromo, setAppliedPromo]   = useState<{ code: string; discount: number } | null>(null)
-  const [selectedShipping, setSelectedShipping] = useState<any>(null)
+  const [promoCode, setPromoCode]         = React.useState("")
+  const [appliedPromo, setAppliedPromo]   = React.useState<{ code: string; discount: number } | null>(null)
+  const [selectedShipping, setSelectedShipping] = React.useState<any>(null)
+  
+  const [productDetails, setProductDetails] = React.useState<Record<number, CartProductDetail>>({})
+  const [isLoadingDetails, setIsLoadingDetails] = React.useState(true)
+
+  const itemIdsStr = state.items.map(i => i.id).join(',')
+
+  React.useEffect(() => {
+    async function loadDetails() {
+      if (state.items.length === 0) {
+        setIsLoadingDetails(false)
+        return
+      }
+      const ids = state.items.map(item => item.id)
+      const details = await getCartProductDetails(ids)
+      setProductDetails(details)
+      setIsLoadingDetails(false)
+    }
+    loadDetails()
+  }, [itemIdsStr, state.items.length])
 
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -251,6 +331,10 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
         <Footer />
       </div>
     )
+  }
+
+  if (isLoadingDetails) {
+    return <CartSkeleton />
   }
 
   // ── Main cart UI ────────────────────────────────────────────────────────────
@@ -444,7 +528,7 @@ export default function CartPageClient({ productDetails }: CartPageClientProps) 
                     <EnhancedDeliveryCalculator
                       productPrice={subtotal}
                       isPreOrder={hasPreOrder}
-                      preOrderDate={preOrderDate}
+                      preOrderDate={preOrderDate ?? undefined}
                       onShippingSelect={handleShippingSelect}
                       className="bg-white hover:bg-blue-50 border-blue-300 w-full sm:w-auto justify-center sm:justify-start"
                     />

@@ -1,6 +1,8 @@
 export const dynamic = "force-dynamic"
 
 import { type NextRequest, NextResponse } from "next/server"
+import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
+import { requireSession } from "@/lib/auth-guard"
 import { Pool, type PoolClient } from "@neondatabase/serverless"
 import { detectCardBrand, encryptPhone, maskPhone } from "@/lib/payment-security"
 import { calculateSalesTax } from "@/lib/tax"
@@ -103,6 +105,14 @@ function isAddressValid(addr: ReturnType<typeof sanitizeAddress>): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const t0 = performance.now()
+
+  const clientIP = getClientIP(request)
+  const rateLimitResult = await checkCheckoutRateLimit(clientIP)
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: "Too many checkout attempts. Please try again later." }, { status: 429 })
+  }
+
   let client: PoolClient | null = null
 
   try {
@@ -123,6 +133,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required order data" }, { status: 400 })
     }
 
+    if (userId && userId !== "guest") {
+      const session = await requireSession()
+      if (session instanceof NextResponse) {
+        return session
+      }
+      if (session.userId !== userId) {
+        return NextResponse.json({ error: "Unauthorized: Invalid session for this user ID" }, { status: 403 })
+      }
+    }
+
     client = await getPool().connect()
     await client.query("BEGIN")
 
@@ -141,6 +161,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let serverSubtotal = 0
+
     for (const item of items) {
       const requestedQuantity = Number(item.quantity)
       let stockQuantity = 0
@@ -149,7 +171,7 @@ export async function POST(request: NextRequest) {
 
       const invAttempt = await withSavepoint("sp_inv_read", () =>
         client!.query(
-          `SELECT i.stock_on_hand, p.is_pre_order
+          `SELECT i.stock_on_hand, p.is_pre_order, p.price
            FROM products p
            LEFT JOIN inventory i ON i.product_id = p.id
            WHERE p.id = $1
@@ -164,12 +186,13 @@ export async function POST(request: NextRequest) {
         }
         stockQuantity = Number(invAttempt.result.rows[0].stock_on_hand) || 0
         isPreOrder = Boolean(invAttempt.result.rows[0].is_pre_order)
+        item.price = Number(invAttempt.result.rows[0].price) || 0
         stockResolved = true
       } else {
         console.warn(`[orders/create] inventory table not found - trying products.stock_quantity for "${item.name}"`)
 
         const legacyAttempt = await withSavepoint("sp_inv_legacy", () =>
-          client!.query(`SELECT stock_quantity, is_pre_order FROM products WHERE id = $1 FOR UPDATE`, [
+          client!.query(`SELECT stock_quantity, is_pre_order, price FROM products WHERE id = $1 FOR UPDATE`, [
             String(item.id),
           ]),
         )
@@ -180,14 +203,19 @@ export async function POST(request: NextRequest) {
           }
           stockQuantity = Number(legacyAttempt.result.rows[0].stock_quantity) || 0
           isPreOrder = Boolean(legacyAttempt.result.rows[0].is_pre_order)
+          item.price = Number(legacyAttempt.result.rows[0].price) || 0
           stockResolved = true
         } else {
           const existsAttempt = await withSavepoint("sp_inv_exists", () =>
-            client!.query(`SELECT id, is_pre_order FROM products WHERE id = $1`, [String(item.id)]),
+            client!.query(`SELECT id, is_pre_order, price FROM products WHERE id = $1`, [String(item.id)]),
           )
 
           if (existsAttempt.ok && existsAttempt.result.rows.length === 0) {
             throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
+          }
+
+          if (existsAttempt.ok && existsAttempt.result.rows.length > 0) {
+            item.price = Number(existsAttempt.result.rows[0].price) || 0
           }
 
           throw new Error(`INVENTORY_UNAVAILABLE:${item.name}`)
@@ -223,6 +251,8 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+
+      serverSubtotal += item.price * requestedQuantity
     }
 
     const customerEmail: string | null =
@@ -241,7 +271,7 @@ export async function POST(request: NextRequest) {
     const cleanBilling = sanitizeAddress(rawBilling ?? rawShipping ?? {})
 
     const verifiedTaxAmount = await calculateSalesTax({
-      amount: Number(subtotal || 0),
+      amount: serverSubtotal,
       shipping: Number(shippingAmount || 0),
       toZip: cleanShipping.postal_code,
       toState: cleanShipping.state,
@@ -249,7 +279,7 @@ export async function POST(request: NextRequest) {
       toCountry: cleanShipping.country,
     })
 
-    const verifiedTotalAmount = Number(subtotal || 0) + Number(shippingAmount || 0) + verifiedTaxAmount
+    const verifiedTotalAmount = serverSubtotal + Number(shippingAmount || 0) + verifiedTaxAmount
     const formattedTotalAmount = Number(verifiedTotalAmount.toFixed(2))
     const formattedTaxAmount = Number(verifiedTaxAmount.toFixed(2))
 
@@ -276,7 +306,7 @@ export async function POST(request: NextRequest) {
       [
         customerId ?? "guest",
         orderNumber,
-        Number(subtotal || 0),
+        serverSubtotal,
         formattedTaxAmount,
         Number(shippingAmount || 0),
         formattedTotalAmount,
@@ -493,5 +523,7 @@ export async function POST(request: NextRequest) {
         console.error("Failed to release client:", e)
       }
     }
+    const t1 = performance.now()
+    console.log("[Perf] Create Order:", t1 - t0, "ms")
   }
 }

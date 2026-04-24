@@ -91,16 +91,21 @@ export default async function ProductPage({ params }: PageProps) {
     notFound()
   }
 
-  const relatedProducts = await getRelatedProducts(product.id)
-  const ProductPageClient = (await import("./page-client")).default
+  // Fetch related products, the client component, and reviews in parallel
+  const [relatedProducts, productPageClientModule, rawReviews] = await Promise.all([
+    getRelatedProducts(product.id),
+    import("./page-client"),
+    product.reviews && product.reviews > 0 ? getReviewsByProductId(product.id, 10) : Promise.resolve([])
+  ])
+
+  const ProductPageClient = productPageClientModule.default
 
   // Fix image double-prefix by checking for an absolute URL
   const imageUrl = product.image.startsWith("http") ? product.image : `${siteUrl}${product.image}`
 
-  // Fetch DB reviews if the product aggregate claims they exist
+  // Format DB reviews
   let reviewArray: any[] = []
-  if (product.reviews && product.reviews > 0) {
-    const rawReviews = await getReviewsByProductId(product.id, 10) // fetch up to 10 latest reviews
+  if (rawReviews.length > 0) {
     reviewArray = rawReviews.map((r) => ({
       "@type": "Review",
       "author": {

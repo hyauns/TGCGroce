@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, Suspense, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ProductGridSkeleton } from "@/components/ui/product-skeleton"
 import {
   ShoppingCart,
   Star,
@@ -61,24 +63,17 @@ interface Review {
 }
 
 interface HomePageClientProps {
-  featuredProducts: Product[]
-  bestSellingProducts: Product[]
-  preOrderProducts: Product[]
-  initialReviews: Review[]
   heroSettings: SiteSettings
+  dataPromise: Promise<[Product[], Product[], Product[], Review[]]>
 }
 
 // ============================================================
 // Client Component — all interactive behaviour lives here
 // ============================================================
 
-export default function HomePageClient({
-  featuredProducts,
-  bestSellingProducts,
-  preOrderProducts,
-  initialReviews,
-  heroSettings,
-}: HomePageClientProps) {
+function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product[], Product[], Review[]]> }) {
+  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews] = use(dataPromise)
+
   const { addItemWithAnimation } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { toast } = useToast()
@@ -184,16 +179,7 @@ export default function HomePageClient({
     ))
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      {/* Hero Section */}
-      <Hero
-        heroTitle={heroSettings.heroTitle}
-        heroSubtitle={heroSettings.heroSubtitle}
-        heroImageUrl={heroSettings.heroImageUrl}
-      />
-
+    <>
       {/* Pre-Order Section — hidden when no pre-order products in DB */}
       {preOrderProducts.length > 0 && (
         <section className="py-20 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
@@ -742,8 +728,6 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <Footer />
-
       <QuickViewModal
         product={selectedProduct}
         isOpen={isQuickViewOpen}
@@ -752,6 +736,44 @@ export default function HomePageClient({
         onWishlistToggle={handleWishlistToggle}
         isInWishlist={selectedProduct ? isInWishlist(selectedProduct.id) : false}
       />
+    </>
+  )
+}
+
+function HomeFallback() {
+  return (
+    <>
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-96 mb-10" />
+          <ProductGridSkeleton count={12} className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" />
+        </div>
+      </section>
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-96 mb-10" />
+          <ProductGridSkeleton count={12} className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" />
+        </div>
+      </section>
+    </>
+  )
+}
+
+export default function HomePageClient({ heroSettings, dataPromise }: HomePageClientProps) {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Hero
+        heroTitle={heroSettings.heroTitle}
+        heroSubtitle={heroSettings.heroSubtitle}
+        heroImageUrl={heroSettings.heroImageUrl}
+      />
+      <Suspense fallback={<HomeFallback />}>
+        <HomeContent dataPromise={dataPromise} />
+      </Suspense>
+      <Footer />
     </div>
   )
 }

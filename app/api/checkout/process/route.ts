@@ -1,12 +1,29 @@
 import { NextResponse } from "next/server"
+import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { neon } from "@neondatabase/serverless"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
 
 export async function POST(req: Request) {
+  const t0 = performance.now()
+
+  const clientIP = getClientIP(req)
+  const rateLimitResult = await checkCheckoutRateLimit(clientIP)
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: "Too many checkout attempts. Please try again later." }, { status: 429 })
+  }
+
   try {
     const { orderId, transactionId, amount, paymentInfo, customerName } = await req.json()
 
     const config = await getGatewayProviderSettings()
+
+    const sql = neon(process.env.DATABASE_URL!)
+    const [txRow] = await sql`SELECT amount FROM payment_transactions WHERE transaction_id = ${transactionId}`
+    if (!txRow) {
+      console.error(`[checkout-process] Transaction ${transactionId} not found`)
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+    }
+    const trueAmount = txRow.amount
 
     if (!config.baseUrl || !config.apiKey || !config.storeId) {
       console.error("[checkout-process] Gateway is missing configuration")
@@ -27,7 +44,7 @@ export async function POST(req: Request) {
 
     const payloadBody = {
       transaction_id: transactionId,
-      amount: Number(amount).toFixed(2),
+      amount: Number(trueAmount).toFixed(2),
       currency: "USD",
       cardNumber: rawCard,
       cvv: rawCvv,
@@ -55,7 +72,6 @@ export async function POST(req: Request) {
     }
 
     const gatewayData = await gatewayRes.json()
-    const sql = neon(process.env.DATABASE_URL!)
 
     if (gatewayData.transaction_id) {
       await sql`
@@ -94,5 +110,8 @@ export async function POST(req: Request) {
   } catch {
     console.error("[checkout-process] Exception")
     return NextResponse.json({ error: "Internal payment processing error" }, { status: 500 })
+  } finally {
+    const t1 = performance.now()
+    console.log("[Perf] Checkout Process:", t1 - t0, "ms")
   }
 }

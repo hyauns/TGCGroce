@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 
 const sql = neon(process.env.DATABASE_URL!)
@@ -62,19 +63,19 @@ export async function createUser(userData: CreateUserData): Promise<User> {
   return user as User
 }
 
-export async function findUserByEmail(email: string): Promise<User | null> {
+export const findUserByEmail = cache(async function findUserByEmail(email: string): Promise<User | null> {
   const [user] = await sql`
     SELECT * FROM users WHERE email = ${email} LIMIT 1
   `
   return (user as User) || null
-}
+})
 
-export async function findUserById(id: string): Promise<User | null> {
+export const findUserById = cache(async function findUserById(id: string): Promise<User | null> {
   const [user] = await sql`
     SELECT * FROM users WHERE user_id = ${id} LIMIT 1
   `
   return (user as User) || null
-}
+})
 
 export async function verifyUserEmail(token: string): Promise<{ success: boolean; user?: User }> {
   const result = await sql`
@@ -178,8 +179,18 @@ export async function isUserLocked(email: string): Promise<boolean> {
   if (!user) return false
 
   // Check if user is temporarily locked
-  if (user.locked_until && new Date(user.locked_until) > new Date()) {
-    return true
+  if (user.locked_until) {
+    if (new Date(user.locked_until) > new Date()) {
+      return true
+    } else {
+      // Lockout expired, reset attempts
+      await sql`
+        UPDATE users 
+        SET login_attempts = 0, locked_until = NULL, updated_at = NOW()
+        WHERE email = ${email}
+      `
+      user.login_attempts = 0
+    }
   }
 
   // Lock user if too many failed attempts (5 or more)

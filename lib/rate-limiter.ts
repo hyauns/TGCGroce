@@ -3,22 +3,32 @@ import { Ratelimit } from "@upstash/ratelimit"
 
 export const LOGIN_RATE_LIMIT = {
   maxAttempts: 5,
-  windowMs: 15 * 60 * 1000,
+  windowMs: 10 * 1000,
 }
 
 export const PASSWORD_RESET_RATE_LIMIT = {
   maxAttempts: 3,
-  windowMs: 60 * 60 * 1000,
+  windowMs: 60 * 1000,
 }
 
 export const REGISTER_RATE_LIMIT = {
   maxAttempts: 5,
-  windowMs: 15 * 60 * 1000,
+  windowMs: 60 * 1000,
 }
 
 export const CONTACT_RATE_LIMIT = {
   maxAttempts: 5,
   windowMs: 60 * 60 * 1000,
+}
+
+export const CART_RATE_LIMIT = {
+  maxAttempts: 30,
+  windowMs: 60 * 1000,
+}
+
+export const CHECKOUT_RATE_LIMIT = {
+  maxAttempts: 5,
+  windowMs: 60 * 1000,
 }
 
 interface RateLimitResult {
@@ -165,6 +175,20 @@ export async function checkRegisterRateLimit(identifier: string): Promise<RateLi
 export async function checkContactRateLimit(identifier: string): Promise<RateLimitResult> {
   return checkRateLimit(
     { ...CONTACT_RATE_LIMIT, prefix: "ratelimit:contact" },
+    identifier,
+  )
+}
+
+export async function checkCartRateLimit(identifier: string): Promise<RateLimitResult> {
+  return checkRateLimit(
+    { ...CART_RATE_LIMIT, prefix: "ratelimit:cart" },
+    identifier,
+  )
+}
+
+export async function checkCheckoutRateLimit(identifier: string): Promise<RateLimitResult> {
+  return checkRateLimit(
+    { ...CHECKOUT_RATE_LIMIT, prefix: "ratelimit:checkout" },
     identifier,
   )
 }

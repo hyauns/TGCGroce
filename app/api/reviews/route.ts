@@ -66,11 +66,14 @@ export async function GET(request: NextRequest) {
 // ─── POST — submit a new review ───────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-  const session = await requireSession()
+  const sessionPromise = requireSession()
+  const bodyPromise = request.json()
+
+  const session = await sessionPromise
   if (session instanceof NextResponse) return session
 
   try {
-    const body = await request.json()
+    const body = await bodyPromise
     const { product_id, rating, title, review_text } = body
 
     // Validate required fields

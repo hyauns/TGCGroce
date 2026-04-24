@@ -2,11 +2,17 @@
 
 import { neon } from "@neondatabase/serverless"
 import { revalidatePath } from "next/cache"
+import { requireAdmin } from "@/lib/auth-guard"
+import { NextResponse } from "next/server"
 
 const sql = neon(process.env.DATABASE_URL!)
 
 export async function updateAdminProductAction(data: any) {
   try {
+    const admin = await requireAdmin()
+    if (admin instanceof NextResponse) {
+      return { success: false, error: "Unauthorized: Admin access required" }
+    }
     const {
       id,
       name,
@@ -37,6 +43,7 @@ export async function updateAdminProductAction(data: any) {
       }
     }
 
+    console.time("[DB] Update Admin Product")
     await sql`
       UPDATE products 
       SET 
@@ -56,6 +63,7 @@ export async function updateAdminProductAction(data: any) {
         updated_at = NOW()
       WHERE id = ${id}
     `
+    console.timeEnd("[DB] Update Admin Product")
 
     revalidatePath("/admin/products")
     revalidatePath("/products")

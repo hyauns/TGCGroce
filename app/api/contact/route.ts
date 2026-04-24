@@ -88,6 +88,9 @@ export async function POST(request: NextRequest) {
     }
 
     const clientIP = getClientIP(request)
+    
+    // Start parsing body and checking rate limit concurrently
+    const bodyPromise = request.json()
     const rateLimitResult = await checkContactRateLimit(clientIP)
 
     if (!rateLimitResult.backendAvailable) {
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    const body = await bodyPromise
     const { name, email, subject, message, captchaToken } = body
 
     if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {

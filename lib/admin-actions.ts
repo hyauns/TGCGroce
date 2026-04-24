@@ -106,35 +106,39 @@ export async function updateProduct(
     // Neon's sql`` API doesn't support dynamically-built queries with
     // separate parameter arrays — tagged template literals are the
     // idiomatic (and safe) approach.
+    const promises: Promise<any>[] = []
 
     if (data.price !== undefined) {
-      await sql`UPDATE products SET price = ${data.price}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET price = ${data.price}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
     if (data.originalPrice !== undefined) {
-      await sql`UPDATE products SET original_price = ${data.originalPrice}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET original_price = ${data.originalPrice}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
     if (data.stockQuantity !== undefined) {
-      await sql`UPDATE products SET stock_quantity = ${data.stockQuantity}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET stock_quantity = ${data.stockQuantity}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
     if (data.isActive !== undefined) {
-      await sql`UPDATE products SET is_active = ${data.isActive}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET is_active = ${data.isActive}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
     if (data.isPreOrder !== undefined) {
-      await sql`UPDATE products SET is_pre_order = ${data.isPreOrder}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET is_pre_order = ${data.isPreOrder}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
     if (data.releaseDate !== undefined) {
-      await sql`UPDATE products SET release_date = ${data.releaseDate}, updated_at = NOW() WHERE id = ${productId}`
+      promises.push(sql`UPDATE products SET release_date = ${data.releaseDate}, updated_at = NOW() WHERE id = ${productId}`)
       hasUpdates = true
     }
 
     if (!hasUpdates) {
       return { success: false, error: "No fields to update" }
     }
+
+    // Await all updates concurrently
+    await Promise.all(promises)
 
     // Look up the product name to derive its slug for targeted revalidation
     const rows = await sql`SELECT name FROM products WHERE id = ${productId}` as { name: string }[]

@@ -35,7 +35,9 @@ export async function GET(
     return new Response("Not Found", { status: 404 })
   }
 
+  console.time("[DB] GET Feed Config")
   const config = await getFeedConfigurationById(uuid)
+  console.timeEnd("[DB] GET Feed Config")
   if (!config) {
     return new Response("Not Found", { status: 404 })
   }
@@ -61,7 +63,9 @@ export async function GET(
         let hasMore = true
 
         while (hasMore) {
+          console.time(`[DB] Stream Feed Batch ${offset}`)
           const products = await streamFeedProducts(config, offset, CHUNK_SIZE)
+          console.timeEnd(`[DB] Stream Feed Batch ${offset}`)
 
           for (const product of products) {
             controller.enqueue(encoder.encode(buildItemXml(product)))

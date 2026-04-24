@@ -1,4 +1,5 @@
 import "server-only"
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 import { generateRealisticSalesCount } from "./sales-generator"
 
@@ -281,7 +282,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
 /**
  * Fetch all active products, enriched with category metadata via JOIN.
  */
-export async function getAllProducts(productType?: string | null, rarity?: string | null): Promise<Product[]> {
+export const getAllProducts = cache(async function getAllProducts(productType?: string | null, rarity?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -321,12 +322,12 @@ export async function getAllProducts(productType?: string | null, rarity?: strin
     }
     return []
   }
-}
+})
 
 /**
  * Fetch a single product by numeric ID, enriched with category JOIN.
  */
-export async function getProductById(id: number): Promise<Product | undefined> {
+export const getProductById = cache(async function getProductById(id: number): Promise<Product | undefined> {
   try {
     const sql = getSqlConnection()
     if (!sql) return undefined
@@ -356,14 +357,14 @@ export async function getProductById(id: number): Promise<Product | undefined> {
     }
     return undefined
   }
-}
+})
 
 /**
  * Fetch a single product by its URL slug (derived from name).
  * Performs a full-table scan + in-memory slug match — acceptable because
  * the products table is small. Add a slug column to DB for better perf.
  */
-export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+export const getProductBySlug = cache(async function getProductBySlug(slug: string): Promise<Product | undefined> {
   try {
     const sql = getSqlConnection()
     if (!sql) return undefined
@@ -394,13 +395,13 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
     }
     return undefined
   }
-}
+})
 
 /**
  * Legacy helper — filter by raw category name string.
  * Kept for backward-compat; prefer getProductsByCategorySlug for new code.
  */
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+export const getProductsByCategory = cache(async function getProductsByCategory(category: string): Promise<Product[]> {
   if (category === "All Categories" || category === "all") return getAllProducts()
 
   try {
@@ -432,7 +433,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     }
     return []
   }
-}
+})
 
 /**
  * Resolve a category slug to its full metadata.
@@ -441,7 +442,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
  *   1. product_categories.slug  (authoritative, uses index)
  *   2. Derived slug from products.category string (fallback during migration)
  */
-export async function getCategoryBySlug(slug: string): Promise<CategoryMeta | null> {
+export const getCategoryBySlug = cache(async function getCategoryBySlug(slug: string): Promise<CategoryMeta | null> {
   try {
     const sql = getSqlConnection()
     if (!sql) return null
@@ -470,7 +471,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryMeta | nu
   } catch {
     return null
   }
-}
+})
 
 /**
  * PRIMARY category-filtered product query.
@@ -483,7 +484,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryMeta | nu
  *   3. Slug-derived match against raw products.category string
  *      (last resort — no product_categories data at all)
  */
-export async function getProductsByCategorySlug(slug: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
+export const getProductsByCategorySlug = cache(async function getProductsByCategorySlug(slug: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
   if (!slug || slug === "all") return getAllProducts(productType, rarity)
 
   const sql = getSqlConnection()
@@ -563,13 +564,13 @@ export async function getProductsByCategorySlug(slug: string, productType?: stri
     }
     return []
   }
-}
+})
 
 /**
  * Return all active category slugs.
  * Used for sitemap generation and future generateStaticParams.
  */
-export async function getAllCategorySlugs(): Promise<string[]> {
+export const getAllCategorySlugs = cache(async function getAllCategorySlugs(): Promise<string[]> {
   const sql = getSqlConnection()
   if (!sql) return []
 
@@ -592,7 +593,7 @@ export async function getAllCategorySlugs(): Promise<string[]> {
   } catch {
     return []
   }
-}
+})
 
 /**
  * Fetch featured products for the homepage.
@@ -602,7 +603,7 @@ export async function getAllCategorySlugs(): Promise<string[]> {
  *   2. Fallback: products with a discount (original_price IS NOT NULL)
  * Returns up to 12 products.
  */
-export async function getFeaturedProducts(): Promise<Product[]> {
+export const getFeaturedProducts = cache(async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -680,14 +681,14 @@ export async function getFeaturedProducts(): Promise<Product[]> {
     }
     return []
   }
-}
+})
 
 /**
  * Fetch best-selling products for the homepage.
  * Ordered by created_at DESC as a proxy until a sales_count column is added.
  * Returns up to 12 products.
  */
-export async function getBestSellingProducts(): Promise<Product[]> {
+export const getBestSellingProducts = cache(async function getBestSellingProducts(): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -739,7 +740,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
     }
     return []
   }
-}
+})
 
 /**
  * Fetch pre-order products for the homepage.
@@ -751,7 +752,7 @@ export async function getBestSellingProducts(): Promise<Product[]> {
  *
  * Returns up to 12 products, mapped with isPreOrder = true.
  */
-export async function getPreOrderProducts(): Promise<Product[]> {
+export const getPreOrderProducts = cache(async function getPreOrderProducts(): Promise<Product[]> {
   const sql = getSqlConnection()
   if (!sql) return []
 
@@ -846,13 +847,13 @@ export async function getPreOrderProducts(): Promise<Product[]> {
 
   // No pre-order data at all — homepage hides the section automatically (preOrderProducts.length === 0)
   return []
-}
+})
 
 /**
  * Fetch related products in the same category (excluding given product ID).
  * Uses category_id FK when available; falls back to category string match.
  */
-export async function getRelatedProducts(productId: number): Promise<Product[]> {
+export const getRelatedProducts = cache(async function getRelatedProducts(productId: number): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -893,21 +894,21 @@ export async function getRelatedProducts(productId: number): Promise<Product[]> 
     }
     return []
   }
-}
+})
 
 /**
  * Fetch related products by product slug.
  */
-export async function getRelatedProductsBySlug(slug: string): Promise<Product[]> {
+export const getRelatedProductsBySlug = cache(async function getRelatedProductsBySlug(slug: string): Promise<Product[]> {
   const currentProduct = await getProductBySlug(slug)
   if (!currentProduct) return []
   return getRelatedProducts(currentProduct.id)
-}
+})
 
 /**
  * Full-text search across product name and category.
  */
-export async function searchProducts(query: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
+export const searchProducts = cache(async function searchProducts(query: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -965,7 +966,7 @@ export async function searchProducts(query: string, productType?: string | null,
     }
     return []
   }
-}
+})
 
 /**
  * Return all unique category names (for filter UI dropdowns).

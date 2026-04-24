@@ -1,4 +1,5 @@
 import "server-only"
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 
 export interface ReviewDb {
@@ -22,7 +23,7 @@ function getSqlConnection() {
   return neon(url)
 }
 
-export async function getReviewsByProductId(productId: number, limit: number = 5): Promise<ReviewDb[]> {
+export const getReviewsByProductId = cache(async function getReviewsByProductId(productId: number, limit: number = 5): Promise<ReviewDb[]> {
   try {
     const sql = getSqlConnection()
     if (!sql) return []
@@ -55,4 +56,4 @@ export async function getReviewsByProductId(productId: number, limit: number = 5
     }
     return []
   }
-}
+})

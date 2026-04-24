@@ -1,4 +1,5 @@
 import "server-only"
+import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
 
 // ============================================================
@@ -146,7 +147,7 @@ export async function updateFeedConfiguration(id: string, input: UpdateFeedInput
 /**
  * List all feed configurations, newest first.
  */
-export async function listFeedConfigurations(): Promise<FeedConfiguration[]> {
+export const listFeedConfigurations = cache(async function listFeedConfigurations(): Promise<FeedConfiguration[]> {
   const sql = getSqlConnection()
   if (!sql) return []
 
@@ -160,13 +161,13 @@ export async function listFeedConfigurations(): Promise<FeedConfiguration[]> {
     console.error("[feeds] Error listing feed configurations:", error)
     return []
   }
-}
+})
 
 /**
  * Get a single feed configuration by UUID.
  * Returns null if not found or inactive.
  */
-export async function getFeedConfigurationById(id: string): Promise<FeedConfiguration | null> {
+export const getFeedConfigurationById = cache(async function getFeedConfigurationById(id: string): Promise<FeedConfiguration | null> {
   const sql = getSqlConnection()
   if (!sql) return null
 
@@ -181,7 +182,7 @@ export async function getFeedConfigurationById(id: string): Promise<FeedConfigur
     console.error("[feeds] Error fetching feed configuration:", error)
     return null
   }
-}
+})
 
 /**
  * Delete a feed configuration by UUID.
@@ -214,7 +215,7 @@ export async function deleteFeedConfiguration(id: string): Promise<boolean> {
  * Only the columns needed for GMC XML generation are selected — no
  * heavy JOINs or unnecessary data hydration.
  */
-export async function streamFeedProducts(
+export const streamFeedProducts = cache(async function streamFeedProducts(
   config: FeedConfiguration,
   offset: number,
   limit: number = 500,
@@ -312,12 +313,12 @@ export async function streamFeedProducts(
     console.error("[feeds] Error streaming feed products:", error)
     return []
   }
-}
+})
 
 /**
  * Count the total number of products matching the feed configuration's filter rules.
  */
-export async function countFeedProducts(config: FeedConfiguration): Promise<number> {
+export const countFeedProducts = cache(async function countFeedProducts(config: FeedConfiguration): Promise<number> {
   const sql = getSqlConnection()
   if (!sql) return 0
 
@@ -381,4 +382,4 @@ export async function countFeedProducts(config: FeedConfiguration): Promise<numb
     console.error("[feeds] Error counting feed products:", error)
     return 0
   }
-}
+})

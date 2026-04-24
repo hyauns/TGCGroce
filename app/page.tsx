@@ -42,23 +42,20 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function HomePage() {
-  // All 5 fetches run in parallel on the server
-  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews, siteSettings] =
-    await Promise.all([
-      getFeaturedProducts(),
-      getBestSellingProducts(),
-      getPreOrderProducts(),
-      getAllReviews(),
-      getSiteSettings(),
-    ])
+  const siteSettings = await getSiteSettings()
+
+  // Product fetching is not awaited, passed as a promise for Suspense streaming
+  const dataPromise = Promise.all([
+    getFeaturedProducts(),
+    getBestSellingProducts(),
+    getPreOrderProducts(),
+    getAllReviews(),
+  ])
 
   return (
     <HomePageClient
-      featuredProducts={featuredProducts}
-      bestSellingProducts={bestSellingProducts}
-      preOrderProducts={preOrderProducts}
-      initialReviews={initialReviews}
       heroSettings={siteSettings}
+      dataPromise={dataPromise}
     />
   )
 }
