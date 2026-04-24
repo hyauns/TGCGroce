@@ -50,6 +50,7 @@ interface FeedConfiguration {
   max_price: number | null
   is_active: boolean
   created_at: string
+  product_count?: number
 }
 
 // ============================================================
@@ -475,6 +476,7 @@ export default function FeedsPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Filters</TableHead>
+                    <TableHead>Product Count</TableHead>
                     <TableHead>Feed URL</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -485,6 +487,11 @@ export default function FeedsPage() {
                     <TableRow key={feed.id} className={editingFeedId === feed.id ? "bg-blue-50 dark:bg-blue-950" : ""}>
                       <TableCell className="font-medium">{feed.name}</TableCell>
                       <TableCell>{renderFilterBadges(feed)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono bg-blue-50 dark:bg-blue-900/20">
+                          {feed.product_count !== undefined ? feed.product_count.toLocaleString() : "-"}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded max-w-[250px] truncate block">

@@ -313,3 +313,72 @@ export async function streamFeedProducts(
     return []
   }
 }
+
+/**
+ * Count the total number of products matching the feed configuration's filter rules.
+ */
+export async function countFeedProducts(config: FeedConfiguration): Promise<number> {
+  const sql = getSqlConnection()
+  if (!sql) return 0
+
+  try {
+    const categoryFilter = config.category_slug
+      ? sql`AND pc.slug = ${config.category_slug}`
+      : sql``
+
+    const typeFilter = config.product_type === "sealed"
+      ? sql`AND p.product_type ILIKE '%sealed%'`
+      : config.product_type === "single"
+        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+        : sql``
+
+    const preorderStatus = config.preorder_status || (config.exclude_preorders ? 'exclude' : 'all')
+
+    let stockFilter
+    if (config.stock_status === "in_stock") {
+      if (preorderStatus === 'exclude') {
+        stockFilter = sql`AND p.stock_quantity > 0`
+      } else {
+        stockFilter = sql`AND (p.stock_quantity > 0 OR p.is_pre_order = true)`
+      }
+    } else if (config.stock_status === "out_of_stock") {
+      stockFilter = sql`AND p.stock_quantity <= 0`
+    } else {
+      stockFilter = sql``
+    }
+
+    const preorderFilter = preorderStatus === 'exclude'
+      ? sql`AND (p.is_pre_order IS NULL OR p.is_pre_order = false)`
+      : preorderStatus === 'only'
+        ? sql`AND p.is_pre_order = true`
+        : sql``
+
+    const minPriceFilter = config.min_price != null
+      ? sql`AND p.price >= ${config.min_price}`
+      : sql``
+
+    const maxPriceFilter = config.max_price != null
+      ? sql`AND p.price <= ${config.max_price}`
+      : sql``
+
+    const rows = await sql`
+      SELECT COUNT(*) as total
+      FROM products p
+      LEFT JOIN product_categories pc
+             ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+             OR (p.category_id IS NULL AND pc.name = p.category AND pc.is_active = true)
+      WHERE p.is_active = true
+        ${categoryFilter}
+        ${typeFilter}
+        ${stockFilter}
+        ${preorderFilter}
+        ${minPriceFilter}
+        ${maxPriceFilter}
+    `
+
+    return Number(rows[0]?.total || 0)
+  } catch (error) {
+    console.error("[feeds] Error counting feed products:", error)
+    return 0
+  }
+}

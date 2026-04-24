@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth-guard"
 import {
   listFeedConfigurations,
   createFeedConfiguration,
+  countFeedProducts,
   type CreateFeedInput,
 } from "@/lib/repositories/feeds"
 
@@ -18,7 +19,15 @@ export async function GET() {
 
   try {
     const feeds = await listFeedConfigurations()
-    return NextResponse.json({ feeds })
+    
+    const feedsWithCount = await Promise.all(
+      feeds.map(async (feed) => {
+        const count = await countFeedProducts(feed)
+        return { ...feed, product_count: count }
+      })
+    )
+
+    return NextResponse.json({ feeds: feedsWithCount })
   } catch (error) {
     console.error("[admin/feeds] Error listing feeds:", error)
     return NextResponse.json({ error: "Failed to list feeds" }, { status: 500 })
