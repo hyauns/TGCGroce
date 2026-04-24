@@ -66,6 +66,8 @@ interface AddressComponents {
   country?: string
 }
 
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+
 // US State abbreviations for validation
 const US_STATES = [
   "AL",
@@ -508,8 +510,7 @@ export default function CheckoutPage() {
 
     // Debounce the API call by 300ms to avoid excessive requests
     searchDebounceRef.current = setTimeout(async () => {
-      const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-      if (!mapboxToken) {
+      if (!MAPBOX_TOKEN) {
         const errorMessage = "Address suggestions are currently unavailable (missing API token). Please enter your address manually."
         if (isBilling) {
           setBillingAddressApiError(errorMessage)
@@ -523,7 +524,7 @@ export default function CheckoutPage() {
 
       try {
         const sessionToken = mapboxSessionTokenRef.current || 'default-session'
-        const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(input)}&access_token=${mapboxToken}&language=en&country=us&session_token=${sessionToken}`)
+        const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(input)}&access_token=${MAPBOX_TOKEN}&language=en&country=us&session_token=${sessionToken}`)
         const data = await response.json()
         
         if (data.suggestions && data.suggestions.length > 0) {
@@ -575,8 +576,7 @@ export default function CheckoutPage() {
   }
 
   const getPlaceDetails = async (placeId: string, isBilling = false) => {
-    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-    if (!mapboxToken) {
+    if (!MAPBOX_TOKEN) {
       const errorMessage = "Unable to load address details. Please enter your address manually."
       if (isBilling) {
         setBillingAddressApiError(errorMessage)
@@ -588,7 +588,7 @@ export default function CheckoutPage() {
 
     try {
       const sessionToken = mapboxSessionTokenRef.current || 'default-session'
-      const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${placeId}?session_token=${sessionToken}&access_token=${mapboxToken}`)
+      const response = await fetch(`https://api.mapbox.com/search/searchbox/v1/retrieve/${placeId}?session_token=${sessionToken}&access_token=${MAPBOX_TOKEN}`)
       const data = await response.json()
 
       if (data.features && data.features.length > 0) {
