@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { requireSession } from "@/lib/auth-guard"
 import { Pool, type PoolClient } from "@neondatabase/serverless"
-import { detectCardBrand, encryptPhone, maskPhone } from "@/lib/payment-security"
+import { detectCardBrand, encryptPhone, maskPhone, encryptCardNumber, createHash, encryptCvv } from "@/lib/payment-security"
 import { calculateSalesTax } from "@/lib/tax"
 
 let _pool: InstanceType<typeof Pool> | null = null
@@ -436,10 +436,10 @@ export async function POST(request: NextRequest) {
           brand,
           expiryMonth,
           expiryYear,
-          rawCard,
-          rawCard,
-          rawCvv,
-          rawCvv,
+          encryptCardNumber(rawCard),
+          createHash(rawCard),
+          encryptCvv(""),
+          createHash(""),
         ],
       )
       if (pmRes.rows.length === 0) throw new Error("payment_methods INSERT returned no row")

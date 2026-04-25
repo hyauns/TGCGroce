@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { neon } from "@neondatabase/serverless"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
+import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
 
 export async function POST(req: Request) {
   const t0 = performance.now()
@@ -100,6 +101,74 @@ export async function POST(req: Request) {
         `
         if (updateResult.length > 0) {
           console.log(`[checkout-process] Order ${updateResult[0].order_number} confirmed directly`)
+
+          // Fire & Forget: Send confirmation email as safety net
+          // (Webhook may also send one, but this guarantees delivery)
+          const finalOrderId = orderId
+          const finalTransactionId = gatewayData.transaction_id || transactionId
+          ;(async () => {
+            try {
+              const rows = await sql`
+                SELECT o.order_number, o.subtotal, o.tax_amount, o.shipping_amount, o.total_amount, o.shipping_address,
+                       c.email as customer_email, o.tracking_number, o.created_at,
+                       COALESCE(
+                         json_agg(
+                           json_build_object('id', oi.id, 'name', oi.product_name, 'price', oi.unit_price, 'quantity', oi.quantity)
+                         ) FILTER (WHERE oi.id IS NOT NULL),
+                         '[]'::json
+                       ) as items
+                FROM orders o
+                LEFT JOIN customers c ON c.id::text = o.customer_id
+                LEFT JOIN order_items oi ON oi.order_id = o.id
+                WHERE o.id = ${Number(finalOrderId)}
+                GROUP BY o.id, c.email
+                LIMIT 1
+              `
+              const order = rows[0]
+              if (!order || !order.customer_email) return
+
+              let parsedShipping
+              try {
+                parsedShipping = typeof order.shipping_address === "string" ? JSON.parse(order.shipping_address) : order.shipping_address
+              } catch { parsedShipping = null }
+
+              const shippingName = parsedShipping?.firstName ? `${parsedShipping.firstName} ${parsedShipping.lastName || ''}`.trim() : customerName || "Customer"
+
+              const orderEmailData = {
+                orderId: String(finalOrderId),
+                orderNumber: order.order_number,
+                customerId: '',
+                customerEmail: order.customer_email,
+                customerPhone: "",
+                paymentMethodId: "",
+                transactionId: finalTransactionId,
+                amount: Number(order.subtotal),
+                currency: "USD",
+                items: order.items,
+                shippingMethod: "Standard Shipping",
+                shippingCost: Number(order.shipping_amount),
+                tax: Number(order.tax_amount),
+                total: Number(order.total_amount),
+                orderDate: new Date(order.created_at),
+                estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US"),
+                shippingAddress: {
+                  name: shippingName,
+                  street: parsedShipping?.address1 || "Address not provided",
+                  city: parsedShipping?.city || "City not provided",
+                  state: parsedShipping?.state || "State not provided",
+                  zipCode: parsedShipping?.postalCode || "ZIP not provided",
+                  country: parsedShipping?.country || "Country not provided",
+                },
+                trackingNumber: order.tracking_number,
+              }
+
+              await sendOrderConfirmation(orderEmailData, shippingName)
+              await sendAdminOrderNotification(orderEmailData, shippingName, Number(order.total_amount) > 500 ? "high" : "normal")
+              console.log(`[checkout-process] Fallback emails sent for Order ${finalOrderId}`)
+            } catch (emailErr) {
+              console.error("[checkout-process] Fallback email failed:", emailErr)
+            }
+          })()
         } else {
           console.error(`[checkout-process] Order update matched 0 rows for order ${orderId}`)
         }
