@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useRef, useState } from "react"
 import Script from "next/script"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -413,17 +414,23 @@ export default function ContactPage() {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Package className="mr-2 h-4 w-4" />
-                  Track Your Order
+                <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                  <Link href="/login">
+                    <Package className="mr-2 h-4 w-4" />
+                    Track Your Order
+                  </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Start a Return
+                <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                  <Link href="/returns">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Start a Return
+                  </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Truck className="mr-2 h-4 w-4" />
-                  Shipping Information
+                <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                  <Link href="/shipping">
+                    <Truck className="mr-2 h-4 w-4" />
+                    Shipping Information
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

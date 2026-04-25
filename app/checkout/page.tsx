@@ -2633,22 +2633,6 @@ export default function CheckoutPage() {
                   </CardContent>
                 </Card>
 
-                {/* Customer Review */}
-                <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-xs sm:text-sm font-bold ml-1">5.0</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-700 italic leading-relaxed">
-                      "Super secure checkout process and lightning-fast delivery!"
-                    </p>
-                    <p className="text-xs text-gray-600 mt-2 font-medium">- Alex R., Verified Customer</p>
-                  </CardContent>
-                </Card>
-
                 {/* Payment Methods */}
                 <div className="pt-2">
                   <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 font-medium">We accept:</p>

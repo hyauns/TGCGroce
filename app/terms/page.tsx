@@ -286,7 +286,7 @@ export default function TermsOfService() {
               <p className="text-gray-700 mb-4">
                 Any disputes that cannot be resolved informally shall be settled through binding arbitration in
                 accordance with the rules of the American Arbitration Association. The arbitration shall take place in
-                [Your State/Country].
+                Florida, United States.
               </p>
 
               <h3 className="text-xl font-medium text-gray-800 mb-3">13.3 Class Action Waiver</h3>
@@ -312,9 +312,8 @@ export default function TermsOfService() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Governing Law</h2>
               <p className="text-gray-700 mb-4">
-                These Terms are governed by and construed in accordance with the laws of [Your State/Country], without
-                regard to conflict of law principles. Any legal action must be brought in the courts of [Your
-                Jurisdiction].
+                These Terms are governed by and construed in accordance with the laws of Florida, United States, without
+                regard to conflict of law principles. Any legal action must be brought in the courts of Flagler County, Florida.
               </p>
             </section>
 

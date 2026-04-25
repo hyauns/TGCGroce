@@ -37,7 +37,6 @@ import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { useToast } from "@/hooks/use-toast"
 import type { Product } from "@/lib/products"
-import { generateRealisticSalesCount, formatSalesCount } from "@/lib/sales-generator"
 export interface DbReview {
   id: string
   product_id: number
@@ -86,19 +85,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
   const productRating = product.rating || 0
   const productDescription = product.description || "Experience the thrill of opening premium trading card packs with this exceptional product. Each pack contains carefully curated cards that offer exciting gameplay possibilities and collectible value."
   const productImage = product.image || "/placeholder.svg?height=400&width=400"
-
-  // Generate sales and review data (deterministic, no artificial delay)
-  const generatedSalesCount = useMemo(() =>
-    generateRealisticSalesCount(
-      product.id,
-      product.price,
-      product.category,
-      productRating,
-      product.isNew,
-      product.isHot,
-      product.isPreOrder,
-    ), [product.id, product.price, product.category, productRating, product.isNew, product.isHot, product.isPreOrder]
-  )
 
   // ── Real DB reviews state ─────────────────────────────────────────────────
   const [dbReviews, setDbReviews] = useState<DbReview[]>([])
@@ -409,10 +395,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                   <span className="text-sm text-gray-600 ml-2">
                     {combinedRating} ({totalReviewCount.toLocaleString()} reviews)
                   </span>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="font-medium text-green-600">{formatSalesCount(generatedSalesCount)} sold</span>
                 </div>
               </div>
             </div>
@@ -1025,16 +1007,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => {
-                const relatedSalesCount = generateRealisticSalesCount(
-                  relatedProduct.id,
-                  relatedProduct.price,
-                  relatedProduct.category,
-                  relatedProduct.rating ?? 4.5,
-                  relatedProduct.isNew,
-                  relatedProduct.isHot,
-                  relatedProduct.isPreOrder,
-                )
-
                 const relatedReviewCount = relatedProduct.reviews || 0
 
                 const relatedProductSlug = relatedProduct.slug || relatedProduct.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -1090,10 +1062,6 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                             View
                           </Button>
                         </Link>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>{formatSalesCount(relatedSalesCount)} sold</span>
                       </div>
                     </CardContent>
                   </Card>

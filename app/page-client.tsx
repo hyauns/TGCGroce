@@ -48,7 +48,6 @@ import { generateSlug } from "@/lib/utils"
 import { generateCategorySlug } from "@/lib/product-utils"
 import type { Product } from "@/lib/products"
 import type { SiteSettings } from "@/lib/site-settings"
-import { formatSalesCount } from "@/lib/sales-generator"
 
 // ============================================================
 // Types
@@ -551,7 +550,6 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
                         {(product.reviews ?? 0) > 0 && (
                           <span className="text-sm text-gray-600 font-medium">({product.reviews})</span>
                         )}
-                        <span className="text-sm text-green-600 font-semibold">• {formatSalesCount(product.salesCount ?? 0)}+ sold</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg sm:text-xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
