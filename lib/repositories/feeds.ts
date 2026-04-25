@@ -17,6 +17,7 @@ export interface FeedConfiguration {
   min_price: number | null
   max_price: number | null
   is_active: boolean
+  platform: string
   created_at: string
   updated_at: string
 }
@@ -47,6 +48,7 @@ export interface CreateFeedInput {
   preorder_status?: string // 'all' | 'exclude' | 'only'
   min_price?: number | null
   max_price?: number | null
+  platform?: string
 }
 
 export interface UpdateFeedInput {
@@ -57,6 +59,7 @@ export interface UpdateFeedInput {
   preorder_status?: string // 'all' | 'exclude' | 'only'
   min_price?: number | null
   max_price?: number | null
+  platform?: string
 }
 
 // ============================================================
@@ -91,7 +94,7 @@ export async function createFeedConfiguration(input: CreateFeedInput): Promise<F
 
   try {
     const rows = await sql`
-      INSERT INTO feed_configurations (name, category_slug, product_type, stock_status, exclude_preorders, preorder_status, min_price, max_price)
+      INSERT INTO feed_configurations (name, category_slug, product_type, stock_status, exclude_preorders, preorder_status, min_price, max_price, platform)
       VALUES (
         ${input.name},
         ${input.category_slug || null},
@@ -100,7 +103,8 @@ export async function createFeedConfiguration(input: CreateFeedInput): Promise<F
         ${preorderStatus === 'exclude'},
         ${preorderStatus},
         ${input.min_price ?? null},
-        ${input.max_price ?? null}
+        ${input.max_price ?? null},
+        ${input.platform || 'GOOGLE'}
       )
       RETURNING *
     ` as FeedConfiguration[]
@@ -132,6 +136,7 @@ export async function updateFeedConfiguration(id: string, input: UpdateFeedInput
         exclude_preorders = ${(input.preorder_status ?? 'all') === 'exclude'},
         min_price        = ${input.min_price ?? null},
         max_price        = ${input.max_price ?? null},
+        platform         = COALESCE(${input.platform ?? null}, platform),
         updated_at       = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *

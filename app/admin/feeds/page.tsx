@@ -50,6 +50,7 @@ interface FeedConfiguration {
   max_price: number | null
   is_active: boolean
   created_at: string
+  platform?: string
   product_count?: number
 }
 
@@ -75,6 +76,7 @@ export default function FeedsPage() {
   const [formPreorderStatus, setFormPreorderStatus] = useState<string>("all")
   const [formMinPrice, setFormMinPrice] = useState("")
   const [formMaxPrice, setFormMaxPrice] = useState("")
+  const [formPlatform, setFormPlatform] = useState("GOOGLE")
 
   // ── Data Fetching ─────────────────────────────────────────────
   const fetchFeeds = useCallback(async () => {
@@ -106,6 +108,7 @@ export default function FeedsPage() {
     setFormPreorderStatus("all")
     setFormMinPrice("")
     setFormMaxPrice("")
+    setFormPlatform("GOOGLE")
   }
 
   // ── Pre-fill form for Edit ────────────────────────────────────
@@ -121,6 +124,7 @@ export default function FeedsPage() {
     )
     setFormMinPrice(feed.min_price != null ? String(feed.min_price) : "")
     setFormMaxPrice(feed.max_price != null ? String(feed.max_price) : "")
+    setFormPlatform(feed.platform || "GOOGLE")
 
     // Scroll to the form
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -143,6 +147,7 @@ export default function FeedsPage() {
         preorder_status: formPreorderStatus,
         min_price: formMinPrice ? Number(formMinPrice) : null,
         max_price: formMaxPrice ? Number(formMaxPrice) : null,
+        platform: formPlatform,
       }
 
       let res: Response
@@ -226,7 +231,13 @@ export default function FeedsPage() {
 
   // ── Render filter badges ──────────────────────────────────────
   const renderFilterBadges = (feed: FeedConfiguration) => {
-    const badges: { label: string; variant: "default" | "secondary" | "outline" }[] = []
+    const badges: { label: string; variant: "default" | "secondary" | "outline", className?: string }[] = []
+
+    if (feed.platform === "BING") {
+      badges.push({ label: "Bing Merchant", variant: "default", className: "bg-teal-600 hover:bg-teal-700" })
+    } else {
+      badges.push({ label: "Google Merchant", variant: "default", className: "bg-blue-600 hover:bg-blue-700" })
+    }
 
     if (feed.category_slug) {
       badges.push({ label: `Category: ${feed.category_slug}`, variant: "default" })
@@ -264,7 +275,7 @@ export default function FeedsPage() {
     return (
       <div className="flex flex-wrap gap-1">
         {badges.map((b, i) => (
-          <Badge key={i} variant={b.variant} className="text-xs">
+          <Badge key={i} variant={b.variant} className={`text-xs ${b.className || ""}`}>
             {b.label}
           </Badge>
         ))}
@@ -287,10 +298,10 @@ export default function FeedsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Rss className="h-6 w-6 text-orange-500" />
-          GMC Feed Manager
+          Merchant Center Feeds
         </h1>
         <p className="mt-1 text-gray-600 dark:text-gray-400">
-          Create and manage Google Merchant Center product feeds with targeted filters.
+          Create and manage Google and Bing Merchant Center product feeds.
         </p>
       </div>
 
@@ -309,7 +320,7 @@ export default function FeedsPage() {
               <CardDescription>
                 {editingFeedId
                   ? "Update the filter rules below. The feed URL will remain unchanged."
-                  : "Define filter rules to generate a targeted XML feed for Google Shopping campaigns."
+                  : "Define filter rules to generate a targeted XML feed for Shopping campaigns."
                 }
               </CardDescription>
             </div>
@@ -332,6 +343,20 @@ export default function FeedsPage() {
                 onChange={(e) => setFormName(e.target.value)}
                 maxLength={100}
               />
+            </div>
+
+            {/* Platform */}
+            <div className="space-y-2">
+              <Label htmlFor="feed-platform">Platform *</Label>
+              <Select value={formPlatform} onValueChange={setFormPlatform}>
+                <SelectTrigger id="feed-platform">
+                  <SelectValue placeholder="Google Merchant Center" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GOOGLE">Google Merchant Center</SelectItem>
+                  <SelectItem value="BING">Bing Merchant Center</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Category */}

@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       preorder_status: body.preorder_status || "all",
       min_price: body.min_price != null ? Number(body.min_price) : null,
       max_price: body.max_price != null ? Number(body.max_price) : null,
+      platform: body.platform || "GOOGLE",
     }
 
     const feed = await createFeedConfiguration(input)

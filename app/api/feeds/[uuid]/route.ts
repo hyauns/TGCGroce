@@ -53,9 +53,9 @@ export async function GET(
           `<?xml version="1.0" encoding="UTF-8"?>\n` +
           `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n` +
           `<channel>\n` +
-          `<title>TCG Lore - ${escapeXml(config.name)}</title>\n` +
+          `<title>TCG Lore - ${config.platform === "BING" ? "Bing" : "Google"} - ${escapeXml(config.name)}</title>\n` +
           `<link>${siteUrl}</link>\n` +
-          `<description>Google Merchant Center product feed: ${escapeXml(config.name)}</description>\n`
+          `<description>${config.platform === "BING" ? "Bing" : "Google"} Merchant Center product feed: ${escapeXml(config.name)}</description>\n`
         ))
 
         // ── Paginated product streaming ──────────────────────────────

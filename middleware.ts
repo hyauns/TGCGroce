@@ -106,6 +106,6 @@ export const config = {
     "/account/:path*",
     "/auth/login",
     "/auth/register",
-    "/((?!_next/static)(?!_next/image)(?!favicon)(?!robots\\.txt)(?!sitemap\\.xml).*)",
+    "/((?!_next/static)(?!_next/image)(?!favicon)(?!robots\\.txt)(?!sitemap\\.xml)(?!sitemap/).*)",
   ],
 }

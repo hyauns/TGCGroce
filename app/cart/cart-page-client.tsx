@@ -457,7 +457,7 @@ export default function CartPageClient() {
                         {/* Price + Quantity row */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center">
-                            <span className="text-lg sm:text-xl font-bold">${item.price.toFixed(2)}</span>
+                            <span className="text-lg sm:text-xl font-bold">${Number(item.price).toFixed(2)}</span>
                           </div>
 
                           <div className="flex items-center gap-1 sm:gap-2">
