@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 30
 
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { syncExpiredPreorders } from "@/lib/products"
 
 /**
@@ -45,6 +46,11 @@ export async function GET(request: Request) {
         { error: "Database operation failed. Check server logs." },
         { status: 500 },
       )
+    }
+
+    // Invalidate the cache to ensure the homepage and other pages reflect the updated product status
+    if (count > 0) {
+      revalidatePath('/', 'layout')
     }
 
     return NextResponse.json({
