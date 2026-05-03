@@ -1,19 +1,31 @@
 import type { MetadataRoute } from "next"
 import { siteUrl } from "@/lib/site-config"
-import { getSitemapProductsBatch } from "@/lib/repositories/sitemap"
+import { getSitemapProductsBatch, getTotalActiveProductsCount } from "@/lib/repositories/sitemap"
 
 export const revalidate = 86400 // Cache for 24 hours
 
-// Fetch up to 50,000 URLs to perfectly balance TTFB latency and stay below Google's 50k limit
-const CHUNK_SIZE = 50000
+// Fetch up to 10,000 URLs per sitemap chunk to stay well under Google's 50k limit and improve TTFB
+const CHUNK_SIZE = 10000
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export async function generateSitemaps() {
+  const totalProducts = await getTotalActiveProductsCount()
+  const totalPages = Math.ceil(totalProducts / CHUNK_SIZE)
+  
+  const sitemaps = [{ id: 0 }] // id: 0 for core routes
+  for (let i = 0; i < totalPages; i++) {
+    sitemaps.push({ id: i + 1 }) // id: 1..N for product chunks
+  }
+  return sitemaps
+}
+
+export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteUrl
   const now = new Date()
 
-  // Resolve the lightweight Core / Global application routing table
-  const coreRoutes: MetadataRoute.Sitemap = [
-    {
+  if (id === 0) {
+    // Resolve the lightweight Core / Global application routing table
+    const coreRoutes: MetadataRoute.Sitemap = [
+      {
         url: baseUrl,
         lastModified: now,
         changeFrequency: "daily",
@@ -86,9 +98,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.5,
       },
     ]
+    return coreRoutes
+  }
 
-  // Fetch massive batch of products up to 50k limit
-  const productsResult = await getSitemapProductsBatch(0, CHUNK_SIZE)
+  // Fetch product chunk for id > 0
+  const chunkIndex = id - 1
+  const offset = chunkIndex * CHUNK_SIZE
+  const productsResult = await getSitemapProductsBatch(offset, CHUNK_SIZE)
 
   const productRoutes: MetadataRoute.Sitemap = productsResult.map((product) => {
     // Mimics the fallback slug generator algorithm reliably
@@ -101,5 +117,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
-  return [...coreRoutes, ...productRoutes]
+  return productRoutes
 }
