@@ -285,7 +285,33 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
 // ============================================================
 
 /**
+ * Fetch top 20 product slugs to pre-render at build time without hitting the 2MB cache limit
+ */
+export const getPopularProductSlugs = cache(async function getPopularProductSlugs(): Promise<string[]> {
+  try {
+    const sql = getSqlConnection()
+    if (!sql) return []
+
+    const rows = await sql`
+      SELECT p.name
+      FROM products p
+      WHERE p.is_active = true
+      ${sql.unsafe(PRODUCT_SORT_SQL)}
+      LIMIT 20
+    `
+
+    return rows.map(r => generateSlug(r.name))
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[products] Error fetching popular product slugs:", error)
+    }
+    return []
+  }
+})
+
+/**
  * Fetch all active products, enriched with category metadata via JOIN.
+ * WARNING: Do not call this in generateStaticParams without a limit, as the Neon response may exceed 2MB.
  */
 export const getAllProducts = cache(async function getAllProducts(productType?: string | null, rarity?: string | null): Promise<Product[]> {
   try {

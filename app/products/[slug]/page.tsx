@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { getAllProducts, getProductBySlug, getRelatedProducts } from "@/lib/products"
+import { getPopularProductSlugs, getProductBySlug, getRelatedProducts } from "@/lib/products"
 import { getReviewsByProductId } from "@/lib/repositories/reviews"
 import { siteUrl } from "@/lib/site-config"
 import ProductPageClient from "./page-client"
@@ -11,14 +11,10 @@ interface PageProps {
 
 // Generate static params for popular products (pre-render at build time)
 export async function generateStaticParams() {
-  const products = await getAllProducts()
+  const slugs = await getPopularProductSlugs()
 
-  // Pre-render first 20 products at build time
-  // This is a subset of all products to keep build times reasonable
-  const popularProducts = products.slice(0, 20)
-  
-  return popularProducts.map((product) => ({
-    slug: product.slug || product.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+  return slugs.map((slug) => ({
+    slug,
   }))
 }
 
