@@ -1,6 +1,8 @@
 import "server-only"
 import { cache } from "react"
 import { neon } from "@neondatabase/serverless"
+import type { Review } from "./reviews"
+import { profileDbQuery } from "./db-profiler"
 import { generateRealisticSalesCount } from "./sales-generator"
 
 // ============================================================
@@ -314,80 +316,84 @@ export const getPopularProductSlugs = cache(async function getPopularProductSlug
  * WARNING: Do not call this in generateStaticParams without a limit, as the Neon response may exceed 2MB.
  */
 export const getAllProducts = cache(async function getAllProducts(productType?: string | null, rarity?: string | null): Promise<Product[]> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return []
+  return profileDbQuery("getAllProducts", async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return []
 
-    const typeFilter = productType === 'sealed'
-      ? sql`AND p.product_type ILIKE '%sealed%'`
-      : productType === 'single'
-        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
-        : productType
-          ? sql`AND p.product_type = ${productType}`
-          : sql``
-    const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
+      const typeFilter = productType === 'sealed'
+        ? sql`AND p.product_type ILIKE '%sealed%'`
+        : productType === 'single'
+          ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+          : productType
+            ? sql`AND p.product_type = ${productType}`
+            : sql``
+      const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands, p.product_type,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-      ${typeFilter}
-      ${rarityFilter}
-      ${sql.unsafe(PRODUCT_SORT_SQL)}
-    ` as DbProductJoined[]
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands, p.product_type,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          pc.description AS pc_description,
+          pr.avg_rating,
+          pr.review_count
+        ${sql.unsafe(PRODUCT_JOIN_SQL)}
+        WHERE p.is_active = true
+        ${typeFilter}
+        ${rarityFilter}
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
+      ` as DbProductJoined[]
 
-    return rows.map(mapJoinedRowToProduct)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching all products:", error)
+      return rows.map(mapJoinedRowToProduct)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching all products:", error)
+      }
+      return []
     }
-    return []
-  }
+  })
 })
 
 /**
  * Fetch a single product by numeric ID, enriched with category JOIN.
  */
 export const getProductById = cache(async function getProductById(id: number): Promise<Product | undefined> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return undefined
+  return profileDbQuery(`getProductById(${id})`, async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return undefined
 
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true AND p.id = ${id}
-      LIMIT 1
-    ` as DbProductJoined[]
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          pc.description AS pc_description,
+          pr.avg_rating,
+          pr.review_count
+        ${sql.unsafe(PRODUCT_JOIN_SQL)}
+        WHERE p.is_active = true AND p.id = ${id}
+        LIMIT 1
+      ` as DbProductJoined[]
 
-    if (!rows[0]) return undefined
-    return mapJoinedRowToProduct(rows[0])
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching product by ID:", error)
+      if (!rows[0]) return undefined
+      return mapJoinedRowToProduct(rows[0])
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching product by ID:", error)
+      }
+      return undefined
     }
-    return undefined
-  }
+  })
 })
 
 /**
@@ -396,36 +402,38 @@ export const getProductById = cache(async function getProductById(id: number): P
  * the products table is small. Add a slug column to DB for better perf.
  */
 export const getProductBySlug = cache(async function getProductBySlug(slug: string): Promise<Product | undefined> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return undefined
+  return profileDbQuery(`getProductBySlug(${slug})`, async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return undefined
 
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-    ` as DbProductJoined[]
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          pc.description AS pc_description,
+          pr.avg_rating,
+          pr.review_count
+        ${sql.unsafe(PRODUCT_JOIN_SQL)}
+        WHERE p.is_active = true
+      ` as DbProductJoined[]
 
-    const match = rows.find((r) => generateSlug(r.name) === slug)
-    if (!match) return undefined
+      const match = rows.find((r) => generateSlug(r.name) === slug)
+      if (!match) return undefined
 
-    return mapJoinedRowToProduct(match)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching product by slug:", error)
+      return mapJoinedRowToProduct(match)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching product by slug:", error)
+      }
+      return undefined
     }
-    return undefined
-  }
+  })
 })
 
 /**
@@ -518,83 +526,224 @@ export const getCategoryBySlug = cache(async function getCategoryBySlug(slug: st
 export const getProductsByCategorySlug = cache(async function getProductsByCategorySlug(slug: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
   if (!slug || slug === "all") return getAllProducts(productType, rarity)
 
-  const sql = getSqlConnection()
-  if (!sql) return []
+  return profileDbQuery(`getProductsByCategorySlug(${slug})`, async () => {
+    const sql = getSqlConnection()
+    if (!sql) return []
 
-  const typeFilter = productType === 'sealed'
-    ? sql`AND p.product_type ILIKE '%sealed%'`
-    : productType === 'single'
-      ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
-      : productType
-        ? sql`AND p.product_type = ${productType}`
-        : sql``
-  const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
+    const typeFilter = productType === 'sealed'
+      ? sql`AND p.product_type ILIKE '%sealed%'`
+      : productType === 'single'
+        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+        : productType
+          ? sql`AND p.product_type = ${productType}`
+          : sql``
+    const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
-  try {
-    // ── Strategy 1 & 2 combined in one query via LEFT JOIN ──────────────────
-    // The PRODUCT_JOIN_SQL already resolves category_id FK first, then
-    // falls back to name-match. We filter WHERE the resolved pc.slug matches.
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands, p.product_type,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-        AND pc.slug = ${slug}
-        AND pc.is_active = true
+    try {
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands, p.product_type,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          pc.description AS pc_description,
+          pr.avg_rating,
+          pr.review_count
+        ${sql.unsafe(PRODUCT_JOIN_SQL)}
+        WHERE p.is_active = true
+          AND pc.slug = ${slug}
+          AND pc.is_active = true
+          ${typeFilter}
+          ${rarityFilter}
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
+      ` as DbProductJoined[]
+
+      if (rows.length > 0) {
+        return rows.map(mapJoinedRowToProduct)
+      }
+
+      const categoryRows = await sql`
+        SELECT DISTINCT category FROM products WHERE is_active = true
+      ` as { category: string }[]
+
+      const matchedCategory = categoryRows.find(
+        (r) => _categorySlug(r.category) === slug
+      )
+
+      if (!matchedCategory) return [] // Invalid slug → empty state
+
+      const fallbackRows = await sql`
+        SELECT
+          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity,
+          NULL::integer AS pc_id,
+          NULL::text    AS pc_name,
+          NULL::text    AS pc_slug,
+          NULL::text    AS pc_description
+        FROM products p
+        WHERE p.is_active = true AND p.category = ${matchedCategory.category}
         ${typeFilter}
-        ${rarityFilter}
-      ${sql.unsafe(PRODUCT_SORT_SQL)}
-    ` as DbProductJoined[]
+        ${sql.unsafe(PRODUCT_SORT_SQL)}
+      ` as DbProductJoined[]
 
-    if (rows.length > 0) {
-      return rows.map(mapJoinedRowToProduct)
+      return fallbackRows.map(mapJoinedRowToProduct)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching products by category slug:", error)
+      }
+      return []
     }
+  })
+})
 
-    // ── Strategy 3: Last-resort — no product_categories rows at all ──────────
-    // Find a category string whose generated slug matches the URL param,
-    // then return all products with that raw category value.
-    const categoryRows = await sql`
-      SELECT DISTINCT category FROM products WHERE is_active = true
-    ` as { category: string }[]
+export interface GetProductsPageOptions {
+  page?: number;
+  limit?: number;
+  category?: string | null;
+  productType?: string | null;
+  rarity?: string | null;
+  query?: string | null;
+  sortBy?: string | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
+  inStock?: boolean | null;
+  outOfStock?: boolean | null;
+  isPreOrder?: boolean | null;
+}
 
-    const matchedCategory = categoryRows.find(
-      (r) => _categorySlug(r.category) === slug
-    )
+export const getProductsPage = cache(async function getProductsPage(options: GetProductsPageOptions) {
+  return profileDbQuery("getProductsPage", async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return { products: [], totalCount: 0, page: 1, limit: 24, totalPages: 0 }
 
-    if (!matchedCategory) return [] // Invalid slug → empty state
+      const page = options.page || 1
+      const limit = options.limit || 24
+      const offset = (page - 1) * limit
 
-    const fallbackRows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity,
-        NULL::integer AS pc_id,
-        NULL::text    AS pc_name,
-        NULL::text    AS pc_slug,
-        NULL::text    AS pc_description
-      FROM products p
-      WHERE p.is_active = true AND p.category = ${matchedCategory.category}
-      ${typeFilter}
-      ${sql.unsafe(PRODUCT_SORT_SQL)}
-    ` as DbProductJoined[]
+      const conditions: any[] = [sql`p.is_active = true`]
 
-    return fallbackRows.map(mapJoinedRowToProduct)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching products by category slug:", error)
+      if (options.query) {
+        const searchPattern = `%${options.query}%`
+        conditions.push(sql`(p.name ILIKE ${searchPattern} OR p.category ILIKE ${searchPattern} OR pc.name ILIKE ${searchPattern})`)
+      }
+
+      if (options.category && options.category !== "all") {
+        const catRows = await sql`SELECT id FROM product_categories WHERE slug = ${options.category} LIMIT 1`
+        if (catRows.length > 0) {
+          conditions.push(sql`(pc.slug = ${options.category} OR p.category_id = ${catRows[0].id})`)
+        } else {
+          const allCats = await sql`SELECT DISTINCT category FROM products WHERE is_active = true`
+          const matched = allCats.find((r) => _categorySlug(r.category) === options.category)
+          if (matched) {
+            conditions.push(sql`p.category = ${matched.category}`)
+          } else {
+            return { products: [], totalCount: 0, page, limit, totalPages: 0 }
+          }
+        }
+      }
+
+      if (options.productType === "sealed") {
+        conditions.push(sql`p.product_type ILIKE '%sealed%'`)
+      } else if (options.productType === "single") {
+        conditions.push(sql`(p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`)
+      } else if (options.productType) {
+        conditions.push(sql`p.product_type = ${options.productType}`)
+      }
+
+      if (options.rarity) {
+        conditions.push(sql`p.rarity = ${options.rarity}`)
+      }
+
+      if (options.priceMin !== undefined && options.priceMin !== null) {
+        conditions.push(sql`p.price >= ${options.priceMin}`)
+      }
+      if (options.priceMax !== undefined && options.priceMax !== null) {
+        conditions.push(sql`p.price <= ${options.priceMax}`)
+      }
+
+      if (options.inStock || options.outOfStock || options.isPreOrder) {
+        const parts = []
+        if (options.inStock) parts.push("(p.stock_quantity > 0 AND (p.is_pre_order IS NULL OR p.is_pre_order = false))")
+        if (options.outOfStock) parts.push("(p.stock_quantity <= 0 AND (p.is_pre_order IS NULL OR p.is_pre_order = false))")
+        if (options.isPreOrder) parts.push("p.is_pre_order = true")
+        if (parts.length > 0) {
+          conditions.push(sql.unsafe(`(${parts.join(" OR ")})`))
+        }
+      }
+
+      let whereSql = sql``
+      if (conditions.length > 0) {
+        whereSql = sql`WHERE ${conditions[0]}`
+        for (let i = 1; i < conditions.length; i++) {
+          whereSql = sql`${whereSql} AND ${conditions[i]}`
+        }
+      }
+
+      let sortSql = sql.unsafe(PRODUCT_SORT_SQL.replace("ORDER BY", ""))
+      if (options.sortBy) {
+        switch (options.sortBy) {
+          case "price-asc": sortSql = sql.unsafe("p.price ASC"); break
+          case "price-desc": sortSql = sql.unsafe("p.price DESC"); break
+          case "name-asc": sortSql = sql.unsafe("p.name ASC"); break
+          case "name-desc": sortSql = sql.unsafe("p.name DESC"); break
+          case "newest": sortSql = sql.unsafe("p.created_at DESC"); break
+        }
+      }
+
+      const countResult = await sql`
+        SELECT COUNT(*) as total
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        ${whereSql}
+      `
+      const totalCount = Number(countResult[0].total)
+      const totalPages = Math.ceil(totalCount / limit)
+
+      const rows = await sql`
+        SELECT
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands, p.product_type,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        ${whereSql}
+        ORDER BY ${sortSql}
+        LIMIT ${limit} OFFSET ${offset}
+      ` as DbProductJoined[]
+
+      const products = rows.map(mapJoinedRowToProduct)
+
+      return {
+        products,
+        totalCount,
+        page,
+        limit,
+        totalPages
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error in getProductsPage:", error)
+      }
+      return { products: [], totalCount: 0, page: options.page || 1, limit: options.limit || 24, totalPages: 0 }
     }
-    return []
-  }
+  })
 })
 
 /**
@@ -635,83 +784,91 @@ export const getAllCategorySlugs = cache(async function getAllCategorySlugs(): P
  * Returns up to 12 products.
  */
 export const getFeaturedProducts = cache(async function getFeaturedProducts(): Promise<Product[]> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return []
-
-    // Strategy 1: try is_featured column
+  return profileDbQuery("getFeaturedProducts", async () => {
     try {
-      const featuredRows = await sql`
+      const sql = getSqlConnection()
+      if (!sql) return []
+
+      // Strategy 1: try is_featured column
+      try {
+        const featuredRows = await sql`
+          SELECT
+            p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.stock_quantity, p.is_active, p.created_at,
+            p.is_pre_order, p.release_date,
+            p.rarity,
+            pc.id   AS pc_id,
+            pc.name AS pc_name,
+            pc.slug AS pc_slug,
+            NULL::text AS pc_description,
+            NULL::numeric AS avg_rating,
+            NULL::bigint AS review_count
+          FROM products p
+          LEFT JOIN product_categories pc
+                 ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+                 OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+          WHERE p.is_active = true AND p.is_featured = true
+          ${sql.unsafe(PRODUCT_SORT_SQL)}
+          LIMIT 12
+        ` as DbProductJoined[]
+
+        if (featuredRows.length > 0) return featuredRows.map(mapJoinedRowToProduct)
+      } catch {
+        // is_featured column not yet added — fall through to discount fallback
+      }
+
+      // Strategy 2: products with a discount (visible "sale" items make good featured cards)
+      const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
-          p.rarity,
-        pc.id   AS pc_id,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
           pc.name AS pc_name,
           pc.slug AS pc_slug,
-          pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-        ${sql.unsafe(PRODUCT_JOIN_SQL)}
-        WHERE p.is_active = true AND p.is_featured = true
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true AND p.original_price IS NOT NULL
         ${sql.unsafe(PRODUCT_SORT_SQL)}
         LIMIT 12
       ` as DbProductJoined[]
 
-      if (featuredRows.length > 0) return featuredRows.map(mapJoinedRowToProduct)
-    } catch {
-      // is_featured column not yet added — fall through to discount fallback
-    }
+      // Strategy 3: still empty — return any 8 active products
+      if (rows.length === 0) {
+        const anyRows = await sql`
+          SELECT
+            p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.stock_quantity, p.is_active, p.created_at,
+            p.is_pre_order, p.release_date,
+            p.rarity,
+          pc.id   AS pc_id,
+            pc.name AS pc_name,
+            pc.slug AS pc_slug,
+            pc.description AS pc_description,
+          pr.avg_rating,
+          pr.review_count
+          ${sql.unsafe(PRODUCT_JOIN_SQL)}
+          WHERE p.is_active = true
+          ${sql.unsafe(PRODUCT_SORT_SQL)}
+          LIMIT 12
+        ` as DbProductJoined[]
+        return anyRows.map(mapJoinedRowToProduct)
+      }
 
-    // Strategy 2: products with a discount (visible "sale" items make good featured cards)
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true AND p.original_price IS NOT NULL
-      ${sql.unsafe(PRODUCT_SORT_SQL)}
-      LIMIT 12
-    ` as DbProductJoined[]
-
-    // Strategy 3: still empty — return any 8 active products
-    if (rows.length === 0) {
-      const anyRows = await sql`
-        SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-          p.stock_quantity, p.is_active, p.created_at,
-          p.is_pre_order, p.release_date,
-          p.rarity,
-        pc.id   AS pc_id,
-          pc.name AS pc_name,
-          pc.slug AS pc_slug,
-          pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-        ${sql.unsafe(PRODUCT_JOIN_SQL)}
-        WHERE p.is_active = true
-        ${sql.unsafe(PRODUCT_SORT_SQL)}
-        LIMIT 12
-      ` as DbProductJoined[]
-      return anyRows.map(mapJoinedRowToProduct)
+      return rows.map(mapJoinedRowToProduct)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching featured products:", error)
+      }
+      return []
     }
-
-    return rows.map(mapJoinedRowToProduct)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching featured products:", error)
-    }
-    return []
-  }
+  })
 })
 
 /**
@@ -720,57 +877,65 @@ export const getFeaturedProducts = cache(async function getFeaturedProducts(): P
  * Returns up to 12 products.
  */
 export const getBestSellingProducts = cache(async function getBestSellingProducts(): Promise<Product[]> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return []
+  return profileDbQuery("getBestSellingProducts", async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return []
 
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true AND p.stock_quantity > 0
-      ${sql.unsafe(PRODUCT_SORT_SQL)}
-      LIMIT 12
-    ` as DbProductJoined[]
-
-    // Fallback: any active products if none have stock
-    if (rows.length === 0) {
-      const anyRows = await sql`
+      const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
-          p.rarity,
-        pc.id   AS pc_id,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
           pc.name AS pc_name,
           pc.slug AS pc_slug,
-          pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-        ${sql.unsafe(PRODUCT_JOIN_SQL)}
-        WHERE p.is_active = true
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true AND p.stock_quantity > 0
         ${sql.unsafe(PRODUCT_SORT_SQL)}
         LIMIT 12
       ` as DbProductJoined[]
-      return anyRows.map(mapJoinedRowToProduct)
-    }
 
-    return rows.map(mapJoinedRowToProduct)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error fetching best selling products:", error)
+      // Fallback: any active products if none have stock
+      if (rows.length === 0) {
+        const anyRows = await sql`
+          SELECT
+            p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.stock_quantity, p.is_active, p.created_at,
+            p.is_pre_order, p.release_date,
+            p.rarity,
+            pc.id   AS pc_id,
+            pc.name AS pc_name,
+            pc.slug AS pc_slug,
+            NULL::text AS pc_description,
+            NULL::numeric AS avg_rating,
+            NULL::bigint AS review_count
+          FROM products p
+          LEFT JOIN product_categories pc
+                 ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+                 OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+          WHERE p.is_active = true
+          ${sql.unsafe(PRODUCT_SORT_SQL)}
+          LIMIT 12
+        ` as DbProductJoined[]
+        return anyRows.map(mapJoinedRowToProduct)
+      }
+
+      return rows.map(mapJoinedRowToProduct)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error fetching best selling products:", error)
+      }
+      return []
     }
-    return []
-  }
+  })
 })
 
 /**
@@ -784,100 +949,111 @@ export const getBestSellingProducts = cache(async function getBestSellingProduct
  * Returns up to 12 products, mapped with isPreOrder = true.
  */
 export const getPreOrderProducts = cache(async function getPreOrderProducts(): Promise<Product[]> {
-  const sql = getSqlConnection()
-  if (!sql) return []
+  return profileDbQuery("getPreOrderProducts", async () => {
+    const sql = getSqlConnection()
+    if (!sql) return []
 
-  // ── Primary: new is_pre_order boolean column ──────────────────────────────
-  // This is the authoritative path once the migration has run.
-  try {
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-        AND p.is_pre_order = true
-        AND p.product_type = 'sealed'
-      ORDER BY RANDOM()
-      LIMIT 12
-    ` as DbProductJoined[]
+    // ── Primary: new is_pre_order boolean column ──────────────────────────────
+    // This is the authoritative path once the migration has run.
+    try {
+      const rows = await sql`
+        SELECT
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true
+          AND p.is_pre_order = true
+          AND p.product_type = 'sealed'
+        ORDER BY p.release_date ASC NULLS LAST, p.created_at DESC
+        LIMIT 12
+      ` as DbProductJoined[]
 
-    if (rows.length > 0) {
-      return rows.map(mapJoinedRowToProduct)
+      if (rows.length > 0) {
+        return rows.map(mapJoinedRowToProduct)
+      }
+    } catch {
+      // is_pre_order column doesn't exist yet — fall through to legacy strategy
     }
-  } catch {
-    // is_pre_order column doesn't exist yet — fall through to legacy strategy
-  }
 
-  // ── Legacy fallback 1: condition = 'pre-order' varchar column ─────────────
-  try {
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        NULL::boolean AS is_pre_order,
-        NULL::date    AS release_date,
-        p.rarity,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-        AND LOWER(p.condition) = 'pre-order'
-        AND p.product_type = 'sealed'
-      ORDER BY RANDOM()
-      LIMIT 12
-    ` as DbProductJoined[]
+    // ── Legacy fallback 1: condition = 'pre-order' varchar column ─────────────
+    try {
+      const rows = await sql`
+        SELECT
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          NULL::boolean AS is_pre_order,
+          NULL::date    AS release_date,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true
+          AND LOWER(p.condition) = 'pre-order'
+          AND p.product_type = 'sealed'
+        ORDER BY p.created_at DESC
+        LIMIT 12
+      ` as DbProductJoined[]
 
-    if (rows.length > 0) {
-      // Override isPreOrder to true — we know these are pre-orders from the condition column
-      return rows.map((r) => ({ ...mapJoinedRowToProduct(r), isPreOrder: true }))
+      if (rows.length > 0) {
+        // Override isPreOrder to true — we know these are pre-orders from the condition column
+        return rows.map((r) => ({ ...mapJoinedRowToProduct(r), isPreOrder: true }))
+      }
+    } catch {
+      // condition column doesn't exist — try is_preorder boolean
     }
-  } catch {
-    // condition column doesn't exist — try is_preorder boolean
-  }
 
-  // ── Legacy fallback 2: is_preorder boolean (alternate column name) ─────────
-  try {
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_preorder AS is_pre_order,
-        NULL::date    AS release_date,
-        p.rarity,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true AND p.is_preorder = true
-      ORDER BY p.created_at DESC
-      LIMIT 12
-    ` as DbProductJoined[]
+    // ── Legacy fallback 2: is_preorder boolean (alternate column name) ─────────
+    try {
+      const rows = await sql`
+        SELECT
+          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_preorder AS is_pre_order,
+          NULL::date    AS release_date,
+          p.rarity, p.brands,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true AND p.is_preorder = true
+        ORDER BY p.created_at DESC
+        LIMIT 12
+      ` as DbProductJoined[]
 
-    if (rows.length > 0) {
-      return rows.map(mapJoinedRowToProduct)
+      if (rows.length > 0) {
+        return rows.map(mapJoinedRowToProduct)
+      }
+    } catch {
+      // Neither column exists — no pre-orders configured in this DB
     }
-  } catch {
-    // Neither column exists — no pre-orders configured in this DB
-  }
 
-  // No pre-order data at all — homepage hides the section automatically (preOrderProducts.length === 0)
-  return []
+    // No pre-order data at all — homepage hides the section automatically (preOrderProducts.length === 0)
+    return []
+  })
 })
 
 /**
@@ -939,64 +1115,70 @@ export const getRelatedProductsBySlug = cache(async function getRelatedProductsB
 /**
  * Full-text search across product name and category.
  */
-export const searchProducts = cache(async function searchProducts(query: string, productType?: string | null, rarity?: string | null): Promise<Product[]> {
-  try {
-    const sql = getSqlConnection()
-    if (!sql) return []
+export const searchProducts = cache(async function searchProducts(query: string, productType?: string | null, rarity?: string | null, limit: number = 50): Promise<Product[]> {
+  return profileDbQuery(`searchProducts(${query})`, async () => {
+    try {
+      const sql = getSqlConnection()
+      if (!sql) return []
 
-    const searchPattern = `%${query}%`
-    const typeFilter = productType === 'sealed'
-      ? sql`AND p.product_type ILIKE '%sealed%'`
-      : productType === 'single'
-        ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
-        : productType
-          ? sql`AND p.product_type = ${productType}`
-          : sql``
-    const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
+      const searchPattern = `%${query}%`
+      const typeFilter = productType === 'sealed'
+        ? sql`AND p.product_type ILIKE '%sealed%'`
+        : productType === 'single'
+          ? sql`AND (p.product_type ILIKE '%card%' OR p.product_type ILIKE '%single%')`
+          : productType
+            ? sql`AND p.product_type = ${productType}`
+            : sql``
+      const rarityFilter = rarity ? sql`AND p.rarity = ${rarity}` : sql``
 
-    // pg_trgm constraint: ensure query length is at least 3 for meaningful similarity,
-    // otherwise fallback to safe ILIKE wildcard search.
-    const trgmThreshold = query.length > 2 ? 0.15 : 1.0; 
+      // pg_trgm constraint: ensure query length is at least 3 for meaningful similarity,
+      // otherwise fallback to safe ILIKE wildcard search.
+      const trgmThreshold = query.length > 2 ? 0.15 : 1.0; 
 
-    // A fuzzy search that uses traditional ILIKE for exact substring matches (giving them highest priority)
-    // and pg_trgm similarity() for typo-tolerance on product name.
-    const rows = await sql`
-      SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
-        p.stock_quantity, p.is_active, p.created_at,
-        p.is_pre_order, p.release_date,
-        p.rarity, p.brands, p.product_type,
-        pc.id   AS pc_id,
-        pc.name AS pc_name,
-        pc.slug AS pc_slug,
-        pc.description AS pc_description,
-        pr.avg_rating,
-        pr.review_count,
-        similarity(p.name, ${query}) as name_sim
-      ${sql.unsafe(PRODUCT_JOIN_SQL)}
-      WHERE p.is_active = true
-        AND (
-          p.name     ILIKE ${searchPattern}
-          OR p.category ILIKE ${searchPattern}
-          OR pc.name    ILIKE ${searchPattern}
-          OR similarity(p.name, ${query}) > ${trgmThreshold}
-        )
-        ${typeFilter}
-        ${rarityFilter}
-      ORDER BY 
-        CASE WHEN p.name ILIKE ${searchPattern} THEN 1 ELSE 0 END DESC,
-        name_sim DESC,
-        p.created_at DESC
-      LIMIT 50
-    ` as (DbProductJoined & { name_sim: number })[]
+      // A fuzzy search that uses traditional ILIKE for exact substring matches (giving them highest priority)
+      // and pg_trgm similarity() for typo-tolerance on product name.
+      // Uses lightweight fields to minimize memory footprint.
+      const rows = await sql`
+        SELECT
+          p.id, p.name, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.stock_quantity, p.is_active, p.created_at,
+          p.is_pre_order, p.release_date,
+          p.rarity, p.brands, p.product_type,
+          pc.id   AS pc_id,
+          pc.name AS pc_name,
+          pc.slug AS pc_slug,
+          NULL::text AS pc_description,
+          NULL::numeric AS avg_rating,
+          NULL::bigint AS review_count,
+          similarity(p.name, ${query}) as name_sim
+        FROM products p
+        LEFT JOIN product_categories pc
+               ON (p.category_id IS NOT NULL AND pc.id = p.category_id)
+               OR (p.category_id IS NULL     AND pc.name = p.category AND pc.is_active = true)
+        WHERE p.is_active = true
+          AND (
+            p.name     ILIKE ${searchPattern}
+            OR p.category ILIKE ${searchPattern}
+            OR pc.name    ILIKE ${searchPattern}
+            OR similarity(p.name, ${query}) > ${trgmThreshold}
+          )
+          ${typeFilter}
+          ${rarityFilter}
+        ORDER BY 
+          CASE WHEN p.name ILIKE ${searchPattern} THEN 1 ELSE 0 END DESC,
+          name_sim DESC,
+          p.created_at DESC
+        LIMIT ${limit}
+      ` as (DbProductJoined & { name_sim: number })[]
 
-    return rows.map(mapJoinedRowToProduct)
-  } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[products] Error searching products:", error)
+      return rows.map(mapJoinedRowToProduct)
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[products] Error searching products:", error)
+      }
+      return []
     }
-    return []
-  }
+  })
 })
 
 /**

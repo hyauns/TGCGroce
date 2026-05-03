@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next"
 import { siteUrl } from "@/lib/site-config"
 import { getSitemapProductsBatch } from "@/lib/repositories/sitemap"
 
+export const revalidate = 86400 // Cache for 24 hours
+
 // Fetch up to 50,000 URLs to perfectly balance TTFB latency and stay below Google's 50k limit
 const CHUNK_SIZE = 50000
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
-import { getAllProducts, getProductsByCategorySlug, getCategoryBySlug, searchProducts } from "@/lib/products"
+import { getProductsPage, getCategoryBySlug } from "@/lib/products"
 import { generateCategorySlug, normalizeCategoryParam } from "@/lib/products"
 import type { Product as ProductFilter } from "@/lib/product-filters"
 import type { FilterAggregations } from "@/lib/product-filters"
@@ -146,7 +146,20 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
 // ============================================================
 
 interface ProductsPageProps {
-  searchParams: Promise<{ category?: string; search?: string; page?: string; q?: string; productType?: string; rarity?: string }>
+  searchParams: Promise<{
+    category?: string
+    search?: string
+    page?: string
+    q?: string
+    productType?: string
+    rarity?: string
+    priceMin?: string
+    priceMax?: string
+    inStock?: string
+    outOfStock?: string
+    isPreOrder?: string
+    sortBy?: string
+  }>
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
@@ -170,41 +183,41 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect(target) // next/navigation redirect — throws internally (permanent)
   }
 
-  const rawProductType = typeof params?.productType === 'string' ? params.productType : null;
-  const rawRarity = typeof params?.rarity === 'string' ? params.rarity : null;
+  const rawProductType = typeof params?.productType === 'string' ? params.productType : null
+  const rawRarity = typeof params?.rarity === 'string' ? params.rarity : null
+  
+  const pageParam = parseInt(params?.page || "1", 10)
+  const page = isNaN(pageParam) ? 1 : Math.max(1, pageParam)
+
+  const priceMin = params?.priceMin ? Number(params.priceMin) : null
+  const priceMax = params?.priceMax ? Number(params.priceMax) : null
+  const inStock = params?.inStock === "true" ? true : null
+  const outOfStock = params?.outOfStock === "true" ? true : null
+  const isPreOrder = params?.isPreOrder === "true" ? true : null
+  const sortBy = params?.sortBy || null
 
   const BASE_URL = siteUrl
 
   // Server-side DB fetch: Create a promise instead of awaiting
   const dataPromise = (async () => {
-    let products
-    let categoryMeta = null
-    let aggregations: FilterAggregations
-
-    if (searchQuery) {
-      const [searchResults, agg] = await Promise.all([
-        searchProducts(searchQuery, rawProductType, rawRarity),
-        getFilterAggregations(null, searchQuery),
-      ])
-      products = searchResults
-      aggregations = agg
-    } else if (categorySlug && categorySlug !== "all") {
-      const [categoryProducts, catMeta, agg] = await Promise.all([
-        getProductsByCategorySlug(categorySlug, rawProductType, rawRarity),
-        getCategoryBySlug(categorySlug),
-        getFilterAggregations(categorySlug, null),
-      ])
-      products = categoryProducts
-      categoryMeta = catMeta
-      aggregations = agg
-    } else {
-      const [allProducts, agg] = await Promise.all([
-        getAllProducts(rawProductType, rawRarity),
-        getFilterAggregations(null, null),
-      ])
-      products = allProducts
-      aggregations = agg
-    }
+    const [{ products, totalCount, totalPages }, aggregations, categoryMeta] = await Promise.all([
+      getProductsPage({
+        page,
+        limit: 24,
+        category: categorySlug,
+        query: searchQuery || null,
+        productType: rawProductType,
+        rarity: rawRarity,
+        priceMin,
+        priceMax,
+        inStock,
+        outOfStock,
+        isPreOrder,
+        sortBy
+      }),
+      getFilterAggregations(categorySlug && categorySlug !== "all" ? categorySlug : null, searchQuery || null),
+      categorySlug && categorySlug !== "all" ? getCategoryBySlug(categorySlug) : null
+    ])
 
     const productsForClient = products.map((p) => ({
       ...p,
@@ -213,7 +226,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       inStock: p.inStock,
     })) as ProductFilter[]
 
-    return { products: productsForClient, aggregations, categoryMeta }
+    return { products: productsForClient, totalCount, totalPages, page, aggregations, categoryMeta }
   })()
 
   // Generate canonical URL for JSON-LD without awaiting DB

@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { filterProducts, getAvailableCounts, type FilterOptions, type FilterAggregations, defaultAggregations } from "@/lib/product-filters"
+import { type FilterOptions, type FilterAggregations, defaultAggregations } from "@/lib/product-filters"
 import type { Product } from "@/lib/product-filters"
 
-const ITEMS_PER_PAGE = 20
-
-export function useProductFilters(products?: Product[], initialCategory?: string, serverAggregations?: FilterAggregations) {
+export function useProductFilters(
+  products?: Product[],
+  initialCategory?: string,
+  serverAggregations?: FilterAggregations,
+  serverTotalCount?: number,
+  serverTotalPages?: number,
+  serverPage?: number
+) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const previousUrlRef = useRef<string>("")
@@ -36,29 +41,14 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     }
   })
 
-  const [currentPage, setCurrentPage] = useState(() => {
-    const page = searchParams.get("page")
-    return page ? Math.max(1, Number(page)) : 1
-  })
+  const [currentPage, setCurrentPage] = useState(serverPage || 1)
 
-  const filteredProducts = useMemo(() => {
-    return filterProducts(filters, products)
-  }, [filters, products])
-
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-
-    return {
-      products: filteredProducts.slice(startIndex, endIndex),
-      totalCount: filteredProducts.length,
-      totalPages: Math.ceil(filteredProducts.length / ITEMS_PER_PAGE),
+  // Sync currentPage with serverPage if the server overrides it (e.g., page param out of bounds or back navigation)
+  useEffect(() => {
+    if (serverPage !== undefined) {
+      setCurrentPage(serverPage)
     }
-  }, [filteredProducts, currentPage])
-
-  const availableCounts = useMemo(() => {
-    return getAvailableCounts(filters, products)
-  }, [filters, products])
+  }, [serverPage])
 
   useEffect(() => {
     // Skip initial render to prevent conflicts with URL-based initialization
@@ -70,9 +60,6 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     const params = new URLSearchParams()
 
     // ── IMPORTANT: preserve server-owned params that this hook doesn't manage ──
-    // ?category= is consumed by the server page to fetch products and derive
-    // activeCategorySlug. If we drop it here the server re-renders with
-    // categorySlug=null, resetting the hero title to "All Products".
     const currentParams = new URLSearchParams(window.location.search)
     const categoryParam = currentParams.get("category")
     if (categoryParam) params.set("category", categoryParam)
@@ -85,10 +72,7 @@ export function useProductFilters(products?: Product[], initialCategory?: string
     if (filters.isPreOrder) params.set("isPreOrder", "true")
     if (filters.productType) params.set("productType", filters.productType)
     if (filters.rarity) params.set("rarity", filters.rarity)
-    // NOTE: 'categories' (plural, client-side filter state) is intentionally NOT
-    // pushed to the URL. Category navigation is handled by full-page <a> links
-    // using the server-owned 'category' slug param (preserved above at line 74-76).
-    // Writing 'categories' here caused messy duplicate params in the URL.
+    
     if (filters.sortBy) params.set("sortBy", filters.sortBy)
     if (currentPage > 1) params.set("page", currentPage.toString())
 
@@ -135,9 +119,10 @@ export function useProductFilters(products?: Product[], initialCategory?: string
 
   const setPage = useCallback(
     (page: number) => {
-      setCurrentPage(Math.max(1, Math.min(page, paginatedData.totalPages)))
+      const maxPage = serverTotalPages || 1;
+      setCurrentPage(Math.max(1, Math.min(page, maxPage)))
     },
-    [paginatedData.totalPages],
+    [serverTotalPages],
   )
 
   const setPriceRange = useCallback((min?: number, max?: number) => {
@@ -166,9 +151,8 @@ export function useProductFilters(products?: Product[], initialCategory?: string
 
   return {
     // Data
-    products: paginatedData.products,
-    totalCount: paginatedData.totalCount,
-    availableCounts,
+    products: products || [],
+    totalCount: serverTotalCount || 0,
     serverAggregations: serverAggregations || defaultAggregations(),
 
     // Filter state
@@ -181,11 +165,11 @@ export function useProductFilters(products?: Product[], initialCategory?: string
 
     // Pagination
     currentPage,
-    totalPages: paginatedData.totalPages,
+    totalPages: serverTotalPages || 1,
     setPage,
 
     // Computed values
     hasActiveFilters: Object.keys(filters).length > 0,
-    isLoading: false, // Could be used for async operations
+    isLoading: false,
   }
 }

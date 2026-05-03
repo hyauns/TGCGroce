@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+export const revalidate = 3600 // Cache for 1 hour
 // Extend timeout for large feeds (Vercel Pro: 60s, Hobby: 10s)
 export const maxDuration = 60
 
@@ -43,57 +42,45 @@ export async function GET(
   }
 
   const CHUNK_SIZE = 500
-  const encoder = new TextEncoder()
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n` +
+    `<channel>\n` +
+    `<title>TCG Lore - ${config.platform === "BING" ? "Bing" : "Google"} - ${escapeXml(config.name)}</title>\n` +
+    `<link>${siteUrl}</link>\n` +
+    `<description>${config.platform === "BING" ? "Bing" : "Google"} Merchant Center product feed: ${escapeXml(config.name)}</description>\n`
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        // ── XML Header ───────────────────────────────────────────────
-        controller.enqueue(encoder.encode(
-          `<?xml version="1.0" encoding="UTF-8"?>\n` +
-          `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n` +
-          `<channel>\n` +
-          `<title>TCG Lore - ${config.platform === "BING" ? "Bing" : "Google"} - ${escapeXml(config.name)}</title>\n` +
-          `<link>${siteUrl}</link>\n` +
-          `<description>${config.platform === "BING" ? "Bing" : "Google"} Merchant Center product feed: ${escapeXml(config.name)}</description>\n`
-        ))
+  let offset = 0
+  let hasMore = true
 
-        // ── Paginated product streaming ──────────────────────────────
-        let offset = 0
-        let hasMore = true
+  try {
+    while (hasMore) {
+      console.time(`[DB] Fetch Feed Batch ${offset}`)
+      const products = await streamFeedProducts(config, offset, CHUNK_SIZE)
+      console.timeEnd(`[DB] Fetch Feed Batch ${offset}`)
 
-        while (hasMore) {
-          console.time(`[DB] Stream Feed Batch ${offset}`)
-          const products = await streamFeedProducts(config, offset, CHUNK_SIZE)
-          console.timeEnd(`[DB] Stream Feed Batch ${offset}`)
-
-          for (const product of products) {
-            controller.enqueue(encoder.encode(buildItemXml(product)))
-          }
-
-          if (products.length < CHUNK_SIZE) {
-            hasMore = false
-          } else {
-            offset += CHUNK_SIZE
-          }
-        }
-
-        // ── Close tags ───────────────────────────────────────────────
-        controller.enqueue(encoder.encode(`</channel>\n</rss>\n`))
-        controller.close()
-      } catch (error) {
-        console.error("[feeds/xml] Stream error:", error)
-        controller.error(error)
+      for (const product of products) {
+        xml += buildItemXml(product)
       }
-    },
-  })
 
-  return new Response(stream, {
+      if (products.length < CHUNK_SIZE) {
+        hasMore = false
+      } else {
+        offset += CHUNK_SIZE
+      }
+    }
+  } catch (error) {
+    console.error("[feeds/xml] Feed generation error:", error)
+    return new Response("Internal Server Error", { status: 500 })
+  }
+
+  xml += `</channel>\n</rss>\n`
+
+  return new Response(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
       "X-Feed-Id": config.id,
-      "X-Feed-Name": config.name,
+      "X-Feed-Name": escapeXml(config.name),
     },
   })
 }

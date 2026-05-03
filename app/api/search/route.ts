@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const safeQuery = query.replace(/[%_]/g, "")
 
   try {
-    const results = await searchProducts(safeQuery)
+    const results = await searchProducts(safeQuery, null, null, limit * 2)
 
     // Build de-duplicated suggestion list: product names + unique categories
     const names   = new Set<string>()

@@ -43,6 +43,9 @@ import { formatSalesCount } from "@/lib/sales-generator"
 interface ProductsPageClientProps {
   dataPromise: Promise<{
     products: Product[]
+    totalCount: number
+    totalPages: number
+    page: number
     aggregations: FilterAggregations
     categoryMeta: any
   }>
@@ -53,7 +56,7 @@ interface ProductsPageClientProps {
 }
 
 function ProductsContent({ dataPromise, activeCategorySlug, activeSearch }: ProductsPageClientProps) {
-  const { products: initialProducts, aggregations, categoryMeta } = use(dataPromise)
+  const { products: initialProducts, totalCount: serverTotalCount, totalPages: serverTotalPages, page: serverPage, aggregations, categoryMeta } = use(dataPromise)
   const activeCategory = categoryMeta?.name ?? null
 
   const { dispatch, addItemWithAnimation, isAddingToCart, recentlyAddedItem } = useCart()
@@ -63,7 +66,6 @@ function ProductsContent({ dataPromise, activeCategorySlug, activeSearch }: Prod
   const {
     products,
     totalCount,
-    availableCounts,
     filters,
     setFilter,
     clearFilters,
@@ -73,7 +75,7 @@ function ProductsContent({ dataPromise, activeCategorySlug, activeSearch }: Prod
     totalPages,
     setPage,
     hasActiveFilters,
-  } = useProductFilters(initialProducts, activeCategory ?? undefined, aggregations)
+  } = useProductFilters(initialProducts, activeCategory ?? undefined, aggregations, serverTotalCount, serverTotalPages, serverPage)
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [quickViewProduct, setQuickViewProduct] = useState<ProductDetails | null>(null)
