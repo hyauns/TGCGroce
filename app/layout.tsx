@@ -3,6 +3,7 @@ import type React from "react"
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { Providers } from "./providers"
+import Script from "next/script"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/react"
@@ -138,9 +139,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* TrustBox script */}
-        <script type="text/javascript" src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
-        {/* End TrustBox script */}
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}

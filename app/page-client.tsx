@@ -42,6 +42,7 @@ import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { QuickViewModal } from "./components/quick-view-modal"
 import { Hero } from "./components/hero"
+import { TrustpilotWidget } from "./components/trustpilot-widget"
 import { useToast } from "@/hooks/use-toast"
 import { generateSlug } from "@/lib/utils"
 import { generateCategorySlug } from "@/lib/product-utils"
@@ -675,9 +676,7 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
           </div>
 
           {/* TrustBox widget - Micro Combo */}
-          <div className="trustpilot-widget" data-locale="en-US" data-template-id="5419b6ffb0d04a076446a9af" data-businessunit-id="69f75a315488d8599954ebf2" data-style-height="20px" data-style-width="100%" data-token="bfb0f3b4-c2b7-4399-a9b3-cac330622e5c">
-            <a href="https://www.trustpilot.com/review/tcglore.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
-          </div>
+          <TrustpilotWidget />
           {/* End TrustBox widget */}
         </div>
       </section>
