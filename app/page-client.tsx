@@ -17,7 +17,6 @@ import {
   Clock,
   Calendar,
   Check,
-  ShieldCheck,
   ChevronLeft,
   ChevronRight,
   Search,
@@ -71,15 +70,11 @@ interface HomePageClientProps {
 // ============================================================
 
 function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product[], Product[], Review[]]> }) {
-  const [featuredProducts, bestSellingProducts, preOrderProducts, initialReviews] = use(dataPromise)
+  const [featuredProducts, bestSellingProducts, preOrderProducts] = use(dataPromise)
 
   const { addItemWithAnimation } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { toast } = useToast()
-
-  // Reviews auto-play
-  const [customerReviews] = useState<Review[]>(initialReviews)
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
 
   // Quick view
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
@@ -95,14 +90,7 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
     sliderRef.current.scrollBy({ left: dir === "right" ? 200 : -200, behavior: "smooth" })
   }
 
-  useEffect(() => {
-    if (customerReviews.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentReviewIndex((prev) => (prev === customerReviews.length - 1 ? 0 : prev + 1))
-      }, 3000)
-      return () => clearInterval(interval)
-    }
-  }, [customerReviews.length])
+
 
   const getButtonState = (productId: number) => buttonStates[productId] || "idle"
 
@@ -172,10 +160,7 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
     setIsQuickViewOpen(true)
   }
 
-  const renderStars = (rating: number) =>
-    [...Array(5)].map((_, i) => (
-      <Star key={i} className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
-    ))
+
 
   return (
     <>
@@ -689,40 +674,11 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
             </p>
           </div>
 
-          {customerReviews.length > 0 && (
-            <div className="max-w-4xl mx-auto">
-              <Card className="backdrop-blur-sm border-gray-200 text-gray-900" style={{ backgroundColor: "#eff6ff" }}>
-                <CardContent className="p-8">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="flex items-center gap-1 mb-4">
-                      {renderStars(customerReviews[currentReviewIndex]?.rating || 5)}
-                    </div>
-                    <blockquote className="text-lg md:text-xl leading-relaxed mb-6 max-w-3xl italic" style={{ color: "rgb(30, 64, 175)" }}>
-                      &quot;{customerReviews[currentReviewIndex]?.reviewText}&quot;
-                    </blockquote>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center">
-                        <div className="font-semibold text-lg italic" style={{ color: "rgb(30, 64, 175)" }}>
-                          {customerReviews[currentReviewIndex]?.customerName}
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-sm" style={{ color: "rgb(22, 163, 74)" }}>
-                          {customerReviews[currentReviewIndex]?.isVerified && (
-                            <>
-                              <ShieldCheck className="h-4 w-4" />
-                              <span>Verified TCG Customer</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-sm italic" style={{ color: "rgb(30, 64, 175)" }}>
-                      Purchased: {customerReviews[currentReviewIndex]?.productName}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {/* TrustBox widget - Micro Combo */}
+          <div className="trustpilot-widget" data-locale="en-US" data-template-id="5419b6ffb0d04a076446a9af" data-businessunit-id="69f75a315488d8599954ebf2" data-style-height="20px" data-style-width="100%" data-token="bfb0f3b4-c2b7-4399-a9b3-cac330622e5c">
+            <a href="https://www.trustpilot.com/review/tcglore.com" target="_blank" rel="noopener noreferrer">Trustpilot</a>
+          </div>
+          {/* End TrustBox widget */}
         </div>
       </section>
 

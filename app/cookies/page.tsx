@@ -33,7 +33,7 @@ export default function CookiesPage() {
               </p>
               <p className="text-gray-700 mb-4">
                 Cookies contain information that is transferred to your device's hard drive. They help us improve our
-                services and deliver a more personalized and convenient experience when you visit our TCG Lore Operated by A TOY HAULERZ LLC Company. store.
+                services and deliver a more personalized and convenient experience when you visit our TCG Lore store.
               </p>
             </section>
 
@@ -312,7 +312,7 @@ export default function CookiesPage() {
                     <strong>Phone:</strong> <a href="tel:+13036683245">+1 (303) 668-3245</a>
                   </li>
                   <li>
-                    <strong>Mail:</strong> TCG Lore Operated by A TOY HAULERZ LLC Company. Privacy Team, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
+                    <strong>Mail:</strong> TCG Lore Privacy Team, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
                   </li>
                   <li>
                     <strong>Contact Form:</strong>{" "}

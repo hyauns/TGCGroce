@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
 ${safeMessage}
           </div>
           <p style="font-size: 12px; color: #9ca3af; margin-top: 16px;">
-            Received on ${timestamp} (EST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form
+            Received on ${timestamp} (EST) via TCG Lore Contact Form
           </p>
         </div>
       </div>
@@ -183,7 +183,7 @@ ${safeMessage}
       "Message:",
       String(message).trim(),
       "",
-      `Received on ${timestamp} (EST) via TCG Lore Operated by A TOY HAULERZ LLC Company Contact Form`,
+      `Received on ${timestamp} (EST) via TCG Lore Contact Form`,
     ].join("\n")
 
     const result = await sendEmailWithRetry({

@@ -226,7 +226,7 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
   // ─── Pre-order & release date ────────────────────────────────────────────
   // Read is_pre_order from DB when available (will be null if column is missing —
   // the try/catch in getPreOrderProducts guards that case at query time).
-  const isPreOrder = Boolean(row.is_pre_order)
+  let isPreOrder = Boolean(row.is_pre_order)
 
   // Format release_date as a human-readable string if present.
   // Input may be a JS Date (neon driver), a date string, or null.
@@ -235,6 +235,11 @@ function mapJoinedRowToProduct(row: DbProductJoined): Product {
     const d = row.release_date instanceof Date
       ? row.release_date
       : new Date(row.release_date)
+      
+    if (d.getTime() < Date.now()) {
+      isPreOrder = false
+    }
+
     // e.g. "March 15, 2025" — locale-independent, readable on both card & PDP
     releaseDate = d.toLocaleDateString("en-US", {
       year:  "numeric",

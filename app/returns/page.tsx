@@ -1,4 +1,3 @@
-"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -481,7 +480,7 @@ export default function ReturnsPage() {
                     <div className="flex items-start gap-4">
                       <MapPin className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                       <div>
-                        <h5 className="font-semibold mb-2">TOY HAULERZ LLC Returns Department</h5>
+                        <h5 className="font-semibold mb-2">A Toy Haulerz LLC Returns Department</h5>
                         <div className="space-y-1 text-sm">
                           <p>1757 NORTH CENTRAL AVENUE</p>
                           <p>FLAGLER BEACH, FL 32136</p>

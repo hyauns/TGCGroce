@@ -13,18 +13,17 @@ export function Footer() {
             <div className="flex flex-col items-start gap-1">
               <Image 
                 src="/logo.png" 
-                alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" 
+                alt="TCG Lore Logo" 
                 width={120} 
                 height={40} 
                 className="h-10 w-auto object-contain"
               />
               <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
-                A TOY HAULERZ LLC Company
+                TCG Lore is an online store operated by A Toy Haulerz LLC.
               </span>
             </div>
             <p className="text-black text-sm leading-relaxed hover:text-[rgb(37,99,235)] transition-colors">
-              Your trusted destination for authentic trading cards, collectibles, and gaming accessories. We bring you
-              the best selection with guaranteed authenticity from Flagler Beach, Florida.
+              We source sealed trading card products through U.S. supplier and distributor networks. Orders are reviewed and packed carefully before shipment. Product condition and availability are clearly shown before checkout.
             </p>
             <FooterSocial />
           </div>
@@ -102,7 +101,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/payment-orders"
+                  href="/payment"
                   className="text-black hover:text-[rgb(37,99,235)] transition-colors text-sm"
                 >
                   Payment & Orders Guide
@@ -123,15 +122,21 @@ export function Footer() {
                   cs@tcglore.com
                 </a>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors" />
-                <a href="tel:+13036683245" className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">+1 (303) 668-3245</a>
+              <div className="flex items-start gap-3">
+                <Phone className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Remote Customer Support Line</span>
+                  <a href="tel:+13036683245" className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">+1 (303) 668-3245</a>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors flex-shrink-0" />
-                <span className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors leading-tight">
-                  1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
-                </span>
+              <div className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 text-black hover:text-[rgb(37,99,235)] transition-colors flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Business Office</span>
+                  <span className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors leading-tight">
+                    1757 NORTH CENTRAL AVENUE<br />FLAGLER BEACH, FL 32136
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -154,36 +159,15 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Payment Methods & Trust Badges */}
+        {/* Payment Methods */}
         <div className="border-t border-gray-800 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
             <div className="flex items-center gap-4">
-              
               <div className="flex items-center gap-2">
                 <Image src="/images/visa.svg" alt="Visa" width={32} height={20} className="h-5 w-auto" />
                 <Image src="/images/mastercard.svg" alt="Mastercard" width={32} height={20} className="h-5 w-auto" />
                 <Image src="/images/amex.svg" alt="American Express" width={32} height={20} className="h-5 w-auto" />
                 <Image src="/images/discover.svg" alt="Discover" width={32} height={20} className="h-5 w-auto" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center">
-                <Image
-                  src="/images/trustwave.png"
-                  alt="Trustwave Trusted Commerce"
-                  width={120}
-                  height={60}
-                  className="h-8 w-auto sm:h-10"
-                />
-              </div>
-              <div className="flex items-center">
-                <Image
-                  src="/images/positivessl.png"
-                  alt="Secured by PositiveSSL"
-                  width={120}
-                  height={40}
-                  className="h-6 w-auto sm:h-8"
-                />
               </div>
             </div>
           </div>
@@ -192,7 +176,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-black text-sm hover:text-[rgb(37,99,235)] transition-colors">
-            Copyright © {new Date().getFullYear()} TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
+            Copyright © {new Date().getFullYear()} TCG Lore is an online store operated by A Toy Haulerz LLC. All rights reserved.
           </p>
 
           {/* Trading Card Game Copyright Information */}

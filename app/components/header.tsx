@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -62,13 +61,14 @@ export function Header() {
   const cartCount = getCartCount()
   const wishlistCount = getWishlistCount()
 
-  const searchParamsHook = useSearchParams()
-
   useEffect(() => {
     setRecentSearches(getRecentSearches())
     // Pre-populate input from URL on mount (e.g. landing on /products?search=pokemon)
-    const urlSearch = searchParamsHook.get("search") ?? searchParamsHook.get("q") ?? ""
-    if (urlSearch) setSearchQuery(urlSearch)
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search)
+      const urlSearch = urlParams.get("search") ?? urlParams.get("q") ?? ""
+      if (urlSearch) setSearchQuery(urlSearch)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -225,11 +225,9 @@ export function Header() {
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <span>Free shipping on orders over $75</span>
-            <span className="hidden md:inline">•</span>
-            <span className="hidden md:inline">Authentic products guaranteed</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline">Need help? Call +1 (303) 668-3245</span>
+            <span className="hidden sm:inline">Remote Support: +1 (303) 668-3245</span>
           </div>
         </div>
       </div>
@@ -242,14 +240,14 @@ export function Header() {
             <div className="flex flex-col items-start gap-1">
               <Image 
                 src="/logo.png" 
-                alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" 
+                alt="TCG Lore Logo" 
                 width={120} 
                 height={40} 
                 className="h-10 w-auto object-contain"
                 priority
               />
               <p className="text-[10px] text-gray-500 hidden sm:block uppercase tracking-wider font-semibold">
-                A TOY HAULERZ LLC Company
+                Operated by A Toy Haulerz LLC
               </p>
             </div>
           </Link>
@@ -436,7 +434,7 @@ export function Header() {
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <p className="text-gray-700 font-medium mb-3">Welcome to TCG Lore Operated by A TOY HAULERZ LLC Company</p>
+                          <p className="text-gray-700 font-medium mb-3">Welcome to TCG Lore</p>
                           <div className="space-y-2">
                             <Link href="/auth/login" onClick={closeMobileMenu}>
                               <Button className="w-full bg-blue-600 hover:bg-blue-700">

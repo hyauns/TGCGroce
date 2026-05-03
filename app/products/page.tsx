@@ -28,23 +28,23 @@ export async function generateMetadata({
 
   if (!categorySlug || categorySlug === "all") {
     return {
-      title: "All Trading Card Products | TCG Cards, Booster Packs & Boxes | TCG Lore Operated by A TOY HAULERZ LLC Company",
+      title: "All Trading Card Products | TCG Cards, Booster Packs & Boxes | TCG Lore",
       description:
         "Shop our full collection of authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Free shipping on orders over $75.",
       keywords:
         "trading cards, TCG, booster packs, booster boxes, Magic The Gathering, Pokemon cards, Yu-Gi-Oh cards, Disney Lorcana, One Piece Card Game, card shop, collectible card games",
       alternates: { canonical: `${BASE_URL}/products` },
       openGraph: {
-        title: "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
+        title: "All Trading Card Products | TCG Lore",
         description:
           "Browse our complete collection of authentic trading cards and collectibles.",
         url: `${BASE_URL}/products`,
-        siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
+        siteName: "TCG Lore",
         type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title: "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
+        title: "All Trading Card Products | TCG Lore",
         description:
           "Browse our complete collection of authentic trading cards and collectibles.",
       },
@@ -56,7 +56,7 @@ export async function generateMetadata({
   const categoryName = categoryMeta?.name ?? slugToTitle(categorySlug)
   const canonicalUrl = `${BASE_URL}/products?category=${categorySlug}`
 
-  const title = `${categoryName} TCG Cards | Authentic Cards & Boxes | TCG Lore Operated by A TOY HAULERZ LLC Company`
+  const title = `${categoryName} TCG Cards | Authentic Cards & Boxes | TCG Lore`
   const description =
     categoryMeta?.description ??
     `Shop authentic ${categoryName} trading cards, booster packs, and collectibles at TGC Lore. 100% genuine products, fast US shipping, and the best prices guaranteed.`
@@ -64,14 +64,14 @@ export async function generateMetadata({
   return {
     title,
     description,
-    keywords: `${categoryName}, ${categoryName} cards, ${categoryName} booster packs, buy ${categoryName} TCG, ${categoryName} collectibles, TCG Lore Operated by A TOY HAULERZ LLC Company`,
+    keywords: `${categoryName}, ${categoryName} cards, ${categoryName} booster packs, buy ${categoryName} TCG, ${categoryName} collectibles, TCG Lore`,
     alternates: { canonical: canonicalUrl },
     robots: { index: true, follow: true },
     openGraph: {
       title,
       description,
       url: canonicalUrl,
-      siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
+      siteName: "TCG Lore",
       type: "website",
     },
     twitter: {
@@ -102,15 +102,15 @@ function buildJsonLd(categoryName: string | null, productCount: number, canonica
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: categoryName
-      ? `${categoryName} TCG Cards | TCG Lore Operated by A TOY HAULERZ LLC Company`
-      : "All Trading Card Products | TCG Lore Operated by A TOY HAULERZ LLC Company",
+      ? `${categoryName} TCG Cards | TCG Lore`
+      : "All Trading Card Products | TCG Lore",
     description: categoryName
       ? `Authentic ${categoryName} trading cards, booster packs, and collectibles at TGC Lore.`
       : "Complete catalog of authentic trading cards and collectibles at TGC Lore.",
     url: canonicalUrl,
     provider: {
       "@type": "Organization",
-      name: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
+      name: "TCG Lore",
       url: siteUrl,
       contactPoint: {
         "@type": "ContactPoint",

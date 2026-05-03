@@ -2,8 +2,6 @@
 
 import type React from "react"
 
-import { Inter } from "next/font/google"
-import "./globals.css"
 import { CartProvider } from "@/lib/cart-context"
 import { WishlistProvider } from "@/lib/wishlist-context"
 import { AuthProvider } from "@/lib/auth-context"
@@ -13,8 +11,6 @@ import { AddToCartPopup } from "./components/add-to-cart-popup"
 import { useCart } from "@/lib/cart-context"
 import { useAnalytics } from "@/hooks/use-analytics"
 import { CategoryProvider, type Category } from "@/lib/category-context"
-
-const inter = Inter({ subsets: ["latin"] })
 
 /** Mounts the analytics page-view tracker — renders nothing. */
 function AnalyticsTracker() {
@@ -35,7 +31,7 @@ function AddToCartPopupWrapper() {
   )
 }
 
-export default function ClientRootLayout({
+export function Providers({
   children,
   categories,
 }: {
@@ -43,23 +39,18 @@ export default function ClientRootLayout({
   categories: Category[]
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <CategoryProvider categories={categories}>
-          <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <AnalyticsTracker />
-              {children}
-              <AddToCartPopupWrapper />
-              <ScrollToTop />
-              <Toaster />
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </CategoryProvider>
-      </body>
-    </html>
+    <CategoryProvider categories={categories}>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <AnalyticsTracker />
+            {children}
+            <AddToCartPopupWrapper />
+            <ScrollToTop />
+            <Toaster />
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
+    </CategoryProvider>
   )
 }
-

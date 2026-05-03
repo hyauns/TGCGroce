@@ -8,13 +8,13 @@ import { Footer } from "@/app/components/footer"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "About TCG Lore Operated by A TOY HAULERZ LLC Company. - Premium Trading Card Games Store | Our Story & Mission",
+  title: "About TCG Lore - Premium Trading Card Games Store | Our Story & Mission",
   description:
-    "Learn about TCG Lore Operated by A TOY HAULERZ LLC Company.'s mission to provide authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards. Founded in Miami 2019, serving 50,000+ satisfied TCG customers worldwide.",
+    "Learn about TCG Lore's mission to provide authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards. Founded in Miami 2019, serving 50,000+ satisfied TCG customers worldwide.",
   keywords:
-    "TCG Lore Operated by A TOY HAULERZ LLC Company. history, trading card store Miami, authentic TCG products, Magic Pokemon Yu-Gi-Oh store, collectible card games company",
+    "TCG Lore history, trading card store Miami, authentic TCG products, Magic Pokemon Yu-Gi-Oh store, collectible card games company",
   openGraph: {
-    title: "About TCG Lore Operated by A TOY HAULERZ LLC Company. - Premium Trading Card Games Store",
+    title: "About TCG Lore - Premium Trading Card Games Store",
     description: "Learn about our mission to provide authentic trading cards and serve the TCG community since 2019.",
     url: "https://tcglore.com/about",
   },
@@ -70,7 +70,7 @@ export default function AboutPage() {
                   <div className="text-center">
                     <Heart className="w-16 h-16 text-red-500 mx-auto mb-6" />
                     <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-8">
-                      At TCG Lore Operated by A TOY HAULERZ LLC Company., We&apos;re more than just a trading card store – We&apos;re a community of passionate
+                      At TCG Lore, We&apos;re more than just a trading card store – We&apos;re a community of passionate
                       Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors, competitive players, and gaming
                       enthusiasts. Our mission is to fuel your passion for collectible card games by providing
                       authentic, high-quality TCG products and fostering connections within the global trading card
@@ -105,7 +105,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">The Beginning (2019)</h3>
                       <p className="text-gray-600">
-                        Founded in the heart of Miami by lifelong TCG enthusiasts Marcus Chen and Sarah Rodriguez, TCG Lore Operated by A TOY HAULERZ LLC Company. started as a small local trading card store with a big dream: to create the ultimate
+                        Founded in the heart of Miami by lifelong TCG enthusiasts Marcus Chen and Sarah Rodriguez, TCG Lore started as a small local trading card store with a big dream: to create the ultimate
                         destination for Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors.
                       </p>
                     </div>
@@ -231,24 +231,37 @@ export default function AboutPage() {
                 Have questions about trading cards? Want to share your latest pull? We'd love to hear from you!
               </p>
 
-              <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                   <CardContent className="p-6 text-center">
                     <Mail className="w-8 h-8 text-blue-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-white">Email Our TCG Store</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Email Us</h3>
                     <Link
                       href="mailto:cs@tcglore.com"
-                      className="text-blue-300 hover:text-white transition-colors"
+                      className="text-blue-300 hover:text-white transition-colors block"
                     >
                       cs@tcglore.com
                     </Link>
+                    <a href="tel:+13036683245" className="text-blue-300 hover:text-white transition-colors block mt-2">
+                      +1 (303) 668-3245
+                    </a>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                  <CardContent className="p-6 text-center">
+                    <Shield className="w-8 h-8 text-green-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-white">Business Operator</h3>
+                    <p className="text-green-200">
+                      A Toy Haulerz LLC
+                    </p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20">
                   <CardContent className="p-6 text-center">
                     <MapPin className="w-8 h-8 text-purple-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-white">Visit Our Trading Card Store</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-white">Office Address</h3>
                     <p className="text-purple-200">
                       1757 NORTH CENTRAL AVENUE
                       <br />

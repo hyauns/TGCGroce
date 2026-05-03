@@ -149,8 +149,8 @@ function resolveImageUrl(imageUrl: string | null): string {
 /**
  * Map stock_quantity + is_pre_order to GMC availability string.
  */
-function mapAvailability(stockQuantity: number, isPreOrder: boolean | null): string {
-  if (isPreOrder) return "preorder"
+function mapAvailability(stockQuantity: number, isActuallyPreorder: boolean): string {
+  if (isActuallyPreorder) return "preorder"
   return stockQuantity > 0 ? "in_stock" : "out_of_stock"
 }
 
@@ -203,7 +203,16 @@ function buildItemXml(product: FeedProductRow): string {
     ? stripHtml(product.description).slice(0, 5000)
     : product.name
   const imageUrl = resolveImageUrl(product.image_url)
-  const availability = mapAvailability(product.stock_quantity, product.is_pre_order)
+  
+  let isActuallyPreorder = Boolean(product.is_pre_order)
+  if (isActuallyPreorder && product.release_date) {
+    const d = new Date(product.release_date)
+    if (d.getTime() < Date.now()) {
+      isActuallyPreorder = false
+    }
+  }
+
+  const availability = mapAvailability(product.stock_quantity, isActuallyPreorder)
   const condition = mapCondition()
   const brand = product.brands || "TCG Lore"
   const productTypeLabel = product.product_type?.toLowerCase().includes("sealed")
@@ -211,7 +220,7 @@ function buildItemXml(product: FeedProductRow): string {
     : "Singles"
 
   // Build availability_date line ONLY for pre-order items (GMC strict requirement)
-  const availabilityDateLine = product.is_pre_order
+  const availabilityDateLine = isActuallyPreorder
     ? `  <g:availability_date>${buildAvailabilityDate(product.release_date)}</g:availability_date>\n`
     : ``
 

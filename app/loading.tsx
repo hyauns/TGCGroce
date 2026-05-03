@@ -68,7 +68,7 @@ export default function Loading() {
 
       {/* ── Overlay ──────────────────────────────────────────────────────── */}
       <div
-        aria-label="Loading, please wait"
+        aria-label="Loading content..."
         role="status"
         style={{
           position: "fixed",
@@ -259,7 +259,7 @@ export default function Loading() {
                 letterSpacing="2.5"
                 opacity="0.6"
               >
-                TCG Lore Operated by A TOY HAULERZ LLC Company
+                TCG Lore
               </text>
 
               {/* ── Bottom label strip ── */}
@@ -337,7 +337,7 @@ export default function Loading() {
             margin: 0,
           }}
         >
-          TCG Lore Operated by A TOY HAULERZ LLC Company.
+          TCG Lore.
         </p>
       </div>
     </>

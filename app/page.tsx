@@ -10,23 +10,23 @@ import { siteUrl } from "@/lib/site-config"
 // ============================================================
 
 export const metadata: Metadata = {
-  title: "TCG Lore Operated by A TOY HAULERZ LLC Company | Premium Trading Cards & Collectibles Store",
+  title: "TCG Lore - Premium Trading Cards & Collectibles Store",
   description:
     "Shop authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana, and One Piece trading cards. Booster packs, booster boxes, and sealed product. Free shipping on US orders over $75.",
   keywords:
-    "trading cards, TCG, Magic The Gathering, Pokemon cards, Yu-Gi-Oh, Disney Lorcana, One Piece Card Game, booster packs, booster boxes, collectible cards, card shop, TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "trading cards, TCG, Magic The Gathering, Pokemon cards, Yu-Gi-Oh, Disney Lorcana, One Piece Card Game, booster packs, booster boxes, collectible cards, card shop, TCG Lore",
   alternates: { canonical: siteUrl },
   openGraph: {
-    title: "TCG Lore Operated by A TOY HAULERZ LLC Company | Premium Trading Cards & Collectibles Store",
+    title: "TCG Lore - Premium Trading Cards & Collectibles Store",
     description:
       "Authentic trading cards from your favourite TCG brands. Magic, Pokemon, Yu-Gi-Oh!, Lorcana & more. Fast US shipping.",
     url: siteUrl,
-    siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company.",
+    siteName: "TCG Lore",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TCG Lore Operated by A TOY HAULERZ LLC Company | Premium Trading Cards & Collectibles Store",
+    title: "TCG Lore - Premium Trading Cards & Collectibles Store",
     description: "Authentic trading cards from your favourite TCG brands.",
   },
 }

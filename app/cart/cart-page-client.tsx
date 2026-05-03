@@ -320,12 +320,12 @@ export default function CartPageClient() {
             <ShoppingBag className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
             <p className="text-gray-600 mb-8">Looks like you haven&apos;t added any items to your cart yet.</p>
-            <Link href="/products">
-              <Button size="lg" className="w-full">
+            <Button asChild size="lg" className="w-full">
+              <Link href="/products">
                 Start Shopping
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
         <Footer />
@@ -688,10 +688,9 @@ export default function CartPageClient() {
                   )}
                 </CardContent>
 
-                {/* Checkout button */}
                 <CardContent className="pt-0">
-                  <Link href="/checkout">
-                    <Button size="lg" className="w-full">
+                  <Button asChild size="lg" className="w-full">
+                    <Link href="/checkout">
                       <Image
                         src="/images/lock-icon.png"
                         alt="Secure"
@@ -701,15 +700,15 @@ export default function CartPageClient() {
                       />
                       Secure Checkout
                       <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
 
                   <div className="text-center mt-3">
-                    <Link href="/products">
-                      <Button variant="ghost" size="sm">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/products">
                         Continue Shopping
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </div>
                 </CardContent>
 

@@ -1,19 +1,23 @@
 import "@/lib/env" // Fail-fast env validation — must be first import
 import type React from "react"
+import { Suspense } from "react"
 import type { Metadata } from "next"
-import ClientRootLayout from "./client-layout"
+import { Providers } from "./providers"
 import "./globals.css"
+import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { siteUrl } from "@/lib/site-config"
 import { getSiteSettings } from "@/lib/site-settings"
 import { neon } from "@neondatabase/serverless"
 
+const inter = Inter({ subsets: ["latin"] })
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings()
 
   return {
-  title: settings.seoTitle || "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
+  title: settings.seoTitle || "TCG Lore - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
   description: settings.seoDescription || "Shop authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Fast shipping, guaranteed authenticity, competitive prices.",
   keywords: settings.seoKeywords || [
     "trading cards", "TCG", "collectibles", "booster packs", "card games",
@@ -22,8 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
     "TCG store", "card shop", "collectible card games", "booster boxes",
     "pre-order cards", "rare cards", "mint condition cards", "sealed products"
   ].join(", "),
-  authors: [{ name: "TOY HAULERZ LLC", url: siteUrl }],
-  creator: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Card Games",
+  authors: [{ name: "A Toy Haulerz LLC", url: siteUrl }],
+  creator: "TCG Lore - Premium Trading Card Games",
   publisher: "TOY HAULERZ LLC",
   formatDetection: {
     email: false,
@@ -32,16 +36,16 @@ export async function generateMetadata(): Promise<Metadata> {
   },
   metadataBase: new URL(siteUrl),
   openGraph: {
-    title: settings.seoTitle || "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards & Collectibles | Authentic Products",
+    title: settings.seoTitle || "TCG Lore - Premium Trading Cards & Collectibles | Authentic Products",
     description: settings.seoDescription || "Shop authentic trading cards from Magic: The Gathering, Pokemon, Yu-Gi-Oh! & more. Premium booster packs, rare collectibles, fast shipping & guaranteed authenticity.",
     url: siteUrl,
-    siteName: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Card Games",
+    siteName: "TCG Lore - Premium Trading Card Games",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards, Booster Packs and Collectibles",
+        alt: "TCG Lore - Premium Trading Cards, Booster Packs and Collectibles",
       },
     ],
     locale: "en_US",
@@ -49,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
   },
   twitter: {
     card: "summary_large_image",
-    title: settings.seoTitle || "TCG Lore Operated by A TOY HAULERZ LLC Company - Premium Trading Cards & Collectibles",
+    title: settings.seoTitle || "TCG Lore - Premium Trading Cards & Collectibles",
     description: settings.seoDescription || "Shop authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards & more. Premium booster packs, rare collectibles, fast shipping & guaranteed authenticity.",
     images: ["/og-image.jpg"],
     creator: "@tcglore",
@@ -79,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "apple-mobile-web-app-title": "TCG Lore",
     "mobile-web-app-capable": "yes",
     "msapplication-TileColor": "#2563eb",
     "theme-color": "#2563eb",
@@ -98,8 +102,8 @@ export default async function RootLayout({
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "TOY HAULERZ LLC",
-    "alternateName": "TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "name": "A Toy Haulerz LLC",
+    "alternateName": "TCG Lore",
     "url": siteUrl,
     "logo": `${siteUrl}/logo.png`,
     "contactPoint": {
@@ -122,7 +126,7 @@ export default async function RootLayout({
   const webSiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "TCG Lore Operated by A TOY HAULERZ LLC Company",
+    "name": "TCG Lore",
     "url": siteUrl,
     "potentialAction": {
       "@type": "SearchAction",
@@ -132,19 +136,30 @@ export default async function RootLayout({
   }
 
   return (
-    <ClientRootLayout categories={categories}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
-      />
-      {children}
-      <Analytics />
-      <SpeedInsights />
-    </ClientRootLayout>
+    <html lang="en">
+      <head>
+        {/* TrustBox script */}
+        <script type="text/javascript" src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
+        {/* End TrustBox script */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+      </head>
+      <body className={inter.className}>
+        <Providers categories={categories}>
+          {children}
+          <Suspense fallback={null}>
+            <Analytics />
+            <SpeedInsights />
+          </Suspense>
+        </Providers>
+      </body>
+    </html>
   )
 }
 

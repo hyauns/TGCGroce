@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { getAllProducts, getProductBySlug, getRelatedProducts } from "@/lib/products"
 import { getReviewsByProductId } from "@/lib/repositories/reviews"
 import { siteUrl } from "@/lib/site-config"
+import ProductPageClient from "./page-client"
 
 interface PageProps {
   params: { slug: string }
@@ -91,14 +92,10 @@ export default async function ProductPage({ params }: PageProps) {
     notFound()
   }
 
-  // Fetch related products, the client component, and reviews in parallel
-  const [relatedProducts, productPageClientModule, rawReviews] = await Promise.all([
+  const [relatedProducts, rawReviews] = await Promise.all([
     getRelatedProducts(product.id),
-    import("./page-client"),
     product.reviews && product.reviews > 0 ? getReviewsByProductId(product.id, 10) : Promise.resolve([])
   ])
-
-  const ProductPageClient = productPageClientModule.default
 
   // Fix image double-prefix by checking for an absolute URL
   const imageUrl = product.image.startsWith("http") ? product.image : `${siteUrl}${product.image}`
@@ -156,7 +153,10 @@ export default async function ProductPage({ params }: PageProps) {
       "price": product.price.toFixed(2),
       "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
       "itemCondition": "https://schema.org/NewCondition",
-      "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "availability": product.isPreOrder 
+        ? "https://schema.org/PreOrder" 
+        : (product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"),
+      ...(product.isPreOrder && product.preOrderDate ? { "availabilityStarts": product.preOrderDate } : {}),
       "seller": {
         "@type": "Organization",
         "name": "TOY HAULERZ LLC"

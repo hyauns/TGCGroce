@@ -328,7 +328,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                       try {
                         await navigator.share({
                           title: product.name,
-                          text: `Check out ${product.name} on TCG Lore Operated by A TOY HAULERZ LLC Company!`,
+                          text: `Check out ${product.name} on TCG Lore!`,
                           url: window.location.href,
                         })
                       } catch (error) {
@@ -420,7 +420,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
             {/* Price */}
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <span className="text-4xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                <span className="text-4xl font-bold text-blue-600">${product.price.toFixed(2)} USD</span>
                 {product.originalPrice && (
                   <span className="text-xl text-gray-500 line-through">${product.originalPrice.toFixed(2)}</span>
                 )}
@@ -464,7 +464,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                   <span className="font-semibold text-blue-900">Pre-Order Information</span>
                 </div>
                 <p className="text-sm text-blue-700">
-                  Expected release date: <strong>{product.releaseDate}</strong>
+                  Pre-order — Expected release date: <strong>{product.releaseDate}</strong>
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   Your order will ship as soon as the item becomes available.
