@@ -70,15 +70,24 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
     setIsManageOpen(true)
   }
 
-  // Prevent hydration mismatch
-  if (preferences === null) {
-    return <>{children}</>
+  // During SSR or before hydration, preferences is null.
+  // Always provide the context so child components never crash.
+  const contextValue: CookieConsentContextType = {
+    preferences: preferences ?? defaultPreferences,
+    hasConsented,
+    acceptAll,
+    rejectAll,
+    savePreferences,
+    openManage,
   }
 
+  // Don't show banner/modal until client-side hydration completes
+  const isHydrated = preferences !== null
+
   return (
-    <CookieConsentContext.Provider value={{ preferences, hasConsented, acceptAll, rejectAll, savePreferences, openManage }}>
+    <CookieConsentContext.Provider value={contextValue}>
       {children}
-      {!hasConsented && !isManageOpen && (
+      {isHydrated && !hasConsented && !isManageOpen && (
         <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 p-4 sm:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
           <div className="container mx-auto max-w-6xl">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -117,9 +126,9 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {isManageOpen && (
+      {isHydrated && isManageOpen && (
         <ManagePreferencesModal 
-          currentPrefs={preferences} 
+          currentPrefs={preferences!} 
           onSave={savePreferences} 
           onClose={() => hasConsented ? setIsManageOpen(false) : null}
           canClose={hasConsented}
