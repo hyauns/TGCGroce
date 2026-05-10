@@ -88,35 +88,29 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
     <CookieConsentContext.Provider value={contextValue}>
       {children}
       {isHydrated && !hasConsented && !isManageOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 p-4 sm:p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-          <div className="container mx-auto max-w-6xl">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Cookie Preferences</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  We use necessary cookies to make the site work. With your consent, we may also use analytics and marketing cookies to improve the website and measure performance. You can accept, reject, or manage your preferences.
-                </p>
-                <div className="text-xs text-gray-500 flex gap-4">
-                  <a href="/privacy" className="underline hover:text-blue-600">Privacy Policy</a>
-                  <a href="/cookies" className="underline hover:text-blue-600">Cookie Policy</a>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto shrink-0">
+        <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="container mx-auto max-w-6xl px-4 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-gray-600 text-center sm:text-left">
+                We use cookies to improve your experience. 
+                <a href="/privacy" className="underline hover:text-blue-600 ml-1">Privacy</a> · <a href="/cookies" className="underline hover:text-blue-600">Cookies</a>
+              </p>
+              <div className="flex items-center gap-2 shrink-0">
                 <button 
                   onClick={openManage}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  Manage Preferences
+                  Manage
                 </button>
                 <button 
                   onClick={rejectAll}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-transparent rounded-md hover:bg-gray-200 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                 >
-                  Reject Non-Essential
+                  Reject
                 </button>
                 <button 
                   onClick={acceptAll}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
                   Accept All
                 </button>

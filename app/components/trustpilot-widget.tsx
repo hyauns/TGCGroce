@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import Script from 'next/script'
-import { useCookieConsent } from "@/lib/cookie-consent-context"
 
 declare global {
   interface Window {
@@ -14,8 +13,6 @@ declare global {
 
 export function TrustpilotWidget() {
   const ref = useRef<HTMLDivElement>(null)
-  const { preferences } = useCookieConsent()
-  const hasConsent = preferences?.functional === true
 
   const loadTrustpilot = useCallback(() => {
     if (window.Trustpilot && ref.current) {
@@ -24,14 +21,8 @@ export function TrustpilotWidget() {
   }, [])
 
   useEffect(() => {
-    if (hasConsent) {
-      loadTrustpilot()
-    }
-  }, [hasConsent, loadTrustpilot])
-
-  if (!hasConsent) {
-    return null
-  }
+    loadTrustpilot()
+  }, [loadTrustpilot])
 
   return (
     <>
