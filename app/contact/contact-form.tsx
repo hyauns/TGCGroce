@@ -413,13 +413,13 @@ export default function ContactFormContent() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <Link href="/login">
+                  <Link href="/auth/login">
                     <Package className="mr-2 h-4 w-4" />
                     Track Your Order
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <Link href="/returns">
+                  <Link href="/auth/login">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Start a Return
                   </Link>
