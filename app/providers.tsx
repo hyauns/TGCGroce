@@ -11,10 +11,17 @@ import { AddToCartPopup } from "./components/add-to-cart-popup"
 import { useCart } from "@/lib/cart-context"
 import { useAnalytics } from "@/hooks/use-analytics"
 import { CategoryProvider, type Category } from "@/lib/category-context"
+import { CookieConsentProvider, useCookieConsent } from "@/lib/cookie-consent-context"
 
 /** Mounts the analytics page-view tracker — renders nothing. */
 function AnalyticsTracker() {
-  useAnalytics()
+  const { preferences } = useCookieConsent()
+  // Disable analytics if no consent
+  const shouldTrack = preferences?.analytics === true
+  
+  // Create a wrapper that conditionally fires the hook
+  useAnalytics(shouldTrack)
+  
   return null
 }
 
@@ -39,18 +46,20 @@ export function Providers({
   categories: Category[]
 }) {
   return (
-    <CategoryProvider categories={categories}>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <AnalyticsTracker />
-            {children}
-            <AddToCartPopupWrapper />
-            <ScrollToTop />
-            <Toaster />
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </CategoryProvider>
+    <CookieConsentProvider>
+      <CategoryProvider categories={categories}>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <AnalyticsTracker />
+              {children}
+              <AddToCartPopupWrapper />
+              <ScrollToTop />
+              <Toaster />
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </CategoryProvider>
+    </CookieConsentProvider>
   )
 }

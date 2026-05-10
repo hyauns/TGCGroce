@@ -30,85 +30,96 @@ function sendEvent(
   } = {}
 ) {
   if (typeof window === "undefined") return
-  const sessionId = getSessionId()
-
-  // Use navigator.sendBeacon when available so events aren't lost on page unload
-  const payload = JSON.stringify({
-    eventType,
-    pageUrl: extra.pageUrl ?? window.location.pathname,
-    productId: extra.productId ?? null,
-    sessionId,
-    metadata: extra.metadata ?? null,
-  })
-
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon("/api/analytics", new Blob([payload], { type: "application/json" }))
-  } else {
-    fetch("/api/analytics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: payload,
-      credentials: "include",
-      keepalive: true,
-    }).catch(() => {})
-  }
+  
+  // We don't grab session ID here anymore, it's passed dynamically if tracking is enabled.
 }
 
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useAnalytics() {
+export function useAnalytics(enabled: boolean = true) {
   const pathname = usePathname()
   const lastPathRef = useRef<string | null>(null)
 
+  const _send = useCallback((
+    eventType: string,
+    extra: {
+      pageUrl?: string
+      productId?: number | null
+      metadata?: Record<string, unknown>
+    } = {}
+  ) => {
+    if (typeof window === "undefined" || !enabled) return
+    const sessionId = getSessionId()
+    const payload = JSON.stringify({
+      eventType,
+      pageUrl: extra.pageUrl ?? window.location.pathname,
+      productId: extra.productId ?? null,
+      sessionId,
+      metadata: extra.metadata ?? null,
+    })
+
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/analytics", new Blob([payload], { type: "application/json" }))
+    } else {
+      fetch("/api/analytics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        credentials: "include",
+        keepalive: true,
+      }).catch(() => {})
+    }
+  }, [enabled])
+
   // Automatic page-view tracking on route change
   useEffect(() => {
-    if (pathname === lastPathRef.current) return
+    if (pathname === lastPathRef.current || !enabled) return
     lastPathRef.current = pathname
-    sendEvent("page_view", { pageUrl: pathname })
-  }, [pathname])
+    _send("page_view", { pageUrl: pathname })
+  }, [pathname, enabled, _send])
 
   /** Track an add-to-cart event */
   const trackAddToCart = useCallback(
     (productId: number, productName?: string, price?: number) => {
-      sendEvent("add_to_cart", {
+      _send("add_to_cart", {
         productId,
         metadata: { productName, price },
       })
     },
-    []
+    [_send]
   )
 
   /** Track a product detail page view */
   const trackProductView = useCallback((productId: number, productName?: string) => {
-    sendEvent("product_view", {
+    _send("product_view", {
       productId,
       metadata: { productName },
     })
-  }, [])
+  }, [_send])
 
   /** Track checkout initiation */
   const trackCheckoutStart = useCallback(() => {
-    sendEvent("checkout_start")
-  }, [])
+    _send("checkout_start")
+  }, [_send])
 
   /** Track a completed purchase */
   const trackPurchase = useCallback(
     (orderId: string, total: number) => {
-      sendEvent("purchase", {
+      _send("purchase", {
         metadata: { orderId, total },
       })
     },
-    []
+    [_send]
   )
 
   /** Generic custom event */
   const trackEvent = useCallback(
     (eventType: string, metadata?: Record<string, unknown>) => {
-      sendEvent(eventType, { metadata })
+      _send(eventType, { metadata })
     },
-    []
+    [_send]
   )
 
   return { trackAddToCart, trackProductView, trackCheckoutStart, trackPurchase, trackEvent }

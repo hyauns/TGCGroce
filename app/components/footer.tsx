@@ -3,6 +3,8 @@ import Image from "next/image"
 import { Mail, Phone, MapPin } from "lucide-react"
 import { FooterSocial } from "./footer-social"
 
+import { ManageCookiesButton } from "./manage-cookies-button"
+
 export function Footer() {
   return (
     <footer className="text-white" style={{ backgroundColor: "rgb(241, 245, 249)" }}>
@@ -270,6 +272,8 @@ export function Footer() {
             <Link href="/cookies" className="text-black hover:text-[rgb(37,99,235)] transition-colors text-sm">
               Cookie Policy
             </Link>
+            <span className="text-gray-600">|</span>
+            <ManageCookiesButton />
           </div>
         </div>
       </div>

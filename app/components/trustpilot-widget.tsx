@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Script from 'next/script'
+import { useCookieConsent } from "@/lib/cookie-consent-context"
 
 declare global {
   interface Window {
@@ -13,16 +14,24 @@ declare global {
 
 export function TrustpilotWidget() {
   const ref = useRef<HTMLDivElement>(null)
-
-  const loadTrustpilot = () => {
-    if (window.Trustpilot && ref.current) {
-      window.Trustpilot.loadFromElement(ref.current, true)
-    }
-  }
+  const { preferences } = useCookieConsent()
+  const hasConsent = preferences?.functional === true
 
   useEffect(() => {
-    loadTrustpilot()
-  }, [])
+    const loadTrustpilot = () => {
+      if (hasConsent && window.Trustpilot && ref.current) {
+        window.Trustpilot.loadFromElement(ref.current, true)
+      }
+    }
+
+    if (hasConsent) {
+      loadTrustpilot()
+    }
+  }, [hasConsent])
+
+  if (!hasConsent) {
+    return null
+  }
 
   return (
     <>
