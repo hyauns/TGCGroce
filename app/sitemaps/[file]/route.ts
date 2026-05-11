@@ -3,6 +3,7 @@ import { getSitemapProductsBatch } from "@/lib/repositories/sitemap"
 import { generateSlug } from "@/lib/utils"
 
 export const revalidate = 86400 // Cache for 24 hours
+export const runtime = "nodejs" // Prevent Edge CPU timeout
 
 export async function GET(
   request: Request,
@@ -21,7 +22,7 @@ export async function GET(
     return new Response("Not Found", { status: 404 })
   }
 
-  const SITEMAP_PAGE_SIZE = 20000
+  const SITEMAP_PAGE_SIZE = 5000
   const offset = (page - 1) * SITEMAP_PAGE_SIZE
   
   const products = await getSitemapProductsBatch(offset, SITEMAP_PAGE_SIZE)
@@ -35,7 +36,7 @@ export async function GET(
 
   for (const product of products) {
     // Re-use exact same slug calculation or DB slug
-    const slug = product.slug || generateSlug(product.name)
+    const slug = product.slug
     // Make sure we output ISO string for lastmod
     const lastmod = product.updated_at ? product.updated_at.toISOString() : new Date().toISOString()
     

@@ -1,6 +1,7 @@
 export const revalidate = 3600 // Cache for 1 hour
 // Extend timeout for large feeds (Vercel Pro: 60s, Hobby: 10s)
 export const maxDuration = 60
+export const runtime = "nodejs" // Prevent Edge CPU timeout
 
 import { getFeedConfigurationById, streamFeedProducts, type FeedProductRow } from "@/lib/repositories/feeds"
 import { siteUrl } from "@/lib/site-config"

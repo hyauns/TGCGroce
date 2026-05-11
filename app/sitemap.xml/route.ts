@@ -2,10 +2,11 @@ import { siteUrl } from "@/lib/site-config"
 import { getTotalActiveProductsCount } from "@/lib/repositories/sitemap"
 
 export const revalidate = 86400 // Cache for 24 hours
+export const runtime = "nodejs" // Prevent Edge CPU timeout
 
 export async function GET() {
   const totalProducts = await getTotalActiveProductsCount()
-  const SITEMAP_PAGE_SIZE = 20000
+  const SITEMAP_PAGE_SIZE = 5000
   const totalProductPages = Math.ceil(totalProducts / SITEMAP_PAGE_SIZE)
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`
