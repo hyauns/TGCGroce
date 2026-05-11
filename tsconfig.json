@@ -38,6 +38,8 @@
     "node_modules",
     "scripts",
     "scratch",
-    ".next"
+    ".next",
+    "pgsql",
+    "tmp"
   ]
 }

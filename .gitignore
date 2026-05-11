@@ -31,3 +31,11 @@ next-env.d.ts
 
 /lib/generated/prisma
 scratch/
+
+# Database backups
+db_backups/
+*.dump
+*.sql.gz
+
+pgsql/
+tmp/
