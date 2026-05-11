@@ -117,10 +117,9 @@ export default function TermsOfService() {
                 products, or limit quantities. In case of pricing errors, we may cancel orders and refund payments.
               </p>
 
-              <h3 className="text-xl font-medium text-gray-800 mb-3">5.4 Authenticity Guarantee</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-3">5.4 Product Sourcing</h3>
               <p className="text-gray-700 mb-4">
-                We guarantee the authenticity of all products sold. If you receive a counterfeit item, we will provide a
-                full refund and cover return shipping costs upon verification.
+                We source our products directly from official distributors and authorized suppliers. If you suspect an issue with a product, please contact us for a review and potential replacement or refund.
               </p>
             </section>
 

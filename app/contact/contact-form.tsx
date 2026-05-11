@@ -180,7 +180,7 @@ export default function ContactFormContent() {
         },
         {
           q: "Are your cards authentic?",
-          a: "All our products are sourced directly from official distributors and manufacturers. We guarantee 100% authenticity on all trading card products.",
+          a: "All our products are sourced directly from official distributors and manufacturers.",
         },
       ],
     },
@@ -198,7 +198,7 @@ export default function ContactFormContent() {
         },
         {
           q: "Is my payment information secure?",
-          a: "Yes, we use industry-standard SSL encryption and comply with PCI DSS standards to protect your payment information.",
+          a: "Yes, we use industry-standard security protocols to protect your payment information.",
         },
       ],
     },

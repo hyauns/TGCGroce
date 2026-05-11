@@ -68,7 +68,7 @@ const getStockInfo = (stockQuantity: number) => {
 
 const customerReviews = [
   { name: "Sarah M.",     rating: 5, text: "Amazing security features! I felt completely safe making my purchase. The authenticity guarantee gave me peace of mind.", verified: true },
-  { name: "Mike T.",      rating: 5, text: "Super secure checkout and the cards arrived exactly as described. 100% authentic products as promised!", verified: true },
+  { name: "Mike T.",      rating: 5, text: "Super secure checkout and the cards arrived exactly as described. Very happy with my purchase!", verified: true },
   { name: "Jessica L.",   rating: 5, text: "Love the secure payment process and the return policy is fantastic. Great customer service too!", verified: true },
   { name: "David R.",     rating: 5, text: "Fast shipping, authentic cards, and excellent security. This is my go-to store for TCG products now.", verified: true },
   { name: "Amanda K.",    rating: 5, text: "The delivery calculator is so helpful! Products arrived on time and packaging was perfect. Highly recommend!", verified: true },
@@ -721,7 +721,7 @@ export default function CartPageClient() {
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-blue-600" />
-                      <span>100% authentic products</span>
+                      <span>Verified products</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <RotateCcw className="h-4 w-4 text-purple-600" />

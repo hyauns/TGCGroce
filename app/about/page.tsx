@@ -10,7 +10,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "About TCG Lore - Premium Trading Card Games Store | Our Story & Mission",
   description:
-    "Learn about TCG Lore's mission to provide authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards. Founded in Miami 2019, serving 50,000+ satisfied TCG customers worldwide.",
+    "Learn about TCG Lore's mission to provide trading card products. We serve collectors and players worldwide with clear product information and transparent fulfillment.",
   keywords:
     "TCG Lore history, trading card store Miami, authentic TCG products, Magic Pokemon Yu-Gi-Oh store, collectible card games company",
   openGraph: {
@@ -45,7 +45,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
                   <Users className="w-4 h-4" />
-                  <span>50,000+ Happy TCG Customers</span>
+                  <span>Collectors & Players</span>
                 </div>
                 <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
                   <Award className="w-4 h-4" />
@@ -105,8 +105,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">The Beginning (2019)</h3>
                       <p className="text-gray-600">
-                        Founded in the heart of Miami by lifelong TCG enthusiasts Marcus Chen and Sarah Rodriguez, TCG Lore started as a small local trading card store with a big dream: to create the ultimate
-                        destination for Magic: The Gathering, Pokemon, and Yu-Gi-Oh! collectors.
+                        TCG Lore was created to make trading card shopping clearer for collectors and players. We focus on transparent product pages, visible availability, pre-order timing, support information, and policy details so customers can make informed purchase decisions.
                       </p>
                     </div>
                   </div>
@@ -133,9 +132,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">TCG Community First (Today)</h3>
                       <p className="text-gray-600">
-                        Today, We&apos;re proud to serve over 50,000 trading card collectors worldwide, hosting tournaments,
-                        supporting local game stores, and maintaining our commitment to authenticity and exceptional
-                        customer service for all TCG products.
+                        We serve customers shopping for trading card products online and continue improving the storefront experience around product clarity, support, and fulfillment transparency.
                       </p>
                     </div>
                   </div>
@@ -147,7 +144,7 @@ export default function AboutPage() {
                     <ul className="space-y-3">
                       <li className="flex items-center gap-3">
                         <Shield className="w-5 h-5 text-blue-200" />
-                        <span>100% Authentic Trading Cards Guarantee</span>
+                        <span>Product Sourcing & Review</span>
                       </li>
                       <li className="flex items-center gap-3">
                         <Heart className="w-5 h-5 text-red-300" />
@@ -184,10 +181,9 @@ export default function AboutPage() {
                     <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Shield className="w-8 h-8 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Authenticity</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Product Information</h3>
                     <p className="text-gray-600">
-                      Every trading card product is verified by our expert team. We guarantee the authenticity of every
-                      Magic: The Gathering, Pokemon, and Yu-Gi-Oh! card, pack, and collectible we sell.
+                      Product details, condition, availability, and pre-order timing are reviewed before being shown on the storefront.
                     </p>
                   </CardContent>
                 </Card>

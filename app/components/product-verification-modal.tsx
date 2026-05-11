@@ -276,7 +276,7 @@ export function ProductVerificationModal({ isOpen, onClose, productId, productNa
                   Product Verified Authentic
                 </h4>
                 <p className="text-green-800 text-sm mb-3">
-                  This product has been successfully verified as 100% authentic and officially licensed.
+                  This product has been successfully verified as an officially licensed product.
                 </p>
 
                 <div className="space-y-2 text-left">

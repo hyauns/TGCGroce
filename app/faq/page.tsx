@@ -91,7 +91,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Are your products authentic?",
         answer:
-          "Yes! All our products are 100% authentic and sourced directly from official distributors like Wizards of the Coast, The Pokémon Company, and other authorized suppliers. We guarantee authenticity on all items.",
+          "Yes! We source our products directly from official distributors and authorized suppliers.",
       },
       {
         question: "Do you sell individual cards?",
@@ -158,7 +158,7 @@ const faqData: FAQCategory[] = [
       {
         question: "Is my payment information secure?",
         answer:
-          "We use industry-standard SSL encryption and are PCI DSS compliant. We never store your complete credit card information on our servers - all payment processing is handled by secure, certified payment processors.",
+          "We use industry-standard security protocols to protect your data. We never store your complete credit card information on our servers - all payment processing is handled by secure, certified payment processors.",
       },
       {
         question: "When will I be charged?",
@@ -187,9 +187,9 @@ const faqData: FAQCategory[] = [
           "You can reach us through our Contact page, email us at cs@tcglore.com, or call us at +1 (303) 668-3245 Monday-Friday 9 AM to 6 PM EST. We typically respond to emails within 24 hours.",
       },
       {
-        question: "Do you have a physical store?",
+        question: "Do you operate an offline storefront?",
         answer:
-          "We&apos;re currently an online-only retailer, which allows us to offer competitive prices and a wide selection. However, we do attend major gaming conventions and tournaments - follow our social media for event announcements!",
+          "Currently, TCG Lore operates exclusively as an online storefront. However, we do attend major gaming conventions and tournaments - follow our social media for event announcements!",
       },
       {
         question: "Do you offer bulk discounts?",

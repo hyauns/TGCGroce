@@ -404,7 +404,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
             <div className="flex flex-nowrap items-center justify-between py-3 px-2 md:px-4 bg-green-50 rounded-lg border border-green-200">
               <div className="flex flex-1 items-center justify-center gap-1 md:gap-2">
                 <Shield className="w-3 h-3 md:w-5 md:h-5 text-green-600 shrink-0" />
-                <span className="text-[10px] md:text-sm font-medium text-green-800 leading-tight">100% Authentic</span>
+                <span className="text-[10px] md:text-sm font-medium text-green-800 leading-tight">Verified Product</span>
               </div>
               <div className="flex flex-1 items-center justify-center gap-1 md:gap-2 border-x border-green-200 md:border-x-0">
                 <Shield className="w-3 h-3 md:w-5 md:h-5 text-green-600 shrink-0" />
@@ -583,7 +583,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">100% Authentic</h3>
+              <h3 className="font-semibold text-lg mb-2">Verified Sourcing</h3>
               <p className="text-gray-600 text-sm">
                 All products are sourced directly from official distributors and verified for authenticity.
               </p>
@@ -792,7 +792,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Shield className="w-10 h-10 text-green-600" />
                     </div>
-                    <h3 className="text-2xl font-bold text-green-800 mb-2">100% Authentic Guarantee</h3>
+                    <h3 className="text-2xl font-bold text-green-800 mb-2">Verified Sourcing</h3>
                     <p className="text-gray-600">Every product is verified for authenticity before shipping</p>
                   </div>
 
@@ -952,7 +952,7 @@ export default function ProductPageClient({ product, relatedProducts }: ProductP
                     <div className="flex items-center gap-3">
                       <Shield className="w-8 h-8 text-green-600" />
                       <div>
-                        <h3 className="font-bold text-green-800">100% Authentic Guarantee</h3>
+                        <h3 className="font-bold text-green-800">Verified Sourcing</h3>
                         <p className="text-sm text-gray-600">Every product is verified before shipping</p>
                       </div>
                     </div>

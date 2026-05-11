@@ -357,18 +357,18 @@ export default function ShippingPage() {
               </CardContent>
             </Card>
 
-            {/* Shipping Carriers & Warehouse */}
+            {/* Shipping Carriers & Fulfillment */ }
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <MapPin className="w-6 h-6 text-purple-600" />
-                  Warehouse Location & Shipping Carriers
+                  Fulfillment & Shipping Carriers
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <h4 className="font-bold text-lg">Warehouse Location</h4>
+                    <h4 className="font-bold text-lg">Fulfillment</h4>
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
                       <div className="flex items-start gap-4">
                         <Building className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />

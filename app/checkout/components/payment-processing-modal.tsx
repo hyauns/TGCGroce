@@ -674,7 +674,7 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-blue-800">256-bit SSL</div>
+                    <div className="text-lg font-bold text-blue-800">Secure Payment</div>
                     <div className="text-sm text-blue-600">Military-grade encryption</div>
                   </div>
                 </div>

@@ -60,23 +60,13 @@ export default function PaymentPage() {
   const securityFeatures = [
     {
       icon: Lock,
-      title: "256-bit SSL Encryption",
-      description: "All payment data is encrypted using industry-standard security protocols",
+      title: "Secure Payment Processing",
+      description: "Payments are processed through supported secure payment providers. Customers can review the order total, product details, shipping information, and available payment options before completing checkout.",
     },
     {
       icon: Shield,
-      title: "PCI DSS Compliant",
-      description: "We meet the highest standards for payment card industry security",
-    },
-    {
-      icon: Eye,
-      title: "AI Fraud Detection",
-      description: "Advanced algorithms monitor transactions for suspicious activity",
-    },
-    {
-      icon: Users,
-      title: "Manual Review Process",
-      description: "Our security team reviews flagged orders to prevent fraud",
+      title: "Order Review",
+      description: "Some orders may be reviewed before fulfillment to help protect customers and the business. If additional verification is required, our support team may contact the customer using the contact information provided at checkout.",
     },
   ]
 
@@ -109,7 +99,7 @@ export default function PaymentPage() {
     {
       step: 4,
       title: "Order Processing",
-      description: "Items are picked from our warehouse and carefully packed",
+      description: "Orders are processed through our fulfillment workflow and prepared for shipment after payment and product availability are confirmed.",
       time: "1-2 business days",
     },
     {
@@ -209,8 +199,11 @@ export default function PaymentPage() {
                 <div>
                   <h4 className="font-semibold mb-2">When Will I Be Charged?</h4>
                   <p className="text-gray-600 text-sm">
-                    Your card will only be charged the full order amount when your items are ready to ship and leave
-                    our warehouse facility. <strong>For pre-orders</strong>, payment is processed when the items become available to ship.
+                    Your card will only be charged the full order amount when your items are ready to ship. 
+                    <strong> For pre-orders</strong>, payment is processed when the items become available to ship.
+                  </p>
+                  <p className="text-gray-600 text-sm mt-2">
+                    Pre-order products are clearly labeled on the product page. Release dates and estimated fulfillment timing may change based on supplier or publisher schedules. Customers should review the product page and Pre-Order Policy before placing a pre-order.
                   </p>
                 </div>
               </div>
@@ -251,41 +244,7 @@ export default function PaymentPage() {
             </CardContent>
           </Card>
 
-          {/* Verification Process */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Verification Process</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="bg-blue-100 p-3 rounded-full w-fit mx-auto mb-3">
-                    <CreditCard className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Billing Verification</h4>
-                  <p className="text-sm text-gray-600">
-                    We verify your billing address matches your card&apos;s registered address
-                  </p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-3">
-                    <Eye className="h-6 w-6 text-green-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Pattern Analysis</h4>
-                  <p className="text-sm text-gray-600">
-                    AI algorithms analyze purchase patterns to detect unusual activity
-                  </p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="bg-purple-100 p-3 rounded-full w-fit mx-auto mb-3">
-                    <Users className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold mb-2">Manual Review</h4>
-                  <p className="text-sm text-gray-600">Our security team manually reviews flagged transactions</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Removed Verification Process Section for compliance */}
         </section>
 
         <section id="fulfillment" className="space-y-8">

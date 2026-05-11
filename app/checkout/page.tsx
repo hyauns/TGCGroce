@@ -1913,7 +1913,7 @@ export default function CheckoutPage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                    <span>256-bit SSL encryption</span>
+                    <span>Secure connection</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -1921,7 +1921,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                    <span>PCI DSS compliant</span>
+                    <span>Secure payment processing</span>
                   </div>
                 </div>
               </CardContent>
@@ -2619,7 +2619,7 @@ export default function CheckoutPage() {
                     <div className="space-y-2 sm:space-y-3">
                       <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                         <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                        <span className="font-medium">256-bit SSL encryption</span>
+                        <span className="font-medium">Secure connection</span>
                       </div>
                       <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                         <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />

@@ -311,7 +311,7 @@ export default function PrivacyPolicy() {
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li>General Data Protection Regulation (GDPR)</li>
                 <li>California Consumer Privacy Act (CCPA)</li>
-                <li>Payment Card Industry Data Security Standard (PCI DSS)</li>
+                <li>Standard payment industry security protocols</li>
                 <li>Google Merchant Center policies and guidelines</li>
                 <li>CAN-SPAM Act for email communications</li>
               </ul>

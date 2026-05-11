@@ -685,7 +685,7 @@ export default function ReturnsPage() {
                       <p className="text-sm text-green-800 mb-3">Items with manufacturing defects receive priority:</p>
                       <ul className="text-sm text-green-800 space-y-1">
                         <li>• Free return shipping provided</li>
-                        <li>• Full refund or replacement guaranteed</li>
+                        <li>• Eligible for full refund or replacement</li>
                         <li>• Extended 60-day return window</li>
                         <li>• Expedited processing within 24 hours</li>
                       </ul>

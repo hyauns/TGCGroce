@@ -336,7 +336,7 @@ export default function PreOrderInfoClient({ preOrderProducts }: PreOrderInfoCli
                       step: 6,
                       title: "Product Release",
                       description:
-                        "Once the product is released and arrives at our warehouse, we prepare your order for shipment.",
+                        "Once the product is released and allocated to our inventory, we prepare your order for shipment.",
                       icon: Package,
                       color: "red",
                     },

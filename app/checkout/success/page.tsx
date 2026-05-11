@@ -475,7 +475,7 @@ function CheckoutSuccessContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                   <Lock className="h-10 w-10 text-blue-600 mx-auto mb-3" />
-                  <h4 className="font-semibold text-gray-900 mb-2">256-bit SSL</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Secure Payment</h4>
                   <p className="text-sm text-gray-600">Bank-level encryption protected your transaction</p>
                 </div>
                 <div className="text-center p-4 bg-white rounded-lg shadow-sm">

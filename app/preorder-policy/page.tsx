@@ -41,7 +41,7 @@ export default function PreorderPolicy() {
                   To secure your allocation of highly anticipated products, <strong>your payment method is charged immediately upon placing a pre-order</strong>. 
                 </p>
                 <p>
-                  This immediate charge ensures that your order is prioritized and locked into our system. It allows us to accurately coordinate with our distributors and guarantee your product allocation upon release.
+                  This immediate charge ensures that your order is recorded in our system. It allows us to accurately coordinate with our distributors and manage our inventory allocation upon release.
                 </p>
               </CardContent>
             </Card>

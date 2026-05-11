@@ -665,14 +665,47 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
         </div>
       </section>
 
-      {/* Customer Reviews Section */}
-      <section className="py-20">
+      {/* Why Shop With Us Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-6 text-gray-900">What Our TCG Customers Say</h2>
-            <p className="text-gray-600 text-lg leading-relaxed">
-              Read reviews from satisfied customers who trust us for authentic trading cards
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">Why Shop With TCG Lore</h2>
+            <p className="text-gray-600 text-lg leading-relaxed max-w-3xl mx-auto">
+              We focus on clear product information, pre-order transparency, and support details so collectors and players can shop with confidence.
             </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+            <Card className="bg-gray-50 border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg mb-3">Clear Product Pages</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Product pages show title, price, availability, product type, and pre-order timing where applicable.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gray-50 border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg mb-3">Pre-Order Transparency</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Pre-order items display release timing when available, and our policy explains how pre-order purchases are handled.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gray-50 border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg mb-3">Customer Support</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Our support information is available across the site so customers can contact us about orders, products, and policies.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gray-50 border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg mb-3">Secure Checkout</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Checkout is handled through supported payment providers, and order details are shown before purchase.</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gray-50 border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6 text-center">
+                <h3 className="font-semibold text-lg mb-3">Policy Clarity</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Shipping, returns, privacy, terms, payment, and pre-order policies are available for customers to review.</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* TrustBox widget - Micro Combo */}
