@@ -12,7 +12,7 @@ export async function GET() {
       settings = {
         id: 1,
         hero_title: "Premium Trading Cards & Collectibles Store",
-        hero_subtitle: "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with guaranteed authentic trading card games from the most trusted TCG store.",
+        hero_subtitle: "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with our trading card games.",
         hero_image_url: null,
         logo_url: null,
         favicon_url: null,
@@ -62,7 +62,7 @@ export async function PUT(request: Request) {
     const sql = neon(process.env.DATABASE_URL!);
     
     const heroTitle = body.heroTitle || "Premium Trading Cards & Collectibles Store";
-    const heroSubtitle = body.heroSubtitle || "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with guaranteed authentic trading card games from the most trusted TCG store.";
+    const heroSubtitle = body.heroSubtitle || "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with our trading card games.";
     
     // Perform Upsert on Neon using raw SQL
     const updatedSettings = await sql`

@@ -125,8 +125,8 @@ export async function generateMetadata({ params, searchParams }: ExplorePageProp
   
   // Tối ưu Meta Description CTR: Chứa Power Words, giá min, CTA
   const description = totalCount > 0
-    ? `Shop ${totalCount}+ authentic ${brandName} ${attributeName} cards. Starting at $${minPrice.toFixed(2)}. Fast shipping & guaranteed authenticity. View collection!`
-    : `Shop authentic ${brandName} trading cards featuring ${attributeName}. Fast shipping & guaranteed authenticity. Buy online today!`
+    ? `Shop ${totalCount}+ authentic ${brandName} ${attributeName} cards. Starting at $${minPrice.toFixed(2)}. Fast shipping. View collection!`
+    : `Shop authentic ${brandName} trading cards featuring ${attributeName}. Fast shipping. Buy online today!`
   
   const canonicalUrl = `${siteUrl}/explore/${params.brand}/${params.attribute}${page > 1 ? `?page=${page}` : ''}`
   // Hình ảnh mặc định cho OG

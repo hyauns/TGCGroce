@@ -72,7 +72,7 @@ export function OrderConfirmationTemplate({
               textAlign: "center",
             }}
           >
-            <img src={getLogoUrl()} alt="TCG Lore Operated by A TOY HAULERZ LLC Company Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
+            <img src={getLogoUrl()} alt="TCG Lore Operated by TCG Lore Logo" width="180" style={{ height: "auto", display: "block", margin: "0 auto" }} />
             <p style={{ color: "white", margin: "10px 0 0 0", opacity: 0.9 }}>Order Confirmation</p>
           </div>
 
@@ -209,7 +209,7 @@ export function OrderConfirmationTemplate({
               <a href="tel:+13036683245" style={{ color: "#667eea", textDecoration: "none" }}>+1 (303) 668-3245</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG LORE Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG LORE Operated by TCG Lore. All rights reserved.</p>
           </div>
         </div>
       </body>
@@ -233,7 +233,7 @@ export function getOrderConfirmationText({
   trackingNumber,
 }: OrderConfirmationProps): string {
   return `
-Order Confirmation - TCG Lore Operated by A TOY HAULERZ LLC Company.
+Order Confirmation - TCG Lore Operated by TCG Lore.
 
 Thank you for your order, ${customerName}!
 
@@ -265,12 +265,12 @@ WHAT'S NEXT:
 • You can track your order status in your account
 • Contact us if you have any questions about your order
 
-Thank you for choosing TCG Lore Operated by A TOY HAULERZ LLC Company. for your trading card needs!
+Thank you for choosing TCG Lore Operated by TCG Lore. for your trading card needs!
 
 Best regards,
-The TCG Lore Operated by A TOY HAULERZ LLC Company. Team
+The TCG Lore Operated by TCG Lore. Team
 
-© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
+© 2026 TCG Lore Operated by TCG Lore. All rights reserved.
 Support: cs@tcglore.com | Phone: +1 (303) 668-3245
 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
   `.trim()

@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 mb-4">
-                Welcome to our TCG Lore Operated by A Toy Haulerz LLC Store ("we," "our," or "us"). We are committed to protecting your
+                Welcome to our TCG Lore Operated by TCG Lore Store ("we," "our," or "us"). We are committed to protecting your
                 privacy and ensuring the security of your personal information. This Privacy Policy explains how we
                 collect, use, disclose, and safeguard your information when you visit our website and make purchases
                 from our online store.
@@ -294,7 +294,7 @@ export default function PrivacyPolicy() {
                   <strong>Phone:</strong> <a href="tel:+13036683245">+1 (303) 668-3245</a>
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Mail:</strong> Privacy Officer, A Toy Haulerz LLC, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136, United States
+                  <strong>Mail:</strong> Privacy Officer, TCG Lore, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136, United States
                 </p>
                 <p className="text-gray-700">
                   <strong>Contact Form:</strong>{" "}

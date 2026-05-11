@@ -273,7 +273,7 @@ export default function Loading() {
                 letterSpacing="1.8"
                 opacity="0.7"
               >
-                MYTHIC COLLECTION
+                PREMIUM TRADING CARDS
               </text>
 
               {/* ── Side filigree lines ── */}
@@ -303,7 +303,7 @@ export default function Loading() {
               textTransform: "uppercase",
             }}
           >
-            Shuffling Deck
+            Loading Store
           </span>
 
           {/* Gold pulsing dots */}

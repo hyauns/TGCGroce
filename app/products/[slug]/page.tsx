@@ -155,7 +155,7 @@ export default async function ProductPage({ params }: PageProps) {
       ...(product.isPreOrder && product.preOrderDate ? { "availabilityStarts": product.preOrderDate } : {}),
       "seller": {
         "@type": "Organization",
-        "name": "TOY HAULERZ LLC"
+        "name": "TCG Lore LLC"
       },
       "hasMerchantReturnPolicy": {
         "@type": "MerchantReturnPolicy",

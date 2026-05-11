@@ -421,7 +421,7 @@ export default function PaymentOrdersPage() {
                   <MapPin className="h-6 w-6 text-purple-600" />
                 </div>
                 <h4 className="font-semibold mb-2">Business Office</h4>
-                <p className="text-sm text-gray-600 mb-2">A Toy Haulerz LLC<br/>1757 NORTH CENTRAL AVENUE<br/>FLAGLER BEACH, FL 32136</p>
+                <p className="text-sm text-gray-600 mb-2">TCG Lore<br/>1757 NORTH CENTRAL AVENUE<br/>FLAGLER BEACH, FL 32136</p>
               </div>
             </div>
           </CardContent>

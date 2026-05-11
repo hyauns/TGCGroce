@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
   title: settings.seoTitle || "TCG Lore - Premium Trading Cards, Booster Packs & Collectibles | Authentic TCG Products",
-  description: settings.seoDescription || "Shop authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Fast shipping, guaranteed authenticity, competitive prices.",
+  description: settings.seoDescription || "Shop authentic trading cards, booster packs, and collectibles from Magic: The Gathering, Pokemon, Yu-Gi-Oh!, Disney Lorcana & more. Fast shipping, competitive prices.",
   keywords: settings.seoKeywords || [
     "trading cards", "TCG", "collectibles", "booster packs", "card games",
     "Magic The Gathering", "Pokemon cards", "Yu-Gi-Oh cards", "Disney Lorcana",
@@ -26,9 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
     "TCG store", "card shop", "collectible card games", "booster boxes",
     "pre-order cards", "rare cards", "mint condition cards", "sealed products"
   ].join(", "),
-  authors: [{ name: "A Toy Haulerz LLC", url: siteUrl }],
+  authors: [{ name: "TCG Lore", url: siteUrl }],
   creator: "TCG Lore - Premium Trading Card Games",
-  publisher: "TOY HAULERZ LLC",
+  publisher: "TCG Lore LLC",
   formatDetection: {
     email: false,
     address: false,
@@ -102,7 +102,7 @@ export default async function RootLayout({
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "A Toy Haulerz LLC",
+    "name": "TCG Lore",
     "alternateName": "TCG Lore",
     "url": siteUrl,
     "logo": `${siteUrl}/logo.png`,

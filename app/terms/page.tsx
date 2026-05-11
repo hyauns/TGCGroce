@@ -21,7 +21,7 @@ export default function TermsOfService() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-700 mb-4">
-                Welcome to our TCG Lore Operated by A Toy Haulerz LLC Store ("we," "our," "us," or "Company"). These Terms of Service
+                Welcome to our TCG Lore Operated by TCG Lore Store ("we," "our," "us," or "Company"). These Terms of Service
                 ("Terms") govern your use of our website, mobile application, and services (collectively, the
                 "Service"). By accessing or using our Service, you agree to be bound by these Terms.
               </p>
@@ -343,7 +343,7 @@ export default function TermsOfService() {
                   <strong>Phone:</strong> <a href="tel:+13036683245">+1 (303) 668-3245</a>
                 </p>
                 <p className="text-gray-700 mb-2">
-                  <strong>Mail:</strong> Legal Department, A Toy Haulerz LLC, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136, United States
+                  <strong>Mail:</strong> Legal Department, TCG Lore, 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136, United States
                 </p>
                 <p className="text-gray-700">
                   <strong>Contact Form:</strong>{" "}

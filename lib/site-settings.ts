@@ -21,7 +21,7 @@ export interface SiteSettings {
 const DEFAULTS: SiteSettings = {
   heroTitle: "Premium Trading Cards & Collectibles Store",
   heroSubtitle:
-    "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with guaranteed authentic trading card games from the most trusted TCG store.",
+    "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with our trading card games.",
   heroImageUrl: null,
   logoUrl: null,
   faviconUrl: null,

@@ -718,33 +718,7 @@ export function PaymentProcessingModal({ isOpen, onClose }: PaymentProcessingMod
                 </div>
               </div>
 
-              {/* Premium Trust Badges */}
-              <div className="flex justify-center items-center space-x-8 p-6 bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl border border-gray-200 shadow-inner">
-                <div className="text-center group hover:scale-105 transition-transform duration-300">
-                  <div className="w-24 h-16 bg-white rounded-lg shadow-lg flex items-center justify-center mb-2 group-hover:shadow-xl transition-shadow">
-                    <Image
-                      src="/images/trustwave.png"
-                      alt="Trustwave Trusted Commerce"
-                      width={80}
-                      height={32}
-                      className="h-8 w-auto"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600 font-medium">Verified Merchant</div>
-                </div>
-                <div className="text-center group hover:scale-105 transition-transform duration-300">
-                  <div className="w-24 h-16 bg-white rounded-lg shadow-lg flex items-center justify-center mb-2 group-hover:shadow-xl transition-shadow">
-                    <Image
-                      src="/images/positivessl.png"
-                      alt="PositiveSSL Secured"
-                      width={80}
-                      height={24}
-                      className="h-6 w-auto"
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600 font-medium">SSL Protected</div>
-                </div>
-              </div>
+
             </div>
           )}
 

@@ -85,7 +85,7 @@ export function AdminOrderNotificationTemplate({
           >
             <h1 style={{ color: "white", margin: 0, fontSize: "28px" }}>🚨 New Order Alert</h1>
             <p style={{ color: "white", margin: "10px 0 0 0", opacity: 0.9, fontSize: "16px" }}>
-              TCG Lore Operated by A TOY HAULERZ LLC Company. Admin Dashboard
+              TCG Lore Operated by TCG Lore. Admin Dashboard
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export function AdminOrderNotificationTemplate({
           <div style={{ padding: "30px" }}>
             <h2 style={{ color: "#333", marginTop: 0 }}>New Order Received!</h2>
 
-            <p>A new order has been placed on TCG Lore Operated by A TOY HAULERZ LLC Company. Please review the details below and process accordingly.</p>
+            <p>A new order has been placed on TCG Lore Operated by TCG Lore. Please review the details below and process accordingly.</p>
 
             {/* Order Overview */}
             <div style={{ background: "#f8f9fa", padding: "25px", borderRadius: "8px", margin: "25px 0" }}>
@@ -301,7 +301,7 @@ export function AdminOrderNotificationTemplate({
                   Process Order
                 </a>
                 <a
-                  href={`mailto:${customerEmail}?subject=Your TCG Lore Operated by A TOY HAULERZ LLC Company. Order ${orderNumber}`}
+                  href={`mailto:${customerEmail}?subject=Your TCG Lore Operated by TCG Lore. Order ${orderNumber}`}
                   style={{
                     background: "#ff9800",
                     color: "white",
@@ -319,7 +319,7 @@ export function AdminOrderNotificationTemplate({
             </div>
 
             <p style={{ color: "#666", fontSize: "14px", marginTop: "30px" }}>
-              This is an automated notification from the TCG Lore Operated by A TOY HAULERZ LLC Company. order management system.
+              This is an automated notification from the TCG Lore Operated by TCG Lore. order management system.
             </p>
           </div>
 
@@ -333,12 +333,12 @@ export function AdminOrderNotificationTemplate({
               fontSize: "12px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by A TOY HAULERZ LLC Company. Admin System</p>
+            <p style={{ margin: 0, fontWeight: "bold", fontSize: "13px", color: "#444" }}>TCG Lore Operated by TCG Lore. Admin System</p>
             <p style={{ margin: "4px 0 0 0" }}>
               <a href="mailto:cs@tcglore.com" style={{ color: "#ff6b35", textDecoration: "none" }}>cs@tcglore.com</a>
             </p>
             <p style={{ margin: "4px 0 0 0" }}>1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136</p>
-            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.</p>
+            <p style={{ margin: "8px 0 0 0" }}>© 2026 TCG Lore Operated by TCG Lore. All rights reserved.</p>
             <p style={{ margin: "4px 0 0 0" }}>Generated at {new Date().toLocaleString()}</p>
           </div>
         </div>
@@ -367,7 +367,7 @@ export function getAdminOrderNotificationText({
   priority = "normal",
 }: AdminOrderNotificationProps): string {
   return `
-🚨 NEW ORDER ALERT - TCG Lore Operated by A TOY HAULERZ LLC Company. Admin
+🚨 NEW ORDER ALERT - TCG Lore Operated by TCG Lore. Admin
 
 ${priority !== "normal" ? `${priority.toUpperCase()} PRIORITY ORDER\n` : ""}
 ORDER OVERVIEW:
@@ -405,9 +405,9 @@ QUICK ACTIONS:
 • Process Order: ${process.env.BASE_URL || "http://localhost:3000"}/admin/orders/${orderId}/fulfill
 • Contact Customer: ${customerEmail}
 
-This is an automated notification from the TCG Lore Operated by A TOY HAULERZ LLC Company. order management system.
+This is an automated notification from the TCG Lore Operated by TCG Lore. order management system.
 
-© 2026 TCG Lore Operated by A TOY HAULERZ LLC Company. All rights reserved.
+© 2026 TCG Lore Operated by TCG Lore. All rights reserved.
 Admin: cs@tcglore.com | 1757 NORTH CENTRAL AVENUE, FLAGLER BEACH, FL 32136
 Generated at ${new Date().toLocaleString()}
   `.trim()
