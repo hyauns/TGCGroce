@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { searchProducts } from "@/lib/products"
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+
 /**
  * GET /api/search?q=<query>&limit=<n>
  *
@@ -48,3 +52,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ suggestions: [], products: [] })
   }
 }
+

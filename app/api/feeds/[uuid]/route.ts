@@ -110,7 +110,6 @@ function stripHtml(str: string): string {
 }
 
 import { generateSlug } from "@/lib/utils"
-
 /**
  * Build the product slug from the name.
  */

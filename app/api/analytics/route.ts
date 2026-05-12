@@ -4,7 +4,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 
-const sql = neon(process.env.DATABASE_URL!)
 
 /**
  * POST /api/analytics
@@ -13,6 +12,8 @@ const sql = neon(process.env.DATABASE_URL!)
  * Silent endpoint — always returns 200 so the client never retries.
  */
 export async function POST(request: NextRequest) {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
 
@@ -49,3 +50,4 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ ok: true })
 }
+

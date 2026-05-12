@@ -5,15 +5,14 @@ import { cookies } from "next/headers"
 import { verify } from "jsonwebtoken"
 import { neon } from "@neondatabase/serverless"
 
-// JWT_SECRET is validated at startup by lib/env.ts — never fall back to a default.
-if (!process.env.JWT_SECRET) {
-  throw new Error("[auth/session] FATAL: JWT_SECRET is not set. Set it in your environment.")
-}
-const JWT_SECRET: string = process.env.JWT_SECRET
-const sql = neon(process.env.DATABASE_URL!)
-
 export async function GET(request: NextRequest) {
   try {
+    if (!process.env.JWT_SECRET) {
+      console.error("[auth/session] FATAL: JWT_SECRET is not set. Set it in your environment.")
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
+    }
+    const JWT_SECRET: string = process.env.JWT_SECRET
+    const sql = neon(process.env.DATABASE_URL!)
     const cookieStore = cookies()
     const token = cookieStore.get("auth-token")?.value
 

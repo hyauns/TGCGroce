@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { revalidatePath } from 'next/cache';
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+
 export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
@@ -123,3 +127,4 @@ export async function PUT(request: Request) {
 export async function POST(request: Request) {
   return PUT(request);
 }
+

@@ -5,10 +5,11 @@ import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
 
-const sql = neon(process.env.DATABASE_URL!)
 
 /** GET /api/wishlist — Return all wishlist items for the authenticated user. */
 export async function GET() {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
   const userId = session.userId
@@ -33,6 +34,8 @@ export async function GET() {
 
 /** POST /api/wishlist — Add a product to the wishlist (idempotent). */
 export async function POST(request: NextRequest) {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -56,6 +59,8 @@ export async function POST(request: NextRequest) {
 
 /** DELETE /api/wishlist — Remove a product from the wishlist. */
 export async function DELETE(request: NextRequest) {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -72,3 +77,4 @@ export async function DELETE(request: NextRequest) {
   await sql`DELETE FROM wishlists WHERE user_id = ${userId} AND product_id = ${productId}`
   return NextResponse.json({ success: true })
 }
+

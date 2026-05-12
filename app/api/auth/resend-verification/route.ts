@@ -6,9 +6,10 @@ import { generateVerificationToken } from "@/lib/token-utils"
 import { sendVerificationEmail } from "@/lib/email/send-email"
 import { neon } from "@neondatabase/serverless"
 
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(request: NextRequest) {
+  const sql = neon(process.env.DATABASE_URL!);
+
   try {
     const body = await request.json()
     const { email } = body
@@ -88,3 +89,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+

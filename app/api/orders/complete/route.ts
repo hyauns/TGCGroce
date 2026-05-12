@@ -11,7 +11,6 @@ if (!process.env.JWT_SECRET) {
 }
 
 const JWT_SECRET: string = process.env.JWT_SECRET
-const sql = neon(process.env.DATABASE_URL!)
 
 type SessionPayload = {
   userId: string
@@ -56,7 +55,12 @@ function getOptionalSession(): SessionPayload | null {
   }
 }
 
+function getSqlConnection() {
+  return neon(process.env.DATABASE_URL!)
+}
+
 async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {
+  const sql = getSqlConnection()
   const rows = await sql`
     SELECT
       o.id,
@@ -207,6 +211,8 @@ function buildOrderEmailData(order: OrderRow, body: any): OrderEmailData {
 
 
 export async function GET(request: NextRequest) {
+  const sql = getSqlConnection();
+
   try {
     const { searchParams } = new URL(request.url)
     const orderNumber = searchParams.get("orderNumber")
@@ -274,3 +280,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Failed to retrieve order status" }, { status: 500 })
   }
 }
+

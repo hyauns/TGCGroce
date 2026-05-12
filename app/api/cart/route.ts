@@ -6,13 +6,17 @@ import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
 import { checkCartRateLimit, getClientIP } from "@/lib/rate-limiter"
 
-const sql = neon(process.env.DATABASE_URL!)
+
+function getSqlConnection() {
+  return neon(process.env.DATABASE_URL!)
+}
 
 /**
  * Resolve customers.id (integer) from users.user_id (uuid).
  * The check_customer_or_session constraint requires customer_id OR session_id to be non-null.
  */
 async function getCustomerId(userId: string): Promise<number | null> {
+  const sql = getSqlConnection()
   console.time("[DB] GET Customer ID")
   const [row] = await sql`
     SELECT id FROM customers WHERE user_id = ${userId}::uuid LIMIT 1
@@ -23,6 +27,8 @@ async function getCustomerId(userId: string): Promise<number | null> {
 
 /** GET /api/cart — Return all cart rows for the authenticated user. */
 export async function GET() {
+  const sql = getSqlConnection();
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
   const userId = session.userId
@@ -49,6 +55,8 @@ export async function GET() {
 
 /** POST /api/cart — Upsert a product into the cart (add or increment). */
 export async function POST(request: NextRequest) {
+  const sql = getSqlConnection();
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -104,6 +112,8 @@ export async function POST(request: NextRequest) {
 
 /** PATCH /api/cart — Set an exact quantity (0 = remove). */
 export async function PATCH(request: NextRequest) {
+  const sql = getSqlConnection();
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -159,6 +169,8 @@ export async function PATCH(request: NextRequest) {
 
 /** DELETE /api/cart — Remove a single item, or pass clearAll=true to wipe the cart. */
 export async function DELETE(request: NextRequest) {
+  const sql = getSqlConnection();
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -187,3 +199,4 @@ export async function DELETE(request: NextRequest) {
   }
   return NextResponse.json({ success: true })
 }
+

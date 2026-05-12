@@ -5,9 +5,10 @@ import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
 
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET() {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
   const userId = session.userId
@@ -54,6 +55,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -89,3 +92,4 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
   }
 }
+

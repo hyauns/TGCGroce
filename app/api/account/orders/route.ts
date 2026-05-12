@@ -4,9 +4,10 @@ import { NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 
-const sql = neon(process.env.DATABASE_URL!)
 
 export async function GET() {
+  const sql = neon(process.env.DATABASE_URL!);
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
   const userId = session.userId
@@ -84,3 +85,4 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 })
   }
 }
+

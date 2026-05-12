@@ -5,14 +5,19 @@ import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
 
-const sql = neon(process.env.DATABASE_URL!)
+function getSqlConnection() {
+  return neon(process.env.DATABASE_URL!)
+}
 
 async function getCustomerIdForUser(userId: string): Promise<string | null> {
+  const sql = getSqlConnection()
   const [row] = await sql`SELECT id FROM customers WHERE user_id = ${userId} LIMIT 1`
   return row?.id ? String(row.id) : null
 }
 
 export async function GET() {
+  const sql = getSqlConnection();
+
   const session = await requireSession()
   if (session instanceof NextResponse) return session
 
@@ -38,6 +43,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const sql = getSqlConnection();
+
   const csrfError = assertSameOrigin(request)
   if (csrfError) return csrfError
 
@@ -80,3 +87,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create address" }, { status: 500 })
   }
 }
+

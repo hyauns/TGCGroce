@@ -5,9 +5,12 @@ import { neon } from "@neondatabase/serverless"
 import { requireSession } from "@/lib/auth-guard"
 import { assertSameOrigin } from "@/lib/csrf"
 
-const sql = neon(process.env.DATABASE_URL!)
+function getSqlConnection() {
+  return neon(process.env.DATABASE_URL!)
+}
 
 async function getCustomerIdForUser(userId: string): Promise<string | null> {
+  const sql = getSqlConnection()
   const [row] = await sql`SELECT id FROM customers WHERE user_id = ${userId} LIMIT 1`
   return row?.id ? String(row.id) : null
 }
@@ -26,6 +29,7 @@ export async function DELETE(
   if (!customerId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
+    const sql = getSqlConnection()
     const result = await sql`
       DELETE FROM shipping_addresses
       WHERE id = ${params.addressId} AND customer_id = ${customerId}
@@ -55,6 +59,7 @@ export async function PATCH(
   if (!customerId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   try {
+    const sql = getSqlConnection()
     const body = await request.json()
     const {
       first_name, last_name, company,

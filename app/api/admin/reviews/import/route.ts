@@ -2,6 +2,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { requireAdmin } from "@/lib/auth-guard"
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+
 function getSql() {
   const url =
     process.env.DATABASE_URL ||
@@ -83,3 +87,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to process import payload" }, { status: 500 })
   }
 }
+
