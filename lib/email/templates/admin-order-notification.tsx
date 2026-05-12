@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
+import { getSiteUrl } from "./shared"
 interface AdminOrderNotificationProps {
   orderNumber: string
   orderId: string
@@ -271,7 +272,7 @@ export function AdminOrderNotificationTemplate({
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" }}
               >
                 <a
-                  href={`${process.env.BASE_URL || "http://localhost:3000"}/admin/orders/${orderId}`}
+                  href={`${getSiteUrl()}/admin/orders/${orderId}`}
                   style={{
                     background: "#4caf50",
                     color: "white",
@@ -286,7 +287,7 @@ export function AdminOrderNotificationTemplate({
                   View Order Details
                 </a>
                 <a
-                  href={`${process.env.BASE_URL || "http://localhost:3000"}/admin/orders/${orderId}/fulfill`}
+                  href={`${getSiteUrl()}/admin/orders/${orderId}/fulfill`}
                   style={{
                     background: "#2196f3",
                     color: "white",
@@ -401,8 +402,8 @@ ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}
 ${shippingAddress.country}
 
 QUICK ACTIONS:
-• View Order: ${process.env.BASE_URL || "http://localhost:3000"}/admin/orders/${orderId}
-• Process Order: ${process.env.BASE_URL || "http://localhost:3000"}/admin/orders/${orderId}/fulfill
+• View Order: ${getSiteUrl()}/admin/orders/${orderId}
+• Process Order: ${getSiteUrl()}/admin/orders/${orderId}/fulfill
 • Contact Customer: ${customerEmail}
 
 This is an automated notification from the TCG Lore Operated by TCG Lore. order management system.

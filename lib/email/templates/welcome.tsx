@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
-import { getLogoUrl } from "./shared"
+import { getLogoUrl, getSiteUrl } from "./shared"
 
 interface WelcomeEmailProps {
   firstName: string
@@ -159,7 +159,7 @@ export function WelcomeTemplate({ firstName, email, discountCode, discountAmount
             {/* CTA Button */}
             <div style={{ textAlign: "center", margin: "40px 0" }}>
               <a
-                href={`${process.env.BASE_URL || "http://localhost:3000"}/products`}
+                href={`${getSiteUrl()}/products`}
                 style={{
                   background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   color: "white",
@@ -264,7 +264,7 @@ POPULAR CATEGORIES:
 • Pokemon
 • Yu-Gi-Oh!
 
-Start shopping: ${process.env.BASE_URL || "http://localhost:3000"}/products
+Start shopping: ${getSiteUrl()}/products
 
 If you have any questions, our support team is here to help. Just reply to this email or contact us through your account.
 

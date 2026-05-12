@@ -5,11 +5,13 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export { resend }
 
+import { siteUrl, siteFromEmail } from "@/lib/site-config"
+
 // Configuration constants
 export const EMAIL_CONFIG = {
-  from: process.env.EMAIL_FROM || "TCG Lore Operated by TCG Lore. <cs@tcglore.com>",
+  from: siteFromEmail,
   adminEmail: process.env.ADMIN_EMAIL || "cs@tcglore.com",
-  baseUrl: process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  baseUrl: siteUrl,
   testMode: process.env.NODE_ENV === "development",
 }
 

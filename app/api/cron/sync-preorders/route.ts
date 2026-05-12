@@ -18,8 +18,10 @@ import { syncExpiredPreorders } from "@/lib/products"
  * Only flips `is_pre_order = false`. Does NOT alter price,
  * stock_quantity, or any other column.
  */
+export const runtime = "nodejs"
+
 export async function GET(request: Request) {
-  // ── Auth guard: verify CRON_SECRET ──────────────────────────
+// ── Auth guard: verify CRON_SECRET ──────────────────────────
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret) {
     console.error("[cron/sync-preorders] CRON_SECRET env var is not set")
@@ -30,7 +32,19 @@ export async function GET(request: Request) {
   }
 
   const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  const expectedHeader = `Bearer ${cronSecret}`
+  
+  let isAuthorized = false
+  if (authHeader && authHeader.length === expectedHeader.length) {
+    // Simple constant-time-ish comparison, or use crypto.timingSafeEqual if available
+    const crypto = require("crypto")
+    isAuthorized = crypto.timingSafeEqual(
+      Buffer.from(authHeader),
+      Buffer.from(expectedHeader)
+    )
+  }
+
+  if (!isAuthorized) {
     console.warn("[cron/sync-preorders] Unauthorized cron attempt")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }

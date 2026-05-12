@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable @next/next/no-head-element, @next/next/no-img-element */
-import { getLogoUrl } from "./shared"
+import { getLogoUrl, getSiteUrl } from "./shared"
 
 interface PasswordChangedProps {
   firstName: string
@@ -130,7 +130,7 @@ export function PasswordChangedTemplate({ firstName, email, timestamp, ipAddress
             {/* Contact Support */}
             <div style={{ textAlign: "center", margin: "40px 0" }}>
               <a
-                href={`${process.env.BASE_URL || "https://www.tcglore.com"}/contact`}
+                href={`${getSiteUrl()}/contact`}
                 style={{
                   background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   color: "white",
@@ -218,7 +218,7 @@ SECURITY TIPS:
 • Never share your password with anyone
 • Log out of shared or public computers
 
-Contact Support: ${process.env.BASE_URL || "http://localhost:3000"}/contact
+Contact Support: ${getSiteUrl()}/contact
 
 If you have any questions about your account security, please don't hesitate to contact our support team.
 

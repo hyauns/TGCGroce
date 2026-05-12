@@ -46,8 +46,17 @@ const serverSchema = z.object({
 
   BASE_URL: z
     .string()
-  .url("BASE_URL must be a valid URL (e.g. https://tcglore.com)")
-    .default("http://localhost:3000"),
+    .url("BASE_URL must be a valid URL (e.g. https://tcglore.com)")
+    .transform((val) => val.replace(/\/$/, ""))
+    .optional()
+    .transform((val) => {
+      if (val) return val;
+      if (process.env.NODE_ENV !== "production") return "http://localhost:3000";
+      throw new Error("BASE_URL is missing. Production requires BASE_URL (e.g., https://tcglore.com)");
+    })
+    .refine((val) => process.env.NODE_ENV !== "production" || val.startsWith("https://"), {
+      message: "BASE_URL must use https:// in production",
+    }),
 
   // ── Rate limiting (optional — app degrades gracefully) ────
   UPSTASH_REDIS_REST_URL: z.string().url().optional().or(z.literal("")),
@@ -79,7 +88,17 @@ const serverSchema = z.object({
 // optional keys accordingly.
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_SITE_URL: z.string().url().optional().or(z.literal("")),
+  NEXT_PUBLIC_SITE_URL: z
+    .string()
+    .url("NEXT_PUBLIC_SITE_URL must be a valid URL")
+    .transform((val) => val.replace(/\/$/, ""))
+    .optional()
+    .transform((val) => {
+      if (val) return val;
+      if (process.env.NODE_ENV !== "production") return "http://localhost:3000";
+      console.error("CRITICAL: NEXT_PUBLIC_SITE_URL is missing in production. App may break. Set it to https://tcglore.com");
+      return "";
+    }),
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1).optional().or(z.literal("")),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().or(z.literal("")),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional().or(z.literal("")),

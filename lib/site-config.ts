@@ -20,13 +20,22 @@
  *   □ Remove trailing slash from the value
  */
 
+const isProd = process.env.NODE_ENV === "production"
+
 const rawUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://www.tcglore.com"
+  process.env.BASE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXTAUTH_URL ||
+  (isProd ? "" : "http://localhost:3000")
+
+if (isProd && !rawUrl) {
+  throw new Error("CRITICAL: NEXT_PUBLIC_SITE_URL or BASE_URL is missing in production. You must set the production domain (e.g., https://tcglore.com)");
+}
 
 /**
  * The canonical site root URL with no trailing slash.
- * Example: "https://www.tcglore.com"
+ * Example: "https://tcglore.com"
  */
 export const siteUrl = rawUrl.replace(/\/$/, "")
 

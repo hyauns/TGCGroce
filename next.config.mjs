@@ -2,6 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
   eslint: {
     ignoreDuringBuilds: false,
   },
@@ -33,6 +34,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.beautypremier.store",
       },
     ],
     formats: ["image/avif", "image/webp"],
