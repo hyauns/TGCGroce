@@ -31,6 +31,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# sharp requires libc6-compat on Alpine for native image processing
+RUN apk add --no-cache libc6-compat
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -48,5 +51,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 EXPOSE 3000
+
+# NEXT_SHARP_PATH tells Next.js where to find the sharp native module
+# for image optimization in standalone mode
+ENV NEXT_SHARP_PATH=/app/node_modules/sharp
 
 CMD ["node", "server.js"]
