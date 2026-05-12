@@ -4,6 +4,9 @@ import { neon } from "@neondatabase/serverless"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
 import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
 
+export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
+
 export async function POST(req: Request) {
   const t0 = performance.now()
 
