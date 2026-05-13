@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verify } from "jsonwebtoken"
-import { neon } from "@neondatabase/serverless"
+import { getSql } from "@/lib/db-client"
 import { type OrderEmailData } from "@/lib/email/send-email"
 
 type SessionPayload = {
@@ -52,7 +52,7 @@ type OrderRow = {
 }
 
 function getSqlConnection() {
-  return neon(process.env.DATABASE_URL!)
+  return getSql()
 }
 
 async function getOrderByNumber(orderNumber: string): Promise<OrderRow | null> {

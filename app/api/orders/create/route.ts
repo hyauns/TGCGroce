@@ -3,50 +3,37 @@ export const dynamic = "force-dynamic"
 import { type NextRequest, NextResponse } from "next/server"
 import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
 import { requireSession } from "@/lib/auth-guard"
-import { Pool, type PoolClient } from "@neondatabase/serverless"
+import { getSql } from "@/lib/db-client"
 import { detectCardBrand, encryptPhone, maskPhone, encryptCardNumber, createHash, encryptCvv } from "@/lib/payment-security"
 import { calculateSalesTax } from "@/lib/tax"
 
-let _pool: InstanceType<typeof Pool> | null = null
-function getPool(): InstanceType<typeof Pool> {
-  if (!_pool) {
-    if (!process.env.DATABASE_URL) throw new Error("[orders/create] DATABASE_URL is not set")
-    _pool = new Pool({ connectionString: process.env.DATABASE_URL })
-  }
-  return _pool
-}
-
-async function resolveCustomerId(client: any, userId: string): Promise<string | null> {
+async function resolveCustomerId(sql: any, userId: string): Promise<string | null> {
   if (!userId || userId === "guest") return null
 
-  const existingRes = await client.query(`SELECT id FROM customers WHERE user_id = $1::uuid LIMIT 1`, [userId])
-  if (existingRes.rows.length > 0) return String(existingRes.rows[0].id)
+  const existingRes = await sql`SELECT id FROM customers WHERE user_id = ${userId}::uuid LIMIT 1`
+  if (existingRes.length > 0) return String(existingRes[0].id)
 
-  const userRes = await client.query(
-    `SELECT email, first_name, last_name FROM users WHERE user_id = $1::uuid LIMIT 1`,
-    [userId],
-  )
-  if (userRes.rows.length === 0) return null
+  const userRes = await sql`SELECT email, first_name, last_name FROM users WHERE user_id = ${userId}::uuid LIMIT 1`
+  if (userRes.length === 0) return null
 
-  const userRow = userRes.rows[0]
+  const userRow = userRes[0]
 
-  const createRes = await client.query(
-    `INSERT INTO customers (user_id, email, first_name, last_name, total_orders, total_spent)
-     SELECT $1::uuid, $2, $3, $4, 0, 0
-     WHERE NOT EXISTS (SELECT 1 FROM customers WHERE user_id = $1::uuid)
-     RETURNING id`,
-    [userId, userRow.email, userRow.first_name, userRow.last_name],
-  )
+  const createRes = await sql`
+    INSERT INTO customers (user_id, email, first_name, last_name, total_orders, total_spent)
+    SELECT ${userId}::uuid, ${userRow.email}, ${userRow.first_name}, ${userRow.last_name}, 0, 0
+    WHERE NOT EXISTS (SELECT 1 FROM customers WHERE user_id = ${userId}::uuid)
+    RETURNING id
+  `
 
-  if (createRes.rows.length === 0) {
-    const refetchRes = await client.query(`SELECT id FROM customers WHERE user_id = $1::uuid LIMIT 1`, [userId])
-    return refetchRes.rows.length > 0 ? String(refetchRes.rows[0].id) : null
+  if (createRes.length === 0) {
+    const refetchRes = await sql`SELECT id FROM customers WHERE user_id = ${userId}::uuid LIMIT 1`
+    return refetchRes.length > 0 ? String(refetchRes[0].id) : null
   }
-  return String(createRes.rows[0].id)
+  return String(createRes[0].id)
 }
 
 async function resolveGuestCustomerId(
-  client: any,
+  sql: any,
   email: string,
   firstName: string,
   lastName: string,
@@ -57,19 +44,16 @@ async function resolveGuestCustomerId(
   // The `customers.email` column has a UNIQUE constraint, so there can be at most one.
   // Previously this only checked `user_id IS NULL`, which missed registered users
   // and caused a duplicate-key violation on the subsequent INSERT.
-  const existingRes = await client.query(`SELECT id FROM customers WHERE email = $1 LIMIT 1`, [
-    email,
-  ])
-  if (existingRes.rows.length > 0) return String(existingRes.rows[0].id)
+  const existingRes = await sql`SELECT id FROM customers WHERE email = ${email} LIMIT 1`
+  if (existingRes.length > 0) return String(existingRes[0].id)
 
-  const createRes = await client.query(
-    `INSERT INTO customers (email, first_name, last_name, total_orders, total_spent)
-     VALUES ($1, $2, $3, 0, 0)
-     ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
-     RETURNING id`,
-    [email, firstName, lastName],
-  )
-  return createRes.rows.length > 0 ? String(createRes.rows[0].id) : null
+  const createRes = await sql`
+    INSERT INTO customers (email, first_name, last_name, total_orders, total_spent)
+    VALUES (${email}, ${firstName}, ${lastName}, 0, 0)
+    ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+    RETURNING id
+  `
+  return createRes.length > 0 ? String(createRes[0].id) : null
 }
 
 function sanitizeAddress(raw: Record<string, any>) {
@@ -106,14 +90,13 @@ function isAddressValid(addr: ReturnType<typeof sanitizeAddress>): boolean {
 
 export async function POST(request: NextRequest) {
   const t0 = performance.now()
+  const timings: Record<string, number> = {}
 
   const clientIP = getClientIP(request)
   const rateLimitResult = await checkCheckoutRateLimit(clientIP)
   if (!rateLimitResult.success) {
     return NextResponse.json({ error: "Too many checkout attempts. Please try again later." }, { status: 429 })
   }
-
-  let client: PoolClient | null = null
 
   try {
     const body = await request.json()
@@ -143,360 +126,299 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    client = await getPool().connect()
-    await client.query("BEGIN")
+    const rootSql = getSql()
 
-    async function withSavepoint(
-      spName: string,
-      fn: () => Promise<any>,
-    ): Promise<{ ok: true; result: any } | { ok: false; error: any }> {
-      await client!.query(`SAVEPOINT ${spName}`)
-      try {
-        const result = await fn()
-        await client!.query(`RELEASE SAVEPOINT ${spName}`)
-        return { ok: true, result }
-      } catch (err) {
-        await client!.query(`ROLLBACK TO SAVEPOINT ${spName}`)
-        return { ok: false, error: err }
-      }
-    }
+    // postgres.js transaction — replaces Pool.connect() + BEGIN/COMMIT/ROLLBACK
+    // sql.begin() auto-COMMITs on success, auto-ROLLBACKs on throw.
+    const result = await rootSql.begin(async (sql) => {
+      let t1 = performance.now()
 
-    let serverSubtotal = 0
+      let serverSubtotal = 0
 
-    for (const item of items) {
-      const requestedQuantity = Number(item.quantity)
-      let stockQuantity = 0
-      let isPreOrder = false
-      let stockResolved = false
+      for (const item of items) {
+        const requestedQuantity = Number(item.quantity)
+        let stockQuantity = 0
+        let isPreOrder = false
+        let stockResolved = false
 
-      const invAttempt = await withSavepoint("sp_inv_read", () =>
-        client!.query(
-          `SELECT i.stock_on_hand, p.is_pre_order, p.price
-           FROM products p
-           LEFT JOIN inventory i ON i.product_id = p.id
-           WHERE p.id = $1
-           FOR UPDATE OF p`,
-          [String(item.id)],
-        ),
-      )
-
-      if (invAttempt.ok) {
-        if (invAttempt.result.rows.length === 0) {
-          throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
-        }
-        stockQuantity = Number(invAttempt.result.rows[0].stock_on_hand) || 0
-        isPreOrder = Boolean(invAttempt.result.rows[0].is_pre_order)
-        item.price = Number(invAttempt.result.rows[0].price) || 0
-        stockResolved = true
-      } else {
-        console.warn(`[orders/create] inventory table not found - trying products.stock_quantity for "${item.name}"`)
-
-        const legacyAttempt = await withSavepoint("sp_inv_legacy", () =>
-          client!.query(`SELECT stock_quantity, is_pre_order, price FROM products WHERE id = $1 FOR UPDATE`, [
-            String(item.id),
-          ]),
-        )
-
-        if (legacyAttempt.ok) {
-          if (legacyAttempt.result.rows.length === 0) {
+        // Try inventory table first (with row lock)
+        try {
+          const invRows = await sql`
+            SELECT i.stock_on_hand, p.is_pre_order, p.price
+            FROM products p
+            LEFT JOIN inventory i ON i.product_id = p.id
+            WHERE p.id = ${String(item.id)}
+            FOR UPDATE OF p
+          `
+          if (invRows.length === 0) {
             throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
           }
-          stockQuantity = Number(legacyAttempt.result.rows[0].stock_quantity) || 0
-          isPreOrder = Boolean(legacyAttempt.result.rows[0].is_pre_order)
-          item.price = Number(legacyAttempt.result.rows[0].price) || 0
+          stockQuantity = Number(invRows[0].stock_on_hand) || 0
+          isPreOrder = Boolean(invRows[0].is_pre_order)
+          item.price = Number(invRows[0].price) || 0
           stockResolved = true
-        } else {
-          const existsAttempt = await withSavepoint("sp_inv_exists", () =>
-            client!.query(`SELECT id, is_pre_order, price FROM products WHERE id = $1`, [String(item.id)]),
-          )
+        } catch (invError: any) {
+          // If PRODUCT_NOT_FOUND, re-throw immediately
+          if (invError?.message?.startsWith("PRODUCT_NOT_FOUND:")) throw invError
 
-          if (existsAttempt.ok && existsAttempt.result.rows.length === 0) {
-            throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
-          }
+          console.warn(`[orders/create] inventory table not found - trying products.stock_quantity for "${item.name}"`)
 
-          if (existsAttempt.ok && existsAttempt.result.rows.length > 0) {
-            item.price = Number(existsAttempt.result.rows[0].price) || 0
-          }
+          // Fallback: try products.stock_quantity
+          try {
+            const legacyRows = await sql`
+              SELECT stock_quantity, is_pre_order, price FROM products WHERE id = ${String(item.id)} FOR UPDATE
+            `
+            if (legacyRows.length === 0) {
+              throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
+            }
+            stockQuantity = Number(legacyRows[0].stock_quantity) || 0
+            isPreOrder = Boolean(legacyRows[0].is_pre_order)
+            item.price = Number(legacyRows[0].price) || 0
+            stockResolved = true
+          } catch (legacyError: any) {
+            if (legacyError?.message?.startsWith("PRODUCT_NOT_FOUND:")) throw legacyError
 
-          throw new Error(`INVENTORY_UNAVAILABLE:${item.name}`)
-        }
-      }
-
-      if (!isPreOrder && stockQuantity < requestedQuantity) {
-        throw new Error(`INSUFFICIENT_STOCK:${item.name}`)
-      }
-
-      if (stockResolved) {
-        const deductInv = await withSavepoint("sp_inv_deduct1", () =>
-          client!.query(
-            `UPDATE inventory
-             SET stock_on_hand = GREATEST(0, stock_on_hand - $1)
-             WHERE product_id = $2`,
-            [requestedQuantity, String(item.id)],
-          ),
-        )
-
-        if (!deductInv.ok) {
-          const deductLegacy = await withSavepoint("sp_inv_deduct2", () =>
-            client!.query(
-              `UPDATE products
-               SET stock_quantity = GREATEST(0, stock_quantity - $1)
-               WHERE id = $2`,
-              [requestedQuantity, String(item.id)],
-            ),
-          )
-
-          if (!deductLegacy.ok) {
-            throw new Error(`INVENTORY_WRITE_UNAVAILABLE:${item.name}`)
+            // Final fallback: just check product exists
+            const existsRows = await sql`SELECT id, is_pre_order, price FROM products WHERE id = ${String(item.id)}`
+            if (existsRows.length === 0) {
+              throw new Error(`PRODUCT_NOT_FOUND:${item.name}`)
+            }
+            item.price = Number(existsRows[0].price) || 0
+            throw new Error(`INVENTORY_UNAVAILABLE:${item.name}`)
           }
         }
+
+        if (!isPreOrder && stockQuantity < requestedQuantity) {
+          throw new Error(`INSUFFICIENT_STOCK:${item.name}`)
+        }
+
+        if (stockResolved) {
+          // Try deducting from inventory table first
+          try {
+            await sql`
+              UPDATE inventory
+              SET stock_on_hand = GREATEST(0, stock_on_hand - ${requestedQuantity})
+              WHERE product_id = ${String(item.id)}
+            `
+          } catch {
+            // Fallback: deduct from products.stock_quantity
+            try {
+              await sql`
+                UPDATE products
+                SET stock_quantity = GREATEST(0, stock_quantity - ${requestedQuantity})
+                WHERE id = ${String(item.id)}
+              `
+            } catch {
+              throw new Error(`INVENTORY_WRITE_UNAVAILABLE:${item.name}`)
+            }
+          }
+        }
+
+        serverSubtotal += item.price * requestedQuantity
       }
 
-      serverSubtotal += item.price * requestedQuantity
-    }
+      timings.inventory_check = performance.now() - t1
+      t1 = performance.now()
 
-    const customerEmail: string | null =
-      body.customerEmail ?? body.email ?? rawShipping?.email ?? rawBilling?.email ?? null
+      const customerEmail: string | null =
+        body.customerEmail ?? body.email ?? rawShipping?.email ?? rawBilling?.email ?? null
 
-    let customerId: string | null = null
-    if (userId && userId !== "guest") {
-      customerId = await resolveCustomerId(client, userId)
-    } else if (customerEmail) {
-      const guestFirst = rawShipping?.firstName ?? rawBilling?.firstName ?? "Guest"
-      const guestLast = rawShipping?.lastName ?? rawBilling?.lastName ?? ""
-      customerId = await resolveGuestCustomerId(client, customerEmail, guestFirst, guestLast)
-    }
+      let customerId: string | null = null
+      if (userId && userId !== "guest") {
+        customerId = await resolveCustomerId(sql, userId)
+      } else if (customerEmail) {
+        const guestFirst = rawShipping?.firstName ?? rawBilling?.firstName ?? "Guest"
+        const guestLast = rawShipping?.lastName ?? rawBilling?.lastName ?? ""
+        customerId = await resolveGuestCustomerId(sql, customerEmail, guestFirst, guestLast)
+      }
 
-    const cleanShipping = sanitizeAddress(rawShipping ?? {})
-    const cleanBilling = sanitizeAddress(rawBilling ?? rawShipping ?? {})
+      timings.customer_lookup = performance.now() - t1
+      t1 = performance.now()
 
-    const verifiedTaxAmount = await calculateSalesTax({
-      amount: serverSubtotal,
-      shipping: Number(shippingAmount || 0),
-      toZip: cleanShipping.postal_code,
-      toState: cleanShipping.state,
-      toCity: cleanShipping.city,
-      toCountry: cleanShipping.country,
-    })
+      const cleanShipping = sanitizeAddress(rawShipping ?? {})
+      const cleanBilling = sanitizeAddress(rawBilling ?? rawShipping ?? {})
 
-    const verifiedTotalAmount = serverSubtotal + Number(shippingAmount || 0) + verifiedTaxAmount
-    const formattedTotalAmount = Number(verifiedTotalAmount.toFixed(2))
-    const formattedTaxAmount = Number(verifiedTaxAmount.toFixed(2))
+      const verifiedTaxAmount = await calculateSalesTax({
+        amount: serverSubtotal,
+        shipping: Number(shippingAmount || 0),
+        toZip: cleanShipping.postal_code,
+        toState: cleanShipping.state,
+        toCity: cleanShipping.city,
+        toCountry: cleanShipping.country,
+      })
 
-    const encryptedShipping = encryptAddressPhone(cleanShipping)
-    const encryptedBilling = encryptAddressPhone(cleanBilling)
-    console.log(
-      `[orders/create] Encrypted checkout phone data for shipping ${maskPhone(cleanShipping.phone)} and billing ${maskPhone(cleanBilling.phone)}`,
-    )
+      const verifiedTotalAmount = serverSubtotal + Number(shippingAmount || 0) + verifiedTaxAmount
+      const formattedTotalAmount = Number(verifiedTotalAmount.toFixed(2))
+      const formattedTaxAmount = Number(verifiedTaxAmount.toFixed(2))
 
-    const orderRes = await client.query(
-      `INSERT INTO orders (
-        customer_id, order_number, status,
-        subtotal, tax_amount, shipping_amount, total_amount,
-        payment_status, shipping_address, billing_address, order_date
-      ) VALUES (
-        $1, $2, 'PENDING',
-        $3, $4,
-        $5, $6,
-        'PENDING',
-        $7,
-        $8,
-        NOW()
-      ) RETURNING *`,
-      [
-        customerId ?? "guest",
+      const encryptedShipping = encryptAddressPhone(cleanShipping)
+      const encryptedBilling = encryptAddressPhone(cleanBilling)
+
+      timings.encryption = performance.now() - t1
+      t1 = performance.now()
+
+      console.log(
+        `[orders/create] Encrypted checkout phone data for shipping ${maskPhone(cleanShipping.phone)} and billing ${maskPhone(cleanBilling.phone)}`,
+      )
+
+      const shippingJson = JSON.stringify(encryptedShipping)
+      const billingJson = JSON.stringify(encryptedBilling)
+
+      const orderRes = await sql`
+        INSERT INTO orders (
+          customer_id, order_number, status,
+          subtotal, tax_amount, shipping_amount, total_amount,
+          payment_status, shipping_address, billing_address, order_date
+        ) VALUES (
+          ${customerId ?? "guest"}, ${orderNumber}, 'PENDING',
+          ${serverSubtotal}, ${formattedTaxAmount},
+          ${Number(shippingAmount || 0)}, ${formattedTotalAmount},
+          'PENDING',
+          ${shippingJson},
+          ${billingJson},
+          NOW()
+        ) RETURNING *
+      `
+      const order = orderRes[0]
+
+      timings.insert_order = performance.now() - t1
+      t1 = performance.now()
+
+      for (const item of items) {
+        await sql`
+          INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
+          VALUES (${order.id}, ${String(item.id)}, ${item.name}, ${Number(item.quantity)}, ${Number(item.price)}, ${Number(item.price) * Number(item.quantity)})
+        `
+      }
+
+      timings.insert_line_items = performance.now() - t1
+      t1 = performance.now()
+
+      if (customerId && isAddressValid(cleanShipping)) {
+        await sql`
+          INSERT INTO shipping_addresses (
+            customer_id, first_name, last_name,
+            address_line1, address_line2, city, state,
+            postal_code, country, phone, is_default
+          ) VALUES (${Number(customerId)}, ${cleanShipping.first_name}, ${cleanShipping.last_name}, ${cleanShipping.address_line1}, ${cleanShipping.address_line2}, ${cleanShipping.city}, ${cleanShipping.state}, ${cleanShipping.postal_code}, ${cleanShipping.country}, ${encryptedShipping.phone}, false)
+          ON CONFLICT DO NOTHING
+        `
+      }
+
+      let billingAddressId: string | null = null
+      if (customerId && isAddressValid(cleanBilling)) {
+        const billingRes = await sql`
+          INSERT INTO billing_addresses (
+            customer_id, first_name, last_name,
+            address_line1, address_line2, city, state,
+            postal_code, country
+          ) VALUES (${String(customerId)}, ${cleanBilling.first_name}, ${cleanBilling.last_name}, ${cleanBilling.address_line1}, ${cleanBilling.address_line2}, ${cleanBilling.city}, ${cleanBilling.state}, ${cleanBilling.postal_code}, ${cleanBilling.country})
+          RETURNING id
+        `
+        billingAddressId = billingRes.length > 0 ? String(billingRes[0].id) : null
+      } else if (paymentInfo?.cardNumber && isAddressValid(cleanBilling)) {
+        const billingRes = await sql`
+          INSERT INTO billing_addresses (
+            customer_id, first_name, last_name,
+            address_line1, address_line2, city, state,
+            postal_code, country
+          ) VALUES (${"guest"}, ${cleanBilling.first_name}, ${cleanBilling.last_name}, ${cleanBilling.address_line1}, ${cleanBilling.address_line2}, ${cleanBilling.city}, ${cleanBilling.state}, ${cleanBilling.postal_code}, ${cleanBilling.country})
+          RETURNING id
+        `
+        billingAddressId = billingRes.length > 0 ? String(billingRes[0].id) : null
+      }
+
+      let paymentMethodId: string | null = null
+      if (paymentInfo?.cardNumber) {
+        const rawCard = String(paymentInfo.cardNumber).replace(/\D/g, "")
+        const last4 = rawCard.slice(-4)
+        const brand = detectCardBrand(rawCard)
+        const rawCvv = String(paymentInfo.cvv ?? "")
+
+        const [mm, yy] = String(paymentInfo.expiryDate ?? "").split("/")
+        const expiryMonth = parseInt(mm, 10) || 1
+        const rawYear = parseInt(yy, 10) || 0
+        const expiryYear = rawYear < 100 ? 2000 + rawYear : rawYear
+
+        const pmCustomerId = customerId ?? "guest"
+        const pmUserId = userId && userId !== "guest" ? userId : null
+
+        const encCard = encryptCardNumber(rawCard)
+        const cardHash = createHash(rawCard)
+        const encCvv = encryptCvv("")
+        const cvvHash = createHash("")
+
+        const pmRes = await sql`
+          INSERT INTO payment_methods (
+            user_id, customer_id, billing_address_id,
+            last4, brand, expiry_month, expiry_year,
+            encrypted_card_number, card_number_hash,
+            encrypted_cvv, cvv_hash,
+            is_default
+          ) VALUES (${pmUserId ? String(pmUserId) : null}, ${pmCustomerId}, ${billingAddressId ?? null}, ${last4}, ${brand}, ${expiryMonth}, ${expiryYear}, ${encCard}, ${cardHash}, ${encCvv}, ${cvvHash}, true)
+          ON CONFLICT (customer_id, card_number_hash)
+          DO UPDATE SET
+            last_used = NOW(),
+            is_default = true,
+            billing_address_id = EXCLUDED.billing_address_id
+          RETURNING id
+        `
+        if (pmRes.length === 0) throw new Error("payment_methods INSERT returned no row")
+        paymentMethodId = String(pmRes[0].id)
+      }
+
+      timings.payment_method = performance.now() - t1
+      t1 = performance.now()
+
+      const transactionId = `txn_${Date.now()}_${globalThis.crypto.randomUUID().slice(0, 8)}`
+      if (paymentMethodId) {
+        const txCustomerId = customerId ?? "guest"
+        const gatewayResponse = JSON.stringify({ source: "checkout" })
+        await sql`
+          INSERT INTO payment_transactions (
+            customer_id, payment_method_id, order_id,
+            transaction_id, amount, currency,
+            status, risk_score, gateway_response
+          ) VALUES (${txCustomerId}, ${paymentMethodId}, ${String(order.id)}, ${transactionId}, ${formattedTotalAmount}, 'USD', 'pending', 0, ${gatewayResponse})
+        `
+      }
+
+      if (customerId) {
+        await sql`
+          UPDATE customers
+          SET total_orders    = total_orders + 1,
+              total_spent     = total_spent  + ${formattedTotalAmount},
+              last_order_date = NOW(),
+              updated_at      = NOW()
+          WHERE id = ${customerId}
+        `
+      }
+
+      timings.finalize = performance.now() - t1
+
+      return {
+        order,
         orderNumber,
-        serverSubtotal,
-        formattedTaxAmount,
-        Number(shippingAmount || 0),
-        formattedTotalAmount,
-        JSON.stringify(encryptedShipping),
-        JSON.stringify(encryptedBilling),
-      ],
-    )
-    const order = orderRes.rows[0]
-
-    for (const item of items) {
-      await client.query(
-        `INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          order.id,
-          String(item.id),
-          item.name,
-          Number(item.quantity),
-          Number(item.price),
-          Number(item.price) * Number(item.quantity),
-        ],
-      )
-    }
-
-    if (customerId && isAddressValid(cleanShipping)) {
-      await client.query(
-        `INSERT INTO shipping_addresses (
-          customer_id, first_name, last_name,
-          address_line1, address_line2, city, state,
-          postal_code, country, phone, is_default
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false)
-        ON CONFLICT DO NOTHING`,
-        [
-          Number(customerId),
-          cleanShipping.first_name,
-          cleanShipping.last_name,
-          cleanShipping.address_line1,
-          cleanShipping.address_line2,
-          cleanShipping.city,
-          cleanShipping.state,
-          cleanShipping.postal_code,
-          cleanShipping.country,
-          encryptedShipping.phone,
-        ],
-      )
-    }
-
-    let billingAddressId: string | null = null
-    if (customerId && isAddressValid(cleanBilling)) {
-      const billingRes = await client.query(
-        `INSERT INTO billing_addresses (
-          customer_id, first_name, last_name,
-          address_line1, address_line2, city, state,
-          postal_code, country
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id`,
-        [
-          String(customerId),
-          cleanBilling.first_name,
-          cleanBilling.last_name,
-          cleanBilling.address_line1,
-          cleanBilling.address_line2,
-          cleanBilling.city,
-          cleanBilling.state,
-          cleanBilling.postal_code,
-          cleanBilling.country,
-        ],
-      )
-      billingAddressId = billingRes.rows.length > 0 ? String(billingRes.rows[0].id) : null
-    } else if (paymentInfo?.cardNumber && isAddressValid(cleanBilling)) {
-      const billingRes = await client.query(
-        `INSERT INTO billing_addresses (
-          customer_id, first_name, last_name,
-          address_line1, address_line2, city, state,
-          postal_code, country
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id`,
-        [
-          "guest",
-          cleanBilling.first_name,
-          cleanBilling.last_name,
-          cleanBilling.address_line1,
-          cleanBilling.address_line2,
-          cleanBilling.city,
-          cleanBilling.state,
-          cleanBilling.postal_code,
-          cleanBilling.country,
-        ],
-      )
-      billingAddressId = billingRes.rows.length > 0 ? String(billingRes.rows[0].id) : null
-    }
-
-    let paymentMethodId: string | null = null
-    if (paymentInfo?.cardNumber) {
-      const rawCard = String(paymentInfo.cardNumber).replace(/\D/g, "")
-      const last4 = rawCard.slice(-4)
-      const brand = detectCardBrand(rawCard)
-      const rawCvv = String(paymentInfo.cvv ?? "")
-
-      const [mm, yy] = String(paymentInfo.expiryDate ?? "").split("/")
-      const expiryMonth = parseInt(mm, 10) || 1
-      const rawYear = parseInt(yy, 10) || 0
-      const expiryYear = rawYear < 100 ? 2000 + rawYear : rawYear
-
-      const pmCustomerId = customerId ?? "guest"
-      const pmUserId = userId && userId !== "guest" ? userId : null
-
-      const pmRes = await client.query(
-        `INSERT INTO payment_methods (
-          user_id, customer_id, billing_address_id,
-          last4, brand, expiry_month, expiry_year,
-          encrypted_card_number, card_number_hash,
-          encrypted_cvv, cvv_hash,
-          is_default
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
-        ON CONFLICT (customer_id, card_number_hash) 
-        DO UPDATE SET 
-          last_used = NOW(),
-          is_default = true,
-          billing_address_id = EXCLUDED.billing_address_id
-        RETURNING id`,
-        [
-          pmUserId ? String(pmUserId) : null,
-          pmCustomerId,
-          billingAddressId ?? null,
-          last4,
-          brand,
-          expiryMonth,
-          expiryYear,
-          encryptCardNumber(rawCard),
-          createHash(rawCard),
-          encryptCvv(""),
-          createHash(""),
-        ],
-      )
-      if (pmRes.rows.length === 0) throw new Error("payment_methods INSERT returned no row")
-      paymentMethodId = String(pmRes.rows[0].id)
-    }
-
-    const transactionId = `txn_${Date.now()}_${globalThis.crypto.randomUUID().slice(0, 8)}`
-    if (paymentMethodId) {
-      const txCustomerId = customerId ?? "guest"
-      await client.query(
-        `INSERT INTO payment_transactions (
-          customer_id, payment_method_id, order_id,
-          transaction_id, amount, currency,
-          status, risk_score, gateway_response
-        ) VALUES ($1, $2, $3, $4, $5, 'USD', 'pending', 0, $6)`,
-        [txCustomerId, paymentMethodId, String(order.id), transactionId, formattedTotalAmount, JSON.stringify({ source: "checkout" })],
-      )
-    }
-
-    if (customerId) {
-      await client.query(
-        `UPDATE customers
-         SET total_orders    = total_orders + 1,
-             total_spent     = total_spent  + $1,
-             last_order_date = NOW(),
-             updated_at      = NOW()
-         WHERE id = $2`,
-        [formattedTotalAmount, customerId],
-      )
-    }
-
-    await client.query("COMMIT")
-
-    client.release()
-    client = null
+        transactionId,
+        paymentMethodId,
+      }
+    })
 
     return NextResponse.json({
       success: true,
       order: {
-        id: String(order.id),
-        orderNumber,
-        status: order.status,
-        total: order.total_amount,
-        createdAt: order.order_date,
-        transactionId,
-        paymentMethodId,
+        id: String(result.order.id),
+        orderNumber: result.orderNumber,
+        status: result.order.status,
+        total: result.order.total_amount,
+        createdAt: result.order.order_date,
+        transactionId: result.transactionId,
+        paymentMethodId: result.paymentMethodId,
       },
     })
   } catch (error: any) {
-    if (client) {
-      await client.query("ROLLBACK")
-      client.release()
-      client = null
-    }
-
     const message = error instanceof Error ? error.message : String(error)
-    console.error("Order creation error:", message)
+    console.error("[orders/create] Error:", message)
 
     if (message.startsWith("INSUFFICIENT_STOCK:")) {
       return NextResponse.json(
@@ -516,14 +438,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
   } finally {
-    if (client) {
-      try {
-        client.release()
-      } catch (e) {
-        console.error("Failed to release client:", e)
-      }
-    }
     const t1 = performance.now()
-    console.log("[Perf] Create Order:", t1 - t0, "ms")
+    const total = Math.round(t1 - t0)
+    const breakdown = Object.entries(timings).map(([k, v]) => `${k}=${Math.round(v)}ms`).join(", ")
+    console.log(`[Perf] Create Order: ${total}ms [${breakdown}]`)
   }
 }

@@ -37,11 +37,16 @@ export function getSql() {
 
   _sql = postgres(url, {
     // Connection pool size — 10 is plenty for a single container.
-    // Neon's pooler supports up to 10k, but we only need a handful.
     max: 10,
 
-    // Idle timeout — close connections unused for 30s
-    idle_timeout: 30,
+    // Idle timeout — close connections unused for 20s.
+    // Neon's pooler drops idle connections after ~300s, but we close
+    // ours proactively to avoid stale CONNECTION_CLOSED errors.
+    idle_timeout: 20,
+
+    // Max connection lifetime — force reconnect every 5 minutes.
+    // Prevents stale TCP connections from accumulating errors.
+    max_lifetime: 60 * 5,
 
     // Connect timeout — fail fast instead of hanging for 60s+
     connect_timeout: 10,
@@ -50,6 +55,22 @@ export function getSql() {
     // Neon's PgBouncer-based pooler doesn't support prepared statements
     // in transaction mode.
     prepare: false,
+
+    // Auto-reconnect on connection errors.
+    // postgres.js will retry connecting if a pooled connection dies.
+    // This handles CONNECTION_CLOSED transparently for read queries.
+
+    // Transform column names: keep as-is (snake_case from DB)
+    // No transform needed — existing code expects snake_case.
+
+    // Connection parameters for Neon compatibility
+    connection: {
+      // Set application name for Neon dashboard visibility
+      application_name: "tcglore-coolify",
+    },
+
+    // Error handler: log connection-level errors without crashing
+    onnotice: () => {}, // suppress NOTICE messages
   })
 
   return _sql

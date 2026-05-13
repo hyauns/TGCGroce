@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
+import { getSql } from '@/lib/db-client';
 import { revalidatePath } from 'next/cache';
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = getSql();
     const settingsRows = await sql`SELECT * FROM site_settings WHERE id = 1`;
     let settings = settingsRows[0];
 
@@ -51,7 +51,7 @@ export async function GET() {
       socialYoutube: settings.social_youtube,
     });
   } catch (error: any) {
-    console.error('Error fetching settings:', error);
+    console.error('Error fetching settings:', error?.message || error);
     return NextResponse.json({ error: error?.message || 'Failed to fetch settings' }, { status: 500 });
   }
 }
@@ -63,7 +63,7 @@ export async function PUT(request: Request) {
     // if (!user) return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
 
     const body = await request.json();
-    const sql = neon(process.env.DATABASE_URL!);
+    const sql = getSql();
     
     const heroTitle = body.heroTitle || "Premium Trading Cards & Collectibles Store";
     const heroSubtitle = body.heroSubtitle || "Discover authentic Magic: The Gathering, Pokemon, Yu-Gi-Oh! cards and rare collectibles. Build legendary decks with our trading card games.";
@@ -119,7 +119,7 @@ export async function PUT(request: Request) {
       socialYoutube: settings.social_youtube,
     });
   } catch (error: any) {
-    console.error('Error updating settings:', error);
+    console.error('Error updating settings:', error?.message || error);
     return NextResponse.json({ error: error?.message || 'Failed to update settings' }, { status: 500 });
   }
 }
@@ -127,4 +127,3 @@ export async function PUT(request: Request) {
 export async function POST(request: Request) {
   return PUT(request);
 }
-

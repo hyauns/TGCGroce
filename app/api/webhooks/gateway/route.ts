@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
+import { getSql } from "@/lib/db-client"
 import { getWebhookSecret } from "@/app/actions/settings"
 import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
 
@@ -8,9 +8,7 @@ export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
 function getSqlConnection() {
-  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
-  if (!url) throw new Error("No database connection string. Please check your environment variables.")
-  return neon(url)
+  return getSql()
 }
 type GatewayWebhookPayload = {
   event: string

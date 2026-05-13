@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { checkCheckoutRateLimit, getClientIP } from "@/lib/rate-limiter"
-import { neon } from "@neondatabase/serverless"
+import { getSql } from "@/lib/db-client"
 import { getGatewayProviderSettings } from "@/app/actions/settings"
 import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email/send-email"
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     const config = await getGatewayProviderSettings()
 
-    const sql = neon(process.env.DATABASE_URL!)
+    const sql = getSql()
     const [txRow] = await sql`SELECT amount FROM payment_transactions WHERE transaction_id = ${transactionId}`
     if (!txRow) {
       console.error(`[checkout-process] Transaction ${transactionId} not found`)
