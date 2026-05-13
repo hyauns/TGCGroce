@@ -53,6 +53,7 @@ export interface CategoryMeta {
 interface DbProductRaw {
   id: number
   name: string
+  slug: string | null        // URL slug — populated for all rows
   category: string          // legacy varchar column (still populated)
   category_id: number | null // new FK column (nullable during migration)
   description: string | null
@@ -181,7 +182,7 @@ const PRODUCT_SORT_SQL = `
 // ============================================================
 
 function mapJoinedRowToProduct(row: DbProductJoined): Product {
-  const slug = generateSlug(row.name)
+  const slug = row.slug || generateSlug(row.name)
   const price = Number(row.price) || 0
   const originalPrice = row.original_price ? Number(row.original_price) : undefined
 
@@ -282,14 +283,14 @@ export const getPopularProductSlugs = cache(async function getPopularProductSlug
     if (!sql) return []
 
     const rows = await sql`
-      SELECT p.name
+      SELECT p.slug
       FROM products p
-      WHERE p.is_active = true
+      WHERE p.is_active = true AND p.slug IS NOT NULL
       ${sql.unsafe(PRODUCT_SORT_SQL)}
       LIMIT 20
     `
 
-    return rows.map(r => generateSlug(r.name))
+    return rows.map(r => r.slug)
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       console.error("[products] Error fetching popular product slugs:", error)
@@ -319,7 +320,7 @@ export const getAllProducts = cache(async function getAllProducts(productType?: 
 
       const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands, p.product_type,
@@ -357,7 +358,7 @@ export const getProductById = cache(async function getProductById(id: number): P
 
       const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands,
@@ -385,8 +386,10 @@ export const getProductById = cache(async function getProductById(id: number): P
 
 /**
  * Fetch a single product by its URL slug (derived from name).
- * Performs a full-table scan + in-memory slug match — acceptable because
- * the products table is small. Add a slug column to DB for better perf.
+ *
+ * The slug is computed server-side in PostgreSQL using the same
+ * regexp_replace chain as the JS generateSlug() function, so we
+ * only return the single matching row instead of loading 79K+ rows.
  */
 export const getProductBySlug = cache(async function getProductBySlug(slug: string): Promise<Product | undefined> {
   return profileDbQuery(`getProductBySlug(${slug})`, async () => {
@@ -394,9 +397,11 @@ export const getProductBySlug = cache(async function getProductBySlug(slug: stri
       const sql = getSqlConnection()
       if (!sql) return undefined
 
+      // Replicate generateSlug() in SQL:
+      //   Use the DB `slug` column directly for indexed single-row lookup.
       const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands,
@@ -408,16 +413,15 @@ export const getProductBySlug = cache(async function getProductBySlug(slug: stri
           pr.review_count
         ${sql.unsafe(PRODUCT_JOIN_SQL)}
         WHERE p.is_active = true
+          AND p.slug = ${slug}
+        LIMIT 1
       ` as DbProductJoined[]
 
-      const match = rows.find((r) => generateSlug(r.name) === slug)
-      if (!match) return undefined
+      if (!rows[0]) return undefined
 
-      return mapJoinedRowToProduct(match)
+      return mapJoinedRowToProduct(rows[0])
     } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("[products] Error fetching product by slug:", error)
-      }
+      console.error("[products] Error fetching product by slug:", (error as Error).message)
       return undefined
     }
   })
@@ -436,7 +440,7 @@ export const getProductsByCategory = cache(async function getProductsByCategory(
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+        p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         p.rarity, p.brands,
@@ -529,7 +533,7 @@ export const getProductsByCategorySlug = cache(async function getProductsByCateg
     try {
       const rows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands, p.product_type,
@@ -564,7 +568,7 @@ export const getProductsByCategorySlug = cache(async function getProductsByCateg
 
       const fallbackRows = await sql`
         SELECT
-          p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity,
@@ -696,7 +700,7 @@ export const getProductsPage = cache(async function getProductsPage(options: Get
 
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands, p.product_type,
@@ -780,7 +784,7 @@ export const getFeaturedProducts = cache(async function getFeaturedProducts(): P
       try {
         const featuredRows = await sql`
           SELECT
-            p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
             p.stock_quantity, p.is_active, p.created_at,
             p.is_pre_order, p.release_date,
             p.rarity,
@@ -807,7 +811,7 @@ export const getFeaturedProducts = cache(async function getFeaturedProducts(): P
       // Strategy 2: products with a discount (visible "sale" items make good featured cards)
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands,
@@ -830,7 +834,7 @@ export const getFeaturedProducts = cache(async function getFeaturedProducts(): P
       if (rows.length === 0) {
         const anyRows = await sql`
           SELECT
-            p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
             p.stock_quantity, p.is_active, p.created_at,
             p.is_pre_order, p.release_date,
             p.rarity,
@@ -871,7 +875,7 @@ export const getBestSellingProducts = cache(async function getBestSellingProduct
 
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands,
@@ -894,7 +898,7 @@ export const getBestSellingProducts = cache(async function getBestSellingProduct
       if (rows.length === 0) {
         const anyRows = await sql`
           SELECT
-            p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+            p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
             p.stock_quantity, p.is_active, p.created_at,
             p.is_pre_order, p.release_date,
             p.rarity,
@@ -945,7 +949,7 @@ export const getPreOrderProducts = cache(async function getPreOrderProducts(): P
     try {
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands,
@@ -977,7 +981,7 @@ export const getPreOrderProducts = cache(async function getPreOrderProducts(): P
     try {
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           NULL::boolean AS is_pre_order,
           NULL::date    AS release_date,
@@ -1011,7 +1015,7 @@ export const getPreOrderProducts = cache(async function getPreOrderProducts(): P
     try {
       const rows = await sql`
         SELECT
-          p.id, p.name, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, NULL::text AS description, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_preorder AS is_pre_order,
           NULL::date    AS release_date,
@@ -1061,7 +1065,7 @@ export const getRelatedProducts = cache(async function getRelatedProducts(produc
 
     const rows = await sql`
       SELECT
-        p.id, p.name, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
+        p.id, p.name, p.slug, p.description, p.category, p.category_id, p.price, p.original_price, p.image_url,
         p.stock_quantity, p.is_active, p.created_at,
         p.is_pre_order, p.release_date,
         p.rarity, p.brands,
@@ -1127,7 +1131,7 @@ export const searchProducts = cache(async function searchProducts(query: string,
       // Uses lightweight fields to minimize memory footprint.
       const rows = await sql`
         SELECT
-          p.id, p.name, p.category, p.category_id, p.price, p.original_price, p.image_url,
+          p.id, p.name, p.slug, p.category, p.category_id, p.price, p.original_price, p.image_url,
           p.stock_quantity, p.is_active, p.created_at,
           p.is_pre_order, p.release_date,
           p.rarity, p.brands, p.product_type,
