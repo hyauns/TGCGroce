@@ -685,7 +685,17 @@ function ProductsContent({ dataPromise, activeCategorySlug, activeSearch }: Prod
         product={quickViewProduct}
         isOpen={isQuickViewOpen}
         onClose={() => setIsQuickViewOpen(false)}
-        onAddToCart={(product) => addToCart(product)}
+        onAddToCart={async (product) => {
+          await addItemWithAnimation({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            image: product.image,
+            category: product.category,
+            inStock: product.inStock,
+          })
+        }}
         onWishlistToggle={(product) => handleWishlistToggle(product, { preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent)}
         isInWishlist={quickViewProduct ? isInWishlist(quickViewProduct.id) : false}
       />

@@ -128,7 +128,17 @@ function HomeContent({ dataPromise }: { dataPromise: Promise<[Product[], Product
     }
   }
 
-  const quickViewAddToCart = (product: any) => addToCart(product, false)
+  const quickViewAddToCart = async (product: any) => {
+    await addItemWithAnimation({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      category: product.category,
+      inStock: product.inStock || product.isPreOrder,
+    })
+  }
 
   const handleWishlistToggle = (product: any) => {
     if (isInWishlist(product.id)) {

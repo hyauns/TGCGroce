@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FormattedDescription } from "./formatted-description"
 import { RarityBadge } from "./rarity-badge"
-import { ShoppingCart, Heart, Star, X, Plus, Minus, Clock, Calendar } from "lucide-react"
+import { ShoppingCart, Heart, Star, X, Plus, Minus, Clock, Calendar, Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export interface ProductDetails {
   id: number
@@ -47,12 +48,30 @@ export function QuickViewModal({
   isInWishlist = false,
 }: QuickViewModalProps) {
   const [quantity, setQuantity] = useState(1)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const { toast } = useToast()
 
   if (!product) return null
 
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(product, quantity)
+  const handleAddToCart = async () => {
+    if (!onAddToCart || isAddingToCart) return
+    setIsAddingToCart(true)
+    try {
+      await onAddToCart(product, quantity)
+      toast({
+        title: "Added to your bag",
+        description: product.name,
+        duration: 3000,
+      })
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to add item. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setIsAddingToCart(false)
     }
   }
 
@@ -252,13 +271,23 @@ export function QuickViewModal({
                   <Button
                     size="lg"
                     className={`flex-1 h-10 text-sm font-semibold md:h-12 md:text-base ${
+                      isAddingToCart
+                        ? "opacity-80 cursor-not-allowed"
+                        : ""
+                    } ${
                       product.isPreOrder
                         ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                         : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                     }`}
                     onClick={handleAddToCart}
+                    disabled={isAddingToCart}
                   >
-                    {product.isPreOrder ? (
+                    {isAddingToCart ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 md:h-5 md:w-5 md:mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : product.isPreOrder ? (
                       <>
                         <Clock className="h-4 w-4 mr-1 md:h-5 md:w-5 md:mr-2" />
                         Pre-Order Now
