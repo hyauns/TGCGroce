@@ -37,12 +37,12 @@ const serverSchema = z.object({
   // ── Optional server vars with sensible defaults ───────────
   EMAIL_FROM: z
     .string()
-    .default("TCG Lore Operated by TCG Lore. <cs@tcglore.com>"),
+    .default("TCG Lore Operated by TCG Lore. <orders@email.tcglore.com>"),
 
   ADMIN_EMAIL: z
     .string()
     .email("ADMIN_EMAIL must be a valid email address")
-    .default("cs@tcglore.com"),
+    .default("orders@email.tcglore.com"),
 
   BASE_URL: z
     .string()

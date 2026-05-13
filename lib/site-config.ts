@@ -50,4 +50,4 @@ export const siteName = "TCG Lore"
  * Primary sender email shown to customers.
  */
 export const siteFromEmail =
-  process.env.EMAIL_FROM || "TCG Lore <cs@tcglore.com>"
+  process.env.EMAIL_FROM || "TCG Lore <orders@email.tcglore.com>"
